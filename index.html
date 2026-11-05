@@ -191,6 +191,11 @@
       .seg{display:flex;background:var(--surface2);border:1px solid var(--line);border-radius:13px;padding:.28rem;gap:.28rem;flex-wrap:wrap;}
       .seg button{flex:1;padding:.55rem .4rem;border-radius:10px;font-weight:700;font-size:.92rem;color:var(--ink2);white-space:nowrap;transition:background .15s,color .15s;}
       .seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(10,15,12,.14);}
+      /* Lighting segmented control: a strict 3-column grid so Auto / Light /
+         Dark are always exactly the same width and height, and the selected
+         state (background + shadow only) can never resize a button. */
+      .seg.seg-lighting{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));flex-wrap:nowrap;}
+      .seg.seg-lighting button{min-width:0;width:100%;height:2.6rem;padding:0 .4rem;display:flex;align-items:center;justify-content:center;overflow:hidden;}
       .pickrow{display:flex;flex-wrap:wrap;gap:.45rem;}
       .pick{padding:.5rem .85rem;border-radius:var(--radius-chip);border:1.5px solid var(--line);background:var(--surface);font-weight:600;font-size:.9rem;}
       .pick.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
@@ -245,10 +250,16 @@
       .task-check.done{background:var(--ok);border-color:var(--ok);color:#fff;}
       .steps{margin:.4rem 0 0;padding-left:1.25rem;}
       .steps li{margin-bottom:.35rem;}
-      .swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;}
-      .swatch{border:2px solid var(--line);border-radius:16px;padding:.8rem .7rem;display:flex;flex-direction:column;gap:.5rem;align-items:flex-start;font-weight:700;font-size:.92rem;background:var(--surface);text-align:left;}
-      .swatch.on{border-color:var(--accent);}
-      .swatch .dot{width:1.7rem;height:1.7rem;border-radius:50%;}
+      /* Theme tiles: equal grid tracks (minmax(0,1fr) so a long name like
+         "Claymorphism" can never stretch its column) and one fixed row
+         height, so all 10 tiles are exactly the same width and height —
+         including the lone tile in the last row. The selected ring is a
+         box-shadow on top of the always-present 2px border, so selecting
+         a tile never changes its box size. */
+      .swatches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:6.5rem;gap:.7rem;}
+      .swatch{box-sizing:border-box;width:100%;height:100%;min-width:0;min-height:0;border:2px solid var(--line);border-radius:16px;padding:.8rem .7rem;display:flex;flex-direction:column;gap:.5rem;align-items:flex-start;font-weight:700;font-size:.92rem;line-height:1.3;background:var(--surface);text-align:left;overflow:hidden;overflow-wrap:anywhere;}
+      .swatch.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+      .swatch .dot{width:1.7rem;height:1.7rem;border-radius:50%;flex:none;}
       .empty{border:1.5px dashed var(--line);border-radius:var(--radius-card);padding:1.6rem 1.2rem;text-align:center;color:var(--ink2);background:var(--surface2);}
       /* ---------- What's new: changelog grouped by month, collapsible ----------
          Every entry starts collapsed showing only its main title (plus the
@@ -3725,9 +3736,15 @@ function viewLoading(){
 function render(){
   applySettings();
   const root=$("#root");
-  if(!BOOT.done && !S.onboarded && DB.status==="checking"){ root.innerHTML = viewLoading(); return; }
-  if(!S.onboarded){ root.innerHTML = viewOnboarding(); window.scrollTo(0,0); return; }
-  const p=place(); if(!p){ root.innerHTML=viewOnboarding(); return; }
+  /* Same-view re-renders keep the scroll position exactly: rebuilding
+     #root otherwise drops it (the settings page visibly jumped when a
+     control re-rendered it). View changes are unaffected — their
+     handlers scroll to the top themselves after render() returns. */
+  const _sy = window.scrollY || 0;
+  const _sameView = render._lastView === S.view;
+  if(!BOOT.done && !S.onboarded && DB.status==="checking"){ root.innerHTML = viewLoading(); render._lastView="__loading"; return; }
+  if(!S.onboarded){ root.innerHTML = viewOnboarding(); window.scrollTo(0,0); render._lastView="__onboarding"; return; }
+  const p=place(); if(!p){ root.innerHTML=viewOnboarding(); render._lastView="__onboarding"; return; }
   let body="";
   switch(S.view){
     case "items": body=viewItems(p); break;
@@ -3761,6 +3778,8 @@ function render(){
       '<main class="content">'+dbBannerHtml()+body+'</main>'+
       (hideNav?"":navHtml())+
     '</div>';
+  if(_sameView && _sy) window.scrollTo(0,_sy);
+  render._lastView = S.view;
 }
 function navHtml(){
   const v=S.view;
@@ -4185,7 +4204,7 @@ function viewMore(p){
     '<p class="tiny muted" style="margin:0 0 .4rem">'+esc(t("locNote"))+'</p>'+
     '<div class="label" style="margin:1.1rem 0 .55rem">'+esc(t("colorTheme"))+'</div><div class="swatches">'+
     THEMES.map(th=>'<button class="swatch'+(st.theme===th.id?" on":"")+'" data-act="setTheme" data-id="'+th.id+'"><span class="dot" style="background:'+th.c+'"></span>'+th.name+'</button>').join("")+'</div>'+
-    '<div class="label" style="margin:1.1rem 0 .55rem">'+esc(t("lighting"))+'</div><div class="seg">'+
+    '<div class="label" style="margin:1.1rem 0 .55rem">'+esc(t("lighting"))+'</div><div class="seg seg-lighting">'+
     ["auto","light","dark"].map(m=>'<button class="'+(st.lighting===m?"on":"")+'" data-act="setLighting" data-id="'+m+'">'+esc(t(m==="auto"?"lightAuto":m==="light"?"lightLight":"lightDark"))+'</button>').join("")+'</div>'+
     '<p class="tiny muted" style="margin:.45rem 0 0">'+esc(t("lightingNote"))+'</p>'+
     '<div class="label" style="margin:1.1rem 0 .55rem">'+esc(t("textSize"))+'</div><div class="seg">'+
@@ -5584,8 +5603,15 @@ document.addEventListener("click", e=>{
       if(!msg){ toast("Write a few words first"); break; }
       sendFeedbackFlow(type, msg); break; }
     /* settings */
-    case "setTheme": S.settings.theme=el.dataset.id; render(); break;
-    case "setLighting": S.settings.lighting=el.dataset.id; render(); break;
+    /* Theme & lighting update in place — no render(). Rebuilding the page
+       on every tap destroyed the tapped tile, dropped focus and reset the
+       scroll position (the "page jumps" testers reported, worst when the
+       new theme's fonts reflowed the page). Instead: set the setting,
+       re-apply it (data-theme / data-mode attributes + tokens), and move
+       the selected marker — colors and fonts swap with zero layout or
+       scroll movement. persist() below still saves the choice. */
+    case "setTheme": { const syT=window.scrollY; S.settings.theme=el.dataset.id; applySettings(); document.querySelectorAll('.swatch[data-act="setTheme"]').forEach(b=>b.classList.toggle("on",b.dataset.id===S.settings.theme)); if(window.scrollY!==syT) window.scrollTo(0,syT); break; }
+    case "setLighting": { const syL=window.scrollY; S.settings.lighting=el.dataset.id; applySettings(); const segL=el.parentElement; if(segL) segL.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.id===S.settings.lighting)); if(window.scrollY!==syL) window.scrollTo(0,syL); break; }
     case "setTextSize": S.settings.textSize=+el.dataset.id; render(); break;
     case "setPrintSize": S.settings.printSize=+el.dataset.id; render(); break;
     case "setBold": S.settings.boldLabels = el.dataset.id==="1"; render(); break;
