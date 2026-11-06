@@ -159,7 +159,7 @@
   // ---- Config. The publishable key is designed to be public; the database rules (RLS) are what protect data. ----
   var SUPABASE_URL = "https://ykqnjpgbdwrenilwxkio.supabase.co";
   var SUPABASE_KEY = "sb_publishable_1TrviuurElOjjrQRY56oUg_yzgNwHiR";
-  var AI_MODEL = "gemini-flash-latest";
+  var AI_MODELS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"];
 
   function $(id) { return document.getElementById(id); }
   function setStatus(name, state, text) {
@@ -243,22 +243,26 @@
   });
 
   // ---- Photo AI ----
-  function callAI(parts) {
+  function callAIWith(model, parts) {
     return fetch("/api/gemini", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: AI_MODEL,
+        model: model,
         contents: [{ role: "user", parts: parts }],
         generationConfig: { temperature: 0.2, maxOutputTokens: 400 }
       })
     }).catch(function () {
-      throw new Error("Couldn’t reach the app’s server function (/api/gemini).");
+      var e = new Error("Couldn’t reach the app’s server function (/api/gemini).");
+      e.fatal = true;
+      throw e;
     }).then(function (res) {
       return res.json().catch(function () { return null; }).then(function (body) {
         if (!res.ok) {
           var why = (body && body.error) || ("The photo AI answered with an error (" + res.status + ").");
-          throw new Error(why);
+          var e = new Error(why);
+          e.fatal = res.status === 500; // 500 = key missing, so other models won't help
+          throw e;
         }
         var cands = body && body.candidates;
         var parts2 = cands && cands[0] && cands[0].content && cands[0].content.parts;
@@ -267,6 +271,22 @@
         return text;
       });
     });
+  }
+
+  // Tries each model in turn; if one is busy, the next one gets a go.
+  function callAI(parts) {
+    var i = 0, last = null;
+    function next() {
+      if (i >= AI_MODELS.length) {
+        throw new Error("The photo AI is busy right now. Wait a minute and try again. (" + (last && last.message || "no details") + ")");
+      }
+      return callAIWith(AI_MODELS[i++], parts).catch(function (err) {
+        if (err.fatal) throw err;
+        last = err;
+        return next();
+      });
+    }
+    return next();
   }
 
   function checkAI() {
