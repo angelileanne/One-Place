@@ -192,16 +192,22 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.0", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.1", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
           date: "Nov 6",
+          title: "Stay signed in",
+          detail: "Sign in once and One Place remembers you on this device (untick \u201cKeep me signed in\u201d on a shared phone). Your email is filled in next time, and losing internet no longer signs you out.",
+          isNew: true
+        },
+        {
+          date: "Nov 6",
           title: "Plushie squad: celebrations and a Why page",
           detail: "Finish a task and one of the plushies celebrates (silent, and calmer if your device asks for less motion). Everyone takes turns. A plushie also rotates onto the \u201cWhy I created One Place\u201d button at the bottom of home. Search What\u2019s new to find any fix.",
-          isNew: true
+          isNew: false
         },
         {
           date: "Nov 6",
@@ -492,8 +498,16 @@
   function loadSession() {
     try { var s = JSON.parse(localStorage.getItem(SESSION_KEY)); return s && s.access_token ? s : null; } catch (e) { return null; }
   }
+  function loadSessionAny() {
+    var s = loadSession(); if (s) return s;
+    try { s = JSON.parse(sessionStorage.getItem(SESSION_KEY)); return s && s.access_token ? s : null; } catch (e) { return null; }
+  }
   function saveSession(s) {
-    try { if (s) localStorage.setItem(SESSION_KEY, JSON.stringify(s)); else localStorage.removeItem(SESSION_KEY); } catch (e) {}
+    var keep = true; try { keep = localStorage.getItem("oneplace.keep") !== "0"; } catch (e) {}
+    try {
+      localStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(SESSION_KEY);
+      if (s) (keep ? localStorage : sessionStorage).setItem(SESSION_KEY, JSON.stringify(s));
+    } catch (e) {}
   }
   function setSession(body, user) {
     state.session = {
@@ -520,12 +534,17 @@
       refreshing = authFetch("token?grant_type=refresh_token", { method: "POST", body: JSON.stringify({ refresh_token: s.refresh_token }) })
         .then(function (res) {
           return readJson(res).then(function (b) {
-            if (!res.ok || !b || !b.access_token) throw new Error("Your sign-in expired. Please sign in again.");
+            if (!res.ok || !b || !b.access_token) { var ex = new Error("Your sign-in expired. Please sign in again."); ex.expired = res.status >= 400 && res.status < 500; throw ex; }
             setSession(b);
             return state.session;
           });
         })
-        .then(function (x) { refreshing = null; return x; }, function (e) { refreshing = null; signOutLocal(); throw e; });
+        .then(function (x) { refreshing = null; return x; }, function (e) {
+          refreshing = null;
+          // Only sign out when the server says the sign-in is really over. No internet keeps you signed in.
+          if (e && e.expired) { signOutLocal(); throw e; }
+          throw new Error("Couldn\u2019t reach the sign-in service. Check the internet connection, then try again.");
+        });
     }
     return refreshing;
   }
@@ -587,15 +606,19 @@
     var email = h("input", { type: "email", id: "authEmail", autocomplete: "email", required: true, "data-testid": "auth-email" });
     var pw = h("input", { type: "password", id: "authPw", autocomplete: isNew ? "new-password" : "current-password", minlength: "8", required: true, "data-testid": "auth-password" });
     var submit = h("button", { type: "submit", "data-testid": "auth-submit", text: isNew ? "Create account" : "Sign in" });
+    var keepBox = h("input", { type: "checkbox", id: "authKeep", "data-testid": "auth-keep" });
+    try { keepBox.checked = localStorage.getItem("oneplace.keep") !== "0"; if (localStorage.getItem("oneplace.email")) email.value = localStorage.getItem("oneplace.email"); } catch (e) { keepBox.checked = true; }
 
     var form = h("form", { novalidate: true }, [
       h("label", { class: "field" }, [h("span", { text: "Email" }), email]),
       h("label", { class: "field" }, [h("span", { text: "Password" }), pw, isNew ? h("small", { text: "At least 8 characters." }) : null]),
+      h("label", { style: "display:flex;gap:8px;align-items:center;margin:6px 0" }, [keepBox, h("span", { text: "Keep me signed in on this device" })]),
       submit, msg
     ]);
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var em = email.value.trim(), p = pw.value;
+      try { localStorage.setItem("oneplace.keep", keepBox.checked ? "1" : "0"); if (keepBox.checked) localStorage.setItem("oneplace.email", em); else localStorage.removeItem("oneplace.email"); } catch (e2) {}
       msg.className = "result";
       if (!/^\S+@\S+\.\S+$/.test(em)) { msg.className = "result bad"; msg.textContent = "Type a full email address."; return; }
       if (p.length < 8) { msg.className = "result bad"; msg.textContent = "Choose a password with at least 8 characters."; return; }
@@ -2091,7 +2114,7 @@
   $("buildTag").textContent = BUILD.phase + " · v" + BUILD.version;
   renderChangelog();
   startTranslator();
-  state.session = loadSession();
+  state.session = loadSessionAny();
   takeLinkTokens().then(function (type) {
     if (type === "recovery") return showNewPassword();
     if (state.session) return loadAll();
