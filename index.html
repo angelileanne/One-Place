@@ -2062,6 +2062,9 @@ var PDRAW = {
   pinky: function () { return pShadow() + pWrap(
     pE(78, 186, 17, 9, "#ff9a8a") + pE(122, 186, 17, 9, "#ff9a8a") + pE(100, 124, 62, 62, "#f9c6d6") + pE(40, 130, 15, 30, "#f19ab4", 12) + pE(160, 130, 15, 30, "#f19ab4", -12) + pE(100, 100, 44, 38, "#fff") + pE(100, 66, 8, 11, "#f19ab4") + pE(100, 154, 38, 28, "#fff"),
     pEye(80, 98, 6.5) + pEye(120, 98, 6.5) + '<ellipse cx="100" cy="112" rx="13" ry="9" fill="#ff9a8a"/><ellipse cx="96" cy="109" rx="5" ry="2.6" fill="#fff" opacity=".5"/>' + pCheek(64, 110, "#ff7fa0") + pCheek(136, 110, "#ff7fa0")); },
+  sleepy: function () { return pShadow() + pWrap(
+    pE(66, 186, 21, 12, "#e9efff") + pE(134, 186, 21, 12, "#e9efff") + pE(100, 124, 70, 64, "#8fb3f2") + pE(100, 146, 50, 40, "#fbf4e6") + pE(46, 82, 14, 14, "#8fb3f2") + pE(154, 82, 14, 14, "#8fb3f2") + pE(34, 138, 15, 22, "#86aaee", 18) + pE(166, 138, 15, 22, "#86aaee", -18) + '<path d="M56 74 q44 -58 90 -6 q-44 14 -90 6z" fill="#ffb4c8"/><path d="M56 74 q44 14 90 -6" fill="none" stroke="#fff3f6" stroke-width="7" stroke-linecap="round"/><circle cx="150" cy="48" r="11" fill="#fff3f6"/>',
+    '<path d="M72 106 q10 -9 20 0 M108 106 q10 -9 20 0" stroke="#2c2a4a" stroke-width="3.4" fill="none" stroke-linecap="round"/>' + pCheek(62, 122, "#ff9db8") + pCheek(138, 122, "#ff9db8") + '<path d="M92 122 q8 7 16 0" stroke="#2c2a4a" stroke-width="3" fill="none" stroke-linecap="round"/><text x="150" y="40" font-size="18" font-weight="800" fill="#7f95d6" font-family="system-ui,sans-serif" opacity=".85">z</text>'); },
   duck: function () { return pShadow() + pWrap(
     pE(78, 188, 17, 8, "#ff9b3d") + pE(122, 188, 17, 8, "#ff9b3d") + pE(100, 124, 68, 62, "#ffd93d") + pE(36, 132, 15, 24, "#ffcb2e", 14) + pE(164, 132, 15, 24, "#ffcb2e", -14),
     pEye(76, 112, 7) + pEye(124, 112, 7) + pCheek(60, 130, "#ff9a6a") + pCheek(140, 130, "#ff9a6a") + '<ellipse cx="100" cy="126" rx="15" ry="10" fill="#ff9b3d"/><ellipse cx="96" cy="123" rx="6" ry="3" fill="#fff" opacity=".5"/><path d="M100 76 L90 52 M100 76 L110 52" stroke="#1c1a22" stroke-width="8" stroke-linecap="round"/><text x="124" y="62" font-size="36" font-weight="900" fill="#1c1a22" font-family="system-ui,sans-serif" transform="rotate(14 124 62)">?</text>'); }
@@ -2070,6 +2073,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
 
   var PLUSHIES = [
     { name: "Polar Bear", key: "polar", fx: "snow" },
+    { name: "Sleepy", key: "sleepy", fx: "zzz" },
     { name: "Blueberry", key: "blueberry", fx: "bubbles" },
     { name: "Doobie", key: "koala", fx: "leaves", scene: "koala" },
     { name: "Mewba", key: "mewba", fx: "petals" },
