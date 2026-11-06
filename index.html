@@ -93,7 +93,7 @@
   details.entry:first-of-type { border-top: 0; }
   details.entry summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   details.entry p { margin: 6px 0 0; color: var(--soft); }
-  input[data-testid=whats-new-search] { width: 100%; margin: 6px 0 8px; }
+  input[data-testid=whats-new-search] { width: 100%; margin: 6px 0 8px; min-height: 44px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
   details.wn-month { border-top: 1px solid var(--line); padding: 8px 0; }
   details.wn-month > summary { cursor: pointer; font-weight: 800; min-height: 32px; }
   details.wn-date { margin: 6px 0 0 10px; padding: 6px 0 6px 10px; border-left: 2px solid var(--line); }
@@ -221,6 +221,26 @@
   .pocketlink { position: fixed; z-index: 15; font-size: .72rem; color: var(--soft); background: none; border: 0; text-decoration: underline; padding: 2px 4px; min-height: 0; opacity: .85; }
   .pocketpill { position: fixed; right: 12px; bottom: 12px; z-index: 15; font-size: .78rem; padding: 6px 12px; border-radius: 999px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow); min-height: 0; }
   @media (prefers-reduced-motion: reduce) { .pk, .pk .body, .pk .armR, .pk .armL { animation: none !important; transition: none; } .punchy { transition: none; } }
+  .card { box-shadow: none; border-radius: 16px; }
+  .wrap { gap: 14px; }
+  body { padding-bottom: max(32px, env(safe-area-inset-bottom)); }
+  body[data-nav="1"] { padding-bottom: 96px; }
+  h2 { letter-spacing: -.005em; }
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 18; display: flex; justify-content: center; gap: 4px; padding: 6px 12px max(8px, env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--line); }
+  .tabbar[hidden] { display: none; }
+  .tabbar button { flex: 1; max-width: 140px; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px 8px; border-radius: 14px; background: none; color: var(--soft); font-size: .72rem; font-weight: 700; }
+  .tabbar button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tabbar button svg circle { fill: currentColor; stroke: none; }
+  .tabbar button[aria-current="page"] { color: var(--accent); background: var(--tint); }
+  body[data-nav="1"] .toast-wrap { bottom: 84px; }
+  .pocketpill { bottom: 84px; }
+  .secchips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .secchip { min-height: 44px; padding: 6px 14px; border-radius: 999px; background: var(--tint); color: var(--ink); border: 1px solid var(--line); font-weight: 700; }
+  .secchip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .secpanel { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+  .morelist { display: grid; gap: 10px; }
+  .morelist > details.card { padding: 6px 14px; }
+  .morelist > details.card > summary { min-height: 48px; display: flex; align-items: center; }
   @media (prefers-reduced-motion: reduce) { button, .filebtn { transition: none; } }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -235,13 +255,18 @@
   </section>
   <div class="build noprint" data-testid="build-tag" id="buildTag"></div>
 </div>
+<nav class="tabbar noprint" id="tabbar" data-testid="tabbar" aria-label="Main" hidden>
+  <button type="button" data-tab="home" data-testid="tab-home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></button>
+  <button type="button" data-tab="calendar" data-testid="tab-calendar"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="3"/><path d="M4 10h16M9 3.5v4M15 3.5v4"/></svg><span>Calendar</span></button>
+  <button type="button" data-tab="more" data-testid="tab-more"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg><span>More</span></button>
+</nav>
 <div class="toast-wrap noprint" id="toast"></div>
 <script>
 (function () {
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.8", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.9.0-layout", phase: "Phase 8 · Clean layout trial" };
   var CHANGELOG = [
     {
       month: "November 2026",
@@ -314,7 +339,7 @@
   var SESSION_KEY = "oneplace.session";
   var ROOM_IDEAS = ["Kitchen", "Bathroom", "Bedroom", "Living room", "Garage", "Yard"];
 
-  var state = { rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, rooms: [], items: [], tasks: [], parts: [], entries: [], help: {}, filter: "all", notice: "" };
+  var state = { pendingTab: null, rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, rooms: [], items: [], tasks: [], parts: [], entries: [], help: {}, filter: "all", notice: "" };
 
   // ---- Tiny helpers ----
   function $(id) { return document.getElementById(id); }
@@ -339,6 +364,10 @@
     var app = $("app");
     app.textContent = "";
     [].concat(nodes).forEach(function (n) { if (n) app.appendChild(n); });
+    var tab = state.pendingTab; state.pendingTab = null;
+    var nav = $("tabbar"); nav.hidden = !tab; document.body.setAttribute("data-nav", tab ? "1" : "0");
+    [].forEach.call(nav.querySelectorAll("button"), function (b) { if (b.getAttribute("data-tab") === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+    $("newTitle").closest("section").hidden = tab !== "more";
     window.scrollTo(0, 0);
   }
   // ---- Make it yours: themes, lighting, text size (look only; never changes what the app does) ----
@@ -1031,8 +1060,7 @@
   function longDate(iso) { return parseIso(iso).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }); }
 
   function showCalendar() {
-    state.rerender = showCalendar;
-    $("newTitle").closest("section").hidden = true;
+    state.rerender = showCalendar; state.pendingTab = "calendar";
     var c = state.cal, mode = c.mode, anchor = c.anchor || todayIso(), a = parseIso(anchor), today = todayIso();
     var from, to, title;
     if (mode === "week") {
@@ -1091,10 +1119,7 @@
       showCalendar();
     }
     view([
-      h("header", { class: "noprint" }, [
-        h("h1", { text: "Calendar" }),
-        h("button", { type: "button", class: "quiet small", text: "Back", "data-testid": "cal-back", onclick: showHome })
-      ]),
+      h("header", { class: "noprint" }, [h("h1", { text: "Calendar" })]),
       h("section", { class: "card" }, [
         h("div", { class: "chips noprint", role: "group", "aria-label": "Calendar view" }, [["week", "Week"], ["month", "Month"], ["year", "Year"]].map(function (p) {
           return h("button", { type: "button", class: "chip", "aria-pressed": String(mode === p[0]), text: p[1], "data-testid": "cal-" + p[0], onclick: function () { c.mode = p[0]; showCalendar(); } });
@@ -1552,28 +1577,28 @@
   }
 
   function sectionsCard() {
-    var current = state.sectionOpen || null;
     var box = h("div", { "data-testid": "sections-body" });
     function draw() {
       box.textContent = "";
-      var adding = state.sectionAdding;
-      SECTIONS.forEach(function (sec) {
-        var list = state.entries.filter(function (e) { return e.section === sec.id; });
-        var d = h("details", { class: "sub", "data-testid": "section-" + sec.id });
-        if (state.sectionOpen === sec.id) d.open = true;
-        d.addEventListener("toggle", function () { if (d.open) state.sectionOpen = sec.id; });
-        d.appendChild(h("summary", { text: sec.icon + " " + sec.label + (list.length ? " (" + list.length + ")" : "") }));
-        if (adding === sec.id) d.appendChild(entryForm(sec, function () { state.sectionAdding = null; draw(); }));
-        else {
-          if (!list.length) d.appendChild(h("p", { class: "hint", text: "Nothing here yet." }));
-          list.forEach(function (e) { d.appendChild(entryRow(sec, e)); });
-          d.appendChild(h("div", { class: "actions" }, [h("button", { type: "button", class: "small", "data-testid": "add-" + sec.id, text: "Add a " + sec.one, onclick: function () { state.sectionOpen = sec.id; state.sectionAdding = sec.id; draw(); } })]));
-        }
-        box.appendChild(d);
-      });
+      var open = state.sectionOpen || null;
+      box.appendChild(h("div", { class: "secchips", role: "group", "aria-label": "More to keep track of" }, SECTIONS.map(function (sec) {
+        var n = state.entries.filter(function (e) { return e.section === sec.id; }).length;
+        return h("button", { type: "button", class: "secchip", "aria-pressed": String(open === sec.id), "data-testid": "section-" + sec.id, text: sec.icon + " " + sec.label + (n ? " (" + n + ")" : ""), onclick: function () { state.sectionOpen = open === sec.id ? null : sec.id; state.sectionAdding = null; draw(); } });
+      })));
+      var sec = SECTIONS.filter(function (x) { return x.id === open; })[0];
+      if (!sec) return;
+      var list = state.entries.filter(function (e) { return e.section === sec.id; });
+      var panel = h("div", { class: "secpanel", "data-testid": "section-panel" });
+      if (state.sectionAdding === sec.id) panel.appendChild(entryForm(sec, function () { state.sectionAdding = null; draw(); }));
+      else {
+        if (!list.length) panel.appendChild(h("p", { class: "hint", text: "Nothing here yet." }));
+        list.forEach(function (e) { panel.appendChild(entryRow(sec, e)); });
+        panel.appendChild(h("div", { class: "actions" }, [h("button", { type: "button", class: "small", "data-testid": "add-" + sec.id, text: "Add a " + sec.one, onclick: function () { state.sectionAdding = sec.id; draw(); } })]));
+      }
+      box.appendChild(panel);
     }
     draw();
-    return h("section", { class: "card", "data-testid": "more-sections" }, [h("h2", { text: "More to keep track of" }), h("p", { class: "hint", text: "Vehicles, phones, pets and printers, with their own reminders." }), box]);
+    return h("section", { class: "card", "data-testid": "more-sections" }, [h("h2", { text: "More to keep track of" }), box]);
   }
 
   function signedUrl(path) {
@@ -1617,8 +1642,7 @@
   }
 
   function showHome() {
-    state.rerender = showHome;
-    $("newTitle").closest("section").hidden = false;
+    state.rerender = showHome; state.pendingTab = "home";
     var notice = state.notice; state.notice = "";
     var itemsBox = h("div", { "data-testid": "items-list" });
     var shown = state.items.filter(function (i) { return state.filter === "all" || i.room_id === state.filter; });
@@ -1646,10 +1670,6 @@
     view([
       h("header", {}, [
         h("h1", { text: state.profile.name, "data-testid": "profile-name" }),
-        h("div", { class: "actions", style: "margin-top:0" }, [
-          h("button", { type: "button", class: "quiet small", text: "Calendar", "data-testid": "open-calendar", onclick: showCalendar }),
-          h("button", { type: "button", class: "quiet small", text: "Sign out", "data-testid": "sign-out", onclick: signOut })
-        ])
       ]),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
       attentionCard(),
@@ -1667,14 +1687,21 @@
           ideas.length ? h("div", { class: "chips" }, ideas.map(function (n) { return h("button", { type: "button", class: "chip", text: "+ " + n, onclick: function () { submitRoom(n); } }); })) : null
         ])
       ]),
-      sectionsCard(),
-      styleCard(),
-      countryCard(),
-      whyCard(),
-      feedbackCard(),
-      inviteCard(),
-      connectionsCard()
+      sectionsCard()
     ]);
+  }
+
+  // ---- More: settings, feedback and everything that isn't an everyday action ----
+  function showMore() {
+    state.rerender = showMore; state.pendingTab = "more";
+    var notice = state.notice; state.notice = "";
+    view([
+      h("header", {}, [h("h1", { text: "More" })]),
+      notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
+      h("div", { class: "morelist" }, [styleCard(), countryCard(), whyCard(), feedbackCard(), inviteCard(), connectionsCard()]),
+      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Sign out", "data-testid": "sign-out", onclick: signOut })])
+    ]);
+    $("newTitle").closest("section").hidden = false;
   }
 
   // ---- Connections check (kept so a problem is easy to spot) ----
@@ -2229,7 +2256,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
   function punchySave() { lsSetJson(PUNCHY_KEY, { x: punchy.x, y: punchy.y, pocket: punchy.pocket, seenWave: punchy.seenWave, seenFlip: punchy.seenFlip }); }
   function punchyPlace() {
     var el = punchy.el, w = window.innerWidth, hh = window.innerHeight, size = 64;
-    var x = punchy.x === null ? w - size - 10 : punchy.x * (w - size), y = punchy.y === null ? hh - size - 12 : punchy.y * (hh - size);
+    var x = punchy.x === null ? w - size - 10 : punchy.x * (w - size), y = punchy.y === null ? hh - size - 84 : punchy.y * (hh - size);
     x = Math.max(0, Math.min(w - size, x)); y = Math.max(0, Math.min(hh - size, y));
     el.style.left = x + "px"; el.style.top = y + "px";
     punchyLink(x, y, size);
@@ -2332,6 +2359,10 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
       });
     });
   }
+
+  [].forEach.call(document.querySelectorAll("#tabbar button"), function (b) {
+    b.addEventListener("click", function () { var t = b.getAttribute("data-tab"); if (t === "home") showHome(); else if (t === "calendar") showCalendar(); else showMore(); });
+  });
 
   // ---- Start ----
   $("buildTag").textContent = BUILD.phase + " · v" + BUILD.version;
