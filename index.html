@@ -84,7 +84,7 @@
   details.item summary { cursor: pointer; font-weight: 700; min-height: 36px; display: flex; align-items: center; gap: 8px; }
   details.item .body { padding: 4px 0 8px; display: grid; gap: 8px; }
   .tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-  .tasks li { background: var(--bg); border-radius: 10px; padding: 8px 12px; display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
+  .tasks li { flex-wrap: wrap; background: var(--bg); border-radius: 10px; padding: 8px 12px; display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
   .tasks .t { font-weight: 600; } .tasks .m { color: var(--soft); font-size: .88rem; }
   .tasks label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; width: 100%; }
   .tasks input[type="checkbox"] { width: 22px; height: 22px; margin-top: 2px; flex: none; accent-color: var(--accent); }
@@ -96,33 +96,80 @@
   .new { font-style: italic; text-decoration: underline; color: var(--accent); margin-left: 6px; font-weight: 700; }
   .month { margin: 8px 0 0; font-size: .85rem; color: var(--soft); }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .toast-wrap { position: fixed; left: 0; right: 0; bottom: max(16px, env(safe-area-inset-bottom)); display: flex; justify-content: center; padding: 0 16px; pointer-events: none; z-index: 20; }
+  .toast { pointer-events: auto; background: var(--ink); color: var(--bg); border-radius: 14px; padding: 10px 14px; display: flex; gap: 8px; align-items: center; box-shadow: var(--shadow); font-weight: 600; max-width: 32rem; }
+  .toast button { background: none; color: inherit; text-decoration: underline; padding: 4px 6px; min-height: 36px; border-radius: 8px; }
+  .attn { display: grid; gap: 8px; }
+  .attn-item { background: var(--bg); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; }
+  .attn-item .where { font-size: .82rem; color: var(--soft); font-weight: 700; }
+  .due { font-size: .88rem; font-weight: 700; }
+  .due.over { color: var(--bad); }
+  .tasks .snooze { flex-basis: 100%; }
+  .snooze { display: grid; gap: 8px; padding-top: 6px; border-top: 1px dashed var(--line); }
+  .snooze .chips { margin: 0; }
+  .snooze .custom { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .snooze input[type="date"] { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; min-height: 40px; }
+  .empty { text-align: center; padding: 8px 4px; }
+  .empty h3 { margin: 0 0 4px; font-size: 1.2rem; }
+  .empty p { margin: 0; color: var(--soft); }
+  .cal-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: space-between; margin-bottom: 8px; }
+  .cal-title { font-weight: 800; font-size: 1.15rem; }
+  .cal-month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-dow { font-size: .75rem; font-weight: 700; color: var(--soft); text-align: center; }
+  .cal-cell { min-height: 48px; border: 1px solid var(--line); border-radius: 8px; padding: 3px 4px; font-size: .72rem; overflow-wrap: anywhere; background: var(--bg); }
+  .cal-cell.blank { border-color: transparent; background: none; }
+  .cal-cell.today { border-color: var(--accent); }
+  .cal-cell b { display: block; font-size: .78rem; }
+  .cal-dot { display: block; color: var(--accent); font-size: .6rem; letter-spacing: 1px; line-height: 1.1; }
+  .cal-ev { display: block; background: var(--tint); border-radius: 4px; padding: 0 3px; margin-top: 2px; }
+  .cal-list { display: grid; gap: 6px; }
+  .cal-day { border-top: 1px solid var(--line); padding-top: 6px; }
+  .cal-day h3 { margin: 0; font-size: .95rem; }
+  .cal-day div { font-size: .92rem; }
+  .cal-year { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
+  .muted { color: var(--soft); }
+  @media print {
+    body { background: #fff; color: #000; padding: 0; }
+    .noprint { display: none !important; }
+    .card { box-shadow: none; border: 0; padding: 0; background: #fff; }
+    .cal-cell, .cal-ev { background: #fff; border-color: #999; color: #000; }
+    .cal-dot { color: #000; }
+    .cal-ev { border: 1px solid #bbb; }
+    .cal-title, h2, h3, .muted { color: #000; }
+  }
   @media (prefers-reduced-motion: reduce) { button, .filebtn { transition: none; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div id="app" data-testid="app-shell"></div>
-  <section class="card" aria-labelledby="newTitle" data-testid="whats-new">
+  <section class="card noprint" aria-labelledby="newTitle" data-testid="whats-new">
     <h2 id="newTitle">What’s new</h2>
     <div id="changelog"></div>
   </section>
-  <div class="build" data-testid="build-tag" id="buildTag"></div>
+  <div class="build noprint" data-testid="build-tag" id="buildTag"></div>
 </div>
+<div class="toast-wrap noprint" id="toast"></div>
 <script>
 (function () {
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.2.0", phase: "Phase 2 · Core loop" };
+  var BUILD = { version: "0.3.0", phase: "Phase 3 · Reminders" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
           date: "Nov 5",
-          title: "Sign in, rooms, and Plan my fix",
-          detail: "Sign in with your email, name your home, add rooms, then snap a photo and get a plan. Every suggested task is yours to accept or skip, and nothing is scheduled until you say so.",
+          title: "Reminders and a calendar",
+          detail: "A “Needs attention this month” list on the home screen. Tap Done! (with an Undo), or snooze a task for 1 week, 2 weeks, 1 month, 3 months, or a date you pick. There’s also a weekly, monthly, and yearly calendar you can print.",
           isNew: true
+        },
+        {
+          date: "Nov 5",
+          title: "Sign in, rooms, and Plan my fix",
+          detail: "Sign in with your email, name your home, add rooms, then snap a photo and get a plan. Every suggested task is yours to accept or skip, and nothing is scheduled until you say so."
         },
         {
           date: "Nov 5",
@@ -140,7 +187,7 @@
   var SESSION_KEY = "oneplace.session";
   var ROOM_IDEAS = ["Kitchen", "Bathroom", "Bedroom", "Living room", "Garage", "Yard"];
 
-  var state = { session: null, person: null, profile: null, rooms: [], items: [], tasks: [], filter: "all", notice: "" };
+  var state = { rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, rooms: [], items: [], tasks: [], filter: "all", notice: "" };
 
   // ---- Tiny helpers ----
   function $(id) { return document.getElementById(id); }
@@ -167,6 +214,19 @@
     [].concat(nodes).forEach(function (n) { if (n) app.appendChild(n); });
     window.scrollTo(0, 0);
   }
+  // ---- Dates (all local, as YYYY-MM-DD text) ----
+  function isoOf(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function parseIso(iso) { var p = iso.split("-"); return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])); }
+  function todayIso() { return isoOf(new Date()); }
+  function addDaysIso(iso, n) { var d = parseIso(iso); d.setDate(d.getDate() + n); return isoOf(d); }
+  function addMonthsIso(iso, n) {
+    var d = parseIso(iso), day = d.getDate();
+    d.setDate(1); d.setMonth(d.getMonth() + n);
+    var last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    d.setDate(Math.min(day, last));
+    return isoOf(d);
+  }
+  function diffDays(aIso, bIso) { return Math.round((parseIso(bIso) - parseIso(aIso)) / 86400000); }
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function isoIn(days) {
     var d = new Date();
@@ -490,6 +550,9 @@
   }
 
   function tasksFor(itemId) { return state.tasks.filter(function (t) { return t.item_id === itemId; }); }
+  function itemOf(t) { for (var i = 0; i < state.items.length; i++) if (state.items[i].id === t.item_id) return state.items[i]; return null; }
+  function isSnoozed(t) { return !!t.snoozed_until && t.snoozed_until > todayIso(); }
+  function effDate(t) { return isSnoozed(t) ? t.snoozed_until : t.due_on; }
 
   function acceptTask(task, btn) {
     btn.disabled = true;
@@ -499,18 +562,231 @@
       .catch(function (err) { btn.disabled = false; state.notice = "Couldn’t add that task. " + err.message; showHome(); });
   }
 
+  // ---- Toast with Undo (lives outside #app so it survives re-renders) ----
+  var toastTimer = null;
+  function clearToast() { clearTimeout(toastTimer); $("toast").textContent = ""; }
+  function showToast(message, undoFn) {
+    clearToast();
+    var undo = h("button", { type: "button", "data-testid": "undo-button", text: "Undo" });
+    var box = h("div", { class: "toast", role: "status", "data-testid": "undo-toast" }, [h("span", { text: message + " — " }), undo]);
+    undo.addEventListener("click", function () {
+      undo.disabled = true;
+      undoFn().then(function () { clearToast(); if (state.rerender) state.rerender(); })
+        .catch(function (err) { clearToast(); state.notice = "Couldn’t undo that. " + err.message; if (state.rerender) state.rerender(); });
+    });
+    $("toast").appendChild(box);
+    toastTimer = setTimeout(clearToast, 8000);
+  }
+
+  function snapshot(t) {
+    return { status: t.status, due_on: t.due_on || null, snoozed_until: t.snoozed_until || null, last_done_on: t.last_done_on || null };
+  }
+  function patchTask(t, patch) {
+    return rest("maintenance_tasks?id=eq." + encodeURIComponent(t.id), { method: "PATCH", headers: JSON_ONE, body: JSON.stringify(patch) })
+      .then(function (rows) { Object.assign(t, (rows && rows[0]) || patch); });
+  }
+
+  function markDone(t) {
+    var today = todayIso(), prev = snapshot(t), logId = null;
+    var patch = { last_done_on: today, snoozed_until: null };
+    if (t.repeat_days) patch.due_on = addDaysIso(today, Math.min(t.repeat_days, 3650)); else patch.status = "done";
+    state.snoozing = null;
+    patchTask(t, patch)
+      .then(function () {
+        return rest("maintenance_logs", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ profile_id: state.profile.id, item_id: t.item_id, task_id: t.id, done_on: today }) })
+          .then(function (rows) { logId = rows && rows[0] && rows[0].id; }, function () {});
+      })
+      .then(function () {
+        state.rerender && state.rerender();
+        showToast("Marked done", function () {
+          return patchTask(t, prev).then(function () {
+            if (logId) return rest("maintenance_logs?id=eq." + encodeURIComponent(logId), { method: "DELETE" });
+          });
+        });
+      })
+      .catch(function (err) { state.notice = "Couldn’t mark that done. " + err.message; state.rerender && state.rerender(); });
+  }
+
+  function snoozeTo(t, iso, label) {
+    var prev = snapshot(t);
+    state.snoozing = null;
+    patchTask(t, { snoozed_until: iso })
+      .then(function () {
+        state.rerender && state.rerender();
+        showToast("Snoozed until " + niceDate(iso), function () { return patchTask(t, prev); });
+      })
+      .catch(function (err) { state.notice = "Couldn’t snooze that. " + err.message; state.rerender && state.rerender(); });
+  }
+
+  function snoozePanel(t, tid) {
+    var today = todayIso();
+    var opts = [["1 week", addDaysIso(today, 7)], ["2 weeks", addDaysIso(today, 14)], ["1 month", addMonthsIso(today, 1)], ["3 months", addMonthsIso(today, 3)]];
+    var date = h("input", { type: "date", min: addDaysIso(today, 1), "aria-label": "Snooze until", "data-testid": "snooze-date" });
+    var go = h("button", { type: "button", class: "small", text: "Snooze", "data-testid": "snooze-custom-go" });
+    go.addEventListener("click", function () { if (date.value && date.value > today) snoozeTo(t, date.value); });
+    return h("div", { class: "snooze", "data-testid": tid || "snooze-panel" }, [
+      h("div", { class: "chips" }, opts.map(function (o) {
+        return h("button", { type: "button", class: "chip", text: o[0], onclick: function () { snoozeTo(t, o[1]); } });
+      })),
+      h("div", { class: "custom" }, [h("span", { class: "m", text: "Or pick a date:" }), date, go])
+    ]);
+  }
+
+  function dueText(t) {
+    var d = diffDays(todayIso(), effDate(t));
+    if (d < 0) return { text: "Overdue by " + (-d) + (d === -1 ? " day" : " days"), over: true };
+    if (d === 0) return { text: "Due today", over: false };
+    return { text: "Due " + niceDate(effDate(t)) + " · in " + d + (d === 1 ? " day" : " days"), over: false };
+  }
+
+  function actionButtons(t) {
+    return h("div", { class: "actions", style: "margin-top:0" }, [
+      h("button", { type: "button", class: "small", text: "Done!", "data-testid": "done-button", "aria-label": "Done: " + t.title, onclick: function () { markDone(t); } }),
+      h("button", { type: "button", class: "quiet small", text: "Snooze", "data-testid": "snooze-button", "aria-label": "Snooze: " + t.title, onclick: function () { state.snoozing = state.snoozing === t.id ? null : t.id; showHome(); } })
+    ]);
+  }
+
   function taskRow(t) {
-    var meta = t.status === "active"
-      ? (t.kind === "repair" ? "Repair" : "Upkeep") + " · " + repeatText(t.repeat_days) + (t.due_on ? " · due " + niceDate(t.due_on) : "")
-      : "Suggestion · " + (t.kind === "repair" ? "Repair" : "Upkeep") + " · " + repeatText(t.repeat_days);
+    var meta;
+    if (t.status === "done") meta = "Done" + (t.last_done_on ? " · " + niceDate(t.last_done_on) : "");
+    else if (t.status === "active") meta = (t.kind === "repair" ? "Repair" : "Upkeep") + " · " + repeatText(t.repeat_days) + (isSnoozed(t) ? " · snoozed until " + niceDate(t.snoozed_until) : (t.due_on ? " · due " + niceDate(t.due_on) : ""));
+    else meta = "Suggestion · " + (t.kind === "repair" ? "Repair" : "Upkeep") + " · " + repeatText(t.repeat_days);
     var left = h("div", {}, [h("div", { class: "t", text: t.title }), h("div", { class: "m", text: meta }), t.detail ? h("div", { class: "m", text: t.detail }) : null]);
-    var li = h("li", { "data-testid": t.status === "active" ? "task-active" : "task-suggested" }, [left]);
-    if (t.status !== "active") {
+    var li = h("li", { "data-testid": t.status === "active" ? "task-active" : t.status === "done" ? "task-done" : "task-suggested" }, [left]);
+    if (t.status === "suggested") {
       var btn = h("button", { type: "button", class: "small", text: "Add", "aria-label": "Add " + t.title });
       btn.addEventListener("click", function () { acceptTask(t, btn); });
       li.appendChild(btn);
+    } else if (t.status === "active") {
+      li.appendChild(actionButtons(t));
+      if (state.snoozing === t.id) li.appendChild(snoozePanel(t, "snooze-panel-item"));
     }
     return li;
+  }
+
+  // ---- Needs attention this month ----
+  function attentionCard() {
+    var limit = addDaysIso(todayIso(), 30);
+    var due = state.tasks.filter(function (t) { return t.status === "active" && t.due_on && effDate(t) <= limit && !isSnoozed(t); })
+      .sort(function (a, b) { return effDate(a) < effDate(b) ? -1 : effDate(a) > effDate(b) ? 1 : 0; });
+    var body;
+    if (!due.length) {
+      body = h("div", { class: "empty", "data-testid": "all-caught-up" }, [
+        h("h3", { text: "All caught up!" }),
+        h("p", { text: "Nothing is overdue or coming up. Add items, vehicles, pets, or a phone plan and their reminders will land here. Enjoy your free time!" })
+      ]);
+    } else {
+      body = h("div", { class: "attn" }, due.map(function (t) {
+        var it = itemOf(t), d = dueText(t);
+        var box = h("div", { class: "attn-item", "data-testid": "attention-item" }, [
+          it ? h("div", { class: "where", text: it.name + " — " + roomName(it.room_id) }) : null,
+          h("div", { class: "t", style: "font-weight:600", text: t.title }),
+          h("div", { class: "due" + (d.over ? " over" : ""), text: d.text }),
+          actionButtons(t)
+        ]);
+        if (state.snoozing === t.id) box.appendChild(snoozePanel(t));
+        return box;
+      }));
+    }
+    return h("section", { class: "card", "data-testid": "needs-attention", "aria-labelledby": "attnTitle" }, [h("h2", { id: "attnTitle", text: "Needs attention this month" }), body]);
+  }
+
+  // ---- Calendar ----
+  function eventsBetween(fromIso, toIso) {
+    var out = [];
+    state.tasks.forEach(function (t) {
+      if (t.status !== "active" || !t.due_on) return;
+      var d = effDate(t), r = t.repeat_days;
+      if (r && d < fromIso) d = addDaysIso(d, Math.ceil(diffDays(d, fromIso) / r) * r);
+      for (var n = 0; n < 400 && d <= toIso; n++) {
+        if (d >= fromIso) out.push({ date: d, task: t });
+        if (!r) break;
+        d = addDaysIso(d, r);
+      }
+    });
+    return out.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+  }
+  function evLabel(e) { var it = itemOf(e.task); return (it ? it.name + ": " : "") + e.task.title; }
+  function longDate(iso) { return parseIso(iso).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }); }
+
+  function showCalendar() {
+    state.rerender = showCalendar;
+    $("newTitle").closest("section").hidden = true;
+    var c = state.cal, mode = c.mode, anchor = c.anchor || todayIso(), a = parseIso(anchor), today = todayIso();
+    var from, to, title;
+    if (mode === "week") {
+      from = addDaysIso(anchor, -a.getDay()); to = addDaysIso(from, 6);
+      title = "Week of " + niceDate(from) + " – " + niceDate(to) + ", " + parseIso(to).getFullYear();
+    } else if (mode === "year") {
+      from = a.getFullYear() + "-01-01"; to = a.getFullYear() + "-12-31"; title = String(a.getFullYear());
+    } else {
+      from = a.getFullYear() + "-" + pad(a.getMonth() + 1) + "-01";
+      to = isoOf(new Date(a.getFullYear(), a.getMonth() + 1, 0));
+      title = a.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    }
+    var evs = eventsBetween(from, to);
+    var body;
+    function byDay() {
+      var map = {};
+      evs.forEach(function (e) { (map[e.date] = map[e.date] || []).push(e); });
+      return map;
+    }
+    var map = byDay();
+    if (mode === "month") {
+      var cells = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(function (n) { return h("div", { class: "cal-dow", text: n }); });
+      var first = parseIso(from), last = parseIso(to).getDate();
+      for (var b = 0; b < first.getDay(); b++) cells.push(h("div", { class: "cal-cell blank" }));
+      for (var day = 1; day <= last; day++) {
+        var iso = from.slice(0, 8) + pad(day);
+        cells.push(h("div", { class: "cal-cell" + (iso === today ? " today" : "") }, [h("b", { text: String(day) }), (map[iso] || []).length ? h("span", { class: "cal-dot", "aria-hidden": "true", text: "●".repeat(Math.min(map[iso].length, 4)) }) : null]));
+      }
+      body = h("div", {}, [
+        h("div", { class: "cal-month", "data-testid": "cal-month" }, cells),
+        h("div", { class: "cal-list", style: "margin-top:12px", "data-testid": "cal-month-list" }, evs.length
+          ? evs.map(function (e) { return h("div", { class: "cal-day" }, [h("div", { text: niceDate(e.date) + " — " + evLabel(e) })]); })
+          : [h("div", { class: "muted", text: "Nothing planned this month." })])
+      ]);
+    } else if (mode === "week") {
+      var days = [];
+      for (var i = 0; i < 7; i++) {
+        var di = addDaysIso(from, i);
+        days.push(h("div", { class: "cal-day" }, [h("h3", { text: longDate(di) + (di === today ? " (today)" : "") })].concat(
+          (map[di] || []).length ? map[di].map(function (e) { return h("div", { text: "• " + evLabel(e) }); }) : [h("div", { class: "muted", text: "Nothing planned" })])));
+      }
+      body = h("div", { class: "cal-list", "data-testid": "cal-week" }, days);
+    } else {
+      var months = [];
+      for (var m = 0; m < 12; m++) {
+        var mm = pad(m + 1), list = evs.filter(function (e) { return e.date.slice(5, 7) === mm; });
+        months.push(h("div", { class: "cal-day" }, [h("h3", { text: new Date(a.getFullYear(), m, 1).toLocaleDateString(undefined, { month: "long" }) })].concat(
+          list.length ? list.map(function (e) { return h("div", { text: niceDate(e.date) + " — " + evLabel(e) }); }) : [h("div", { class: "muted", text: "Nothing planned" })])));
+      }
+      body = h("div", { class: "cal-year", "data-testid": "cal-year" }, months);
+    }
+    function step(dir) {
+      if (mode === "week") c.anchor = addDaysIso(anchor, 7 * dir);
+      else if (mode === "year") c.anchor = addMonthsIso(anchor, 12 * dir);
+      else c.anchor = addMonthsIso(a.getFullYear() + "-" + pad(a.getMonth() + 1) + "-01", dir);
+      showCalendar();
+    }
+    view([
+      h("header", { class: "noprint" }, [
+        h("h1", { text: "Calendar" }),
+        h("button", { type: "button", class: "quiet small", text: "Back", "data-testid": "cal-back", onclick: showHome })
+      ]),
+      h("section", { class: "card" }, [
+        h("div", { class: "chips noprint", role: "group", "aria-label": "Calendar view" }, [["week", "Week"], ["month", "Month"], ["year", "Year"]].map(function (p) {
+          return h("button", { type: "button", class: "chip", "aria-pressed": String(mode === p[0]), text: p[1], "data-testid": "cal-" + p[0], onclick: function () { c.mode = p[0]; showCalendar(); } });
+        })),
+        h("div", { class: "cal-head" }, [
+          h("button", { type: "button", class: "quiet small noprint", text: "‹ Prev", onclick: function () { step(-1); } }),
+          h("div", { class: "cal-title", "data-testid": "cal-title", text: title }),
+          h("button", { type: "button", class: "quiet small noprint", text: "Next ›", onclick: function () { step(1); } })
+        ]),
+        body,
+        h("div", { class: "actions noprint" }, [h("button", { type: "button", "data-testid": "cal-print", text: "Print", onclick: function () { window.print(); } })])
+      ])
+    ]);
   }
 
   function signedUrl(path) {
@@ -552,6 +828,8 @@
   }
 
   function showHome() {
+    state.rerender = showHome;
+    $("newTitle").closest("section").hidden = false;
     var notice = state.notice; state.notice = "";
     var itemsBox = h("div", { "data-testid": "items-list" });
     var shown = state.items.filter(function (i) { return state.filter === "all" || i.room_id === state.filter; });
@@ -579,9 +857,13 @@
     view([
       h("header", {}, [
         h("h1", { text: state.profile.name, "data-testid": "profile-name" }),
-        h("button", { type: "button", class: "quiet small", text: "Sign out", "data-testid": "sign-out", onclick: signOut })
+        h("div", { class: "actions", style: "margin-top:0" }, [
+          h("button", { type: "button", class: "quiet small", text: "Calendar", "data-testid": "open-calendar", onclick: showCalendar }),
+          h("button", { type: "button", class: "quiet small", text: "Sign out", "data-testid": "sign-out", onclick: signOut })
+        ])
       ]),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
+      attentionCard(),
       h("section", { class: "card" }, [
         h("h2", { text: "Something to fix? Start with a photo." }),
         h("p", { class: "hint", text: "Snap a photo, say what’s wrong, and get a plan you can accept or skip." }),
