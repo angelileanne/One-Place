@@ -25,7 +25,7 @@
   html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0; background: var(--bg); color: var(--ink);
-    font: 1rem/1.5 ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font: 1rem/1.5 "Plus Jakarta Sans", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
     padding: max(20px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
   }
   .wrap { max-width: 36rem; margin: 0 auto; display: grid; gap: 16px; }
@@ -223,6 +223,8 @@
   @media (prefers-reduced-motion: reduce) { .pk, .pk .body, .pk .armR, .pk .armL { animation: none !important; transition: none; } .punchy { transition: none; } }
   @media (prefers-reduced-motion: reduce) { button, .filebtn { transition: none; } }
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
 </head>
 <body>
 <div class="wrap">
@@ -239,7 +241,7 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.6", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.7", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
@@ -709,7 +711,7 @@
 
     view(h("section", { class: "card", "data-testid": "auth-card" }, [
       h("h1", { text: "One Place" }),
-      h("p", { class: "hint", text: isNew ? "Make an account with your email. It keeps your home private and lets you send feedback and reach local pros." : "Welcome back. Sign in with your email." }),
+      h("p", { class: "hint", text: isNew ? "Make an account with your email. It keeps your home private and lets you send feedback and reach local pros." : "Welcome back! Sign in with your email." }),
       h("div", { class: "chips", role: "group", "aria-label": "Sign in or create account" }, [
         h("button", { type: "button", class: "chip", "aria-pressed": String(!isNew), text: "Sign in", onclick: function () { showAuth("signin"); } }),
         h("button", { type: "button", class: "chip", "aria-pressed": String(isNew), text: "Create account", onclick: function () { showAuth("signup"); } })
