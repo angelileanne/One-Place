@@ -239,7 +239,7 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.5", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.6", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
@@ -2037,8 +2037,15 @@ function pE(x, y, rx, ry, f, rot) {
   var a = 'cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '"' + (rot ? ' transform="rotate(' + rot + ' ' + x + ' ' + y + ')"' : "");
   return '<ellipse ' + a + ' fill="' + f + '"/><ellipse ' + a + ' fill="url(#pShine)"/><ellipse ' + a + ' fill="url(#pShade)"/>';
 }
-function pEye(x, y, r) { r = r || 7; return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#1c1a22"/><circle cx="' + (x - r * .35) + '" cy="' + (y - r * .38) + '" r="' + (r * .36) + '" fill="#fff"/><circle cx="' + (x + r * .35) + '" cy="' + (y + r * .3) + '" r="' + (r * .17) + '" fill="#fff" opacity=".8"/>'; }
-function pCheek(x, y, c) { return '<ellipse cx="' + x + '" cy="' + y + '" rx="10" ry="6" fill="' + (c || "#ff9db8") + '" opacity=".55"/>'; }
+function pEye(x, y, r) {
+  r = (r || 7) * 1.22;
+  return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + r + '" ry="' + (r * 1.12) + '" fill="#1c1a22"/><ellipse cx="' + x + '" cy="' + (y + r * .42) + '" rx="' + (r * .62) + '" ry="' + (r * .4) + '" fill="#5a4a86" opacity=".55"/>'
+    + '<circle cx="' + (x - r * .32) + '" cy="' + (y - r * .36) + '" r="' + (r * .4) + '" fill="#fff"/><circle cx="' + (x + r * .32) + '" cy="' + (y + r * .36) + '" r="' + (r * .18) + '" fill="#fff" opacity=".9"/><circle cx="' + (x + r * .5) + '" cy="' + (y - r * .3) + '" r="' + (r * .1) + '" fill="#fff" opacity=".9"/>';
+}
+function pCheek(x, y, c) {
+  c = c || "#ff8fae";
+  return '<ellipse cx="' + x + '" cy="' + y + '" rx="12" ry="7.5" fill="' + c + '" opacity=".6"/><path d="M' + (x - 6) + ' ' + (y + 2) + ' l3 -4 M' + x + ' ' + (y + 3) + ' l3 -4 M' + (x + 6) + ' ' + (y + 2) + ' l3 -4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>';
+}
 function pShadow() { return '<ellipse cx="100" cy="193" rx="62" ry="8" fill="#000" opacity=".14"/>'; }
 function pWrap(fur, face) { return '<g filter="url(#pFuzz)">' + fur + '</g><g>' + face + '</g>'; }
 function pArms(c) { return pE(27, 138, 14, 15, c, 22) + pE(173, 138, 14, 15, c, -22); }
