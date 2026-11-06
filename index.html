@@ -185,7 +185,8 @@
   .snackico { display: inline-block; width: 34px; height: 34px; vertical-align: middle; margin-right: 8px; } .snackico svg { width: 100%; height: 100%; display: block; overflow: visible; }
   @media (prefers-reduced-motion: reduce) { .pp { display: none; } .pdraw, .pdraw.waddle, .pdraw.sleep, .zb, .kbody { animation: none; } .zb { opacity: 1; transform: scale(1.3); } }
 
-  .punchy { position: fixed; z-index: 15; width: 64px; height: 64px; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; transform-origin: 100% 100%; transition: transform .5s cubic-bezier(.3,.7,.3,1); filter: drop-shadow(0 3px 3px rgba(0,0,0,.28)); }
+  .punchy { position: fixed; z-index: 15; width: var(--psz, 64px); height: var(--psz, 64px); touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; transform-origin: 100% 100%; transition: transform .5s cubic-bezier(.3,.7,.3,1); filter: drop-shadow(0 3px 3px rgba(0,0,0,.28)); }
+  @media (max-width: 600px) { :root { --psz: 50px; } }
   .punchy[data-acting="1"] { transform: scale(1.7); }
   .punchy.dragging { cursor: grabbing; transition: none; }
   .punchy[hidden], .pocketpill[hidden] { display: none; }
@@ -274,7 +275,7 @@
         {
           date: "Nov 6",
           title: "Punchy the helper",
-          detail: "Punchy lives in the corner of your screen. Tap him to wave, tap again for a backflip, and drag him wherever you like (he remembers his spot). He works on his laptop with orange headphones whenever you\u2019re adding things or tapping around, so you\u2019re both busy together, and he claps when something saves. After you\u2019ve seen both tricks, a tiny \u201cput me in your pocket\u201d link lets you tuck him away.",
+          detail: "Punchy lives in the corner of your screen. Tap him to wave, tap again for a backflip, and drag him wherever you like (he remembers his spot). He works on his laptop with orange headphones whenever you\u2019re adding things or tapping around, so you\u2019re both busy together, and he claps when something saves. After you\u2019ve seen both tricks, a tiny \u201ctuck me in\u201d link lets him nap.",
           isNew: true
         },
         {
@@ -2253,9 +2254,10 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     el.setAttribute("data-acting", name === "idle" ? "0" : "1");
     if (ms) punchy.timer = setTimeout(function () { punchyPose(punchy.typing ? "type" : "idle"); if (after) after(); }, ms);
   }
+  function punchySize() { return window.innerWidth <= 600 ? 50 : 64; }
   function punchySave() { lsSetJson(PUNCHY_KEY, { x: punchy.x, y: punchy.y, pocket: punchy.pocket, seenWave: punchy.seenWave, seenFlip: punchy.seenFlip }); }
   function punchyPlace() {
-    var el = punchy.el, w = window.innerWidth, hh = window.innerHeight, size = 64;
+    var el = punchy.el, w = window.innerWidth, hh = window.innerHeight, size = punchySize();
     var x = punchy.x === null ? w - size - 10 : punchy.x * (w - size), y = punchy.y === null ? hh - size - 84 : punchy.y * (hh - size);
     x = Math.max(0, Math.min(w - size, x)); y = Math.max(0, Math.min(hh - size, y));
     el.style.left = x + "px"; el.style.top = y + "px";
@@ -2292,8 +2294,8 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     punchy.x = typeof st.x === "number" ? st.x : null; punchy.y = typeof st.y === "number" ? st.y : null;
     punchy.pocket = !!st.pocket; punchy.seenWave = !!st.seenWave; punchy.seenFlip = !!st.seenFlip; punchy.typing = false;
     var el = punchy.el = punchyBuild(); document.body.appendChild(el);
-    punchy.link = h("button", { type: "button", class: "pocketlink noprint", text: "put me in your pocket", "data-testid": "punchy-pocket", hidden: true, onclick: function () { punchyPocket(true); } }); document.body.appendChild(punchy.link);
-    punchy.pill = h("button", { type: "button", class: "pocketpill noprint", text: "Muse is in your pocket", "data-testid": "punchy-restore", hidden: true, onclick: function () { punchyPocket(false); } }); document.body.appendChild(punchy.pill);
+    punchy.link = h("button", { type: "button", class: "pocketlink noprint", text: "tuck me in \uD83D\uDCA4", "data-testid": "punchy-pocket", hidden: true, onclick: function () { punchyPocket(true); } }); document.body.appendChild(punchy.link);
+    punchy.pill = h("button", { type: "button", class: "pocketpill noprint", text: "Punchy is napping \u00b7 tap to wake", "data-testid": "punchy-restore", hidden: true, onclick: function () { punchyPocket(false); } }); document.body.appendChild(punchy.pill);
     var drag = null;
     el.addEventListener("pointerdown", function (e) { drag = { sx: e.clientX, sy: e.clientY, ox: el.offsetLeft, oy: el.offsetTop, moved: false }; try { el.setPointerCapture(e.pointerId); } catch (x) {} });
     el.addEventListener("pointermove", function (e) {
@@ -2301,12 +2303,12 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
       if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 7) return;
       drag.moved = true; el.classList.add("dragging");
       var w = window.innerWidth, hh = window.innerHeight;
-      var nx = Math.max(0, Math.min(w - 64, drag.ox + dx)), ny = Math.max(0, Math.min(hh - 64, drag.oy + dy));
-      el.style.left = nx + "px"; el.style.top = ny + "px"; punchyLink(nx, ny, 64);
+      var nx = Math.max(0, Math.min(w - punchySize(), drag.ox + dx)), ny = Math.max(0, Math.min(hh - punchySize(), drag.oy + dy));
+      el.style.left = nx + "px"; el.style.top = ny + "px"; punchyLink(nx, ny, punchySize());
     });
     function end() {
       if (!drag) return; var d = drag; drag = null; el.classList.remove("dragging");
-      if (d.moved) { var w = window.innerWidth, hh = window.innerHeight; punchy.x = el.offsetLeft / (w - 64); punchy.y = el.offsetTop / (hh - 64); punchySave(); }
+      if (d.moved) { var w = window.innerWidth, hh = window.innerHeight; punchy.x = el.offsetLeft / (w - punchySize()); punchy.y = el.offsetTop / (hh - punchySize()); punchySave(); }
       else punchyTap();
     }
     el.addEventListener("pointerup", end); el.addEventListener("pointercancel", function () { drag = null; el.classList.remove("dragging"); });
