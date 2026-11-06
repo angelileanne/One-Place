@@ -127,6 +127,12 @@
   .cal-day h3 { margin: 0; font-size: .95rem; }
   .cal-day div { font-size: .92rem; }
   .cal-year { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
+  ul.plain, ol.plain { margin: 4px 0 8px; padding-left: 20px; display: grid; gap: 2px; }
+  .part, .diy { display: grid; gap: 6px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .part:first-of-type { border-top: 0; }
+  a.chip { text-decoration: none; display: inline-flex; align-items: center; }
+  .help-box { margin-top: 8px; }
+  .help-box .m { color: var(--soft); font-size: .92rem; }
   .muted { color: var(--soft); }
   @media print {
     body { background: #fff; color: #000; padding: 0; }
@@ -155,16 +161,21 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.3.0", phase: "Phase 3 · Reminders" };
+  var BUILD = { version: "0.4.0", phase: "Phase 4 · Fix-it help" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
           date: "Nov 5",
-          title: "Reminders and a calendar",
-          detail: "A “Needs attention this month” list on the home screen. Tap Done! (with an Undo), or snooze a task for 1 week, 2 weeks, 1 month, 3 months, or a date you pick. There’s also a weekly, monthly, and yearly calendar you can print.",
+          title: "Fix-it help: Parts, DIY, and Big job?",
+          detail: "Open any item to find three new buttons. Parts suggests what to replace and links to stores for your country. DIY gives full instructions with tools, quantities, and how to protect around the job. Big job? helps you ask a pro for a quote. Pick your country at the bottom of home.",
           isNew: true
+        },
+        {
+          date: "Nov 5",
+          title: "Reminders and a calendar",
+          detail: "A “Needs attention this month” list on the home screen. Tap Done! (with an Undo), or snooze a task for 1 week, 2 weeks, 1 month, 3 months, or a date you pick. There’s also a weekly, monthly, and yearly calendar you can print."
         },
         {
           date: "Nov 5",
@@ -187,7 +198,7 @@
   var SESSION_KEY = "oneplace.session";
   var ROOM_IDEAS = ["Kitchen", "Bathroom", "Bedroom", "Living room", "Garage", "Yard"];
 
-  var state = { rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, rooms: [], items: [], tasks: [], filter: "all", notice: "" };
+  var state = { rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, rooms: [], items: [], tasks: [], parts: [], help: {}, filter: "all", notice: "" };
 
   // ---- Tiny helpers ----
   function $(id) { return document.getElementById(id); }
@@ -323,7 +334,7 @@
   // ---- Sign in / create account ----
   function signOutLocal() {
     state.session = null; state.person = null; state.profile = null;
-    state.rooms = []; state.items = []; state.tasks = [];
+    state.rooms = []; state.items = []; state.tasks = []; state.parts = []; state.help = {};
     saveSession(null);
   }
   function signOut() {
@@ -465,8 +476,9 @@
     return Promise.all([
       rest("rooms?select=*&profile_id=eq." + pid + "&order=sort_order.asc,created_at.asc"),
       rest("items?select=*&profile_id=eq." + pid + "&order=created_at.desc"),
-      rest("maintenance_tasks?select=*&profile_id=eq." + pid + "&order=created_at.asc")
-    ]).then(function (r) { state.rooms = r[0]; state.items = r[1]; state.tasks = r[2]; });
+      rest("maintenance_tasks?select=*&profile_id=eq." + pid + "&order=created_at.asc"),
+      rest("parts?select=*&profile_id=eq." + pid + "&order=created_at.desc")
+    ]).then(function (r) { state.rooms = r[0]; state.items = r[1]; state.tasks = r[2]; state.parts = r[3]; });
   }
 
   // ---- Welcome (first sign-in) ----
@@ -789,6 +801,311 @@
     ]);
   }
 
+  // ---- Fix-it help: country, parts, DIY, Big job? ----
+  var COUNTRIES = [
+    ["US", "United States", "USD"], ["GB", "United Kingdom", "GBP"], ["CA", "Canada", "CAD"], ["AU", "Australia", "AUD"],
+    ["MX", "Mexico", "MXN"], ["ES", "Spain", "EUR"], ["PH", "Philippines", "PHP"], ["CN", "China", "CNY"],
+    ["JP", "Japan", "JPY"], ["KR", "South Korea", "KRW"], ["DE", "Germany", "EUR"], ["AT", "Austria", "EUR"],
+    ["CH", "Switzerland", "CHF"], ["FR", "France", "EUR"], ["BE", "Belgium", "EUR"], ["TR", "Turkey", "TRY"],
+    ["TH", "Thailand", "THB"], ["LA", "Laos", "LAK"], ["ZZ", "Somewhere else", ""]
+  ];
+  function countryInfo() {
+    var code = (state.profile && state.profile.country) || "US";
+    for (var i = 0; i < COUNTRIES.length; i++) if (COUNTRIES[i][0] === code) return { code: code, name: COUNTRIES[i][1], currency: COUNTRIES[i][2] };
+    return { code: "ZZ", name: "Somewhere else", currency: "" };
+  }
+  function enc(s) { return encodeURIComponent(s); }
+  function google(q) { return "https://www.google.com/search?q=" + enc(q); }
+  // Live store searches for the user's country. Stock is not checked by the app.
+  function storeLinks(q) {
+    var c = countryInfo().code, list = [];
+    function direct(name, url) { list.push({ name: name, url: url }); }
+    function viaGoogle(name) { list.push({ name: name, url: google(q + " " + name + (nearText() ? " near " + nearText() : "")) }); }
+    var amazon = { US: "com", GB: "co.uk", CA: "ca", AU: "com.au", ES: "es", JP: "co.jp", DE: "de", AT: "de", FR: "fr", BE: "com.be", MX: "com.mx", TR: "com.tr" };
+    if (amazon[c]) direct("Amazon", "https://www.amazon." + amazon[c] + "/s?k=" + enc(q));
+    if (c === "US") { direct("Home Depot", "https://www.homedepot.com/s/" + enc(q)); direct("Lowe’s", "https://www.lowes.com/search?searchTerm=" + enc(q)); }
+    else if (c === "GB") { direct("B&Q", "https://www.diy.com/search?term=" + enc(q)); direct("Screwfix", "https://www.screwfix.com/search?search=" + enc(q)); }
+    else if (c === "CA") viaGoogle("Home Depot Canada");
+    else if (c === "AU") direct("Bunnings", "https://www.bunnings.com.au/search/products?q=" + enc(q));
+    else if (c === "MX") { viaGoogle("Mercado Libre"); viaGoogle("Home Depot México"); }
+    else if (c === "ES") viaGoogle("Leroy Merlin");
+    else if (c === "FR") viaGoogle("Leroy Merlin");
+    else if (c === "DE" || c === "AT") viaGoogle("OBI");
+    else if (c === "CH") viaGoogle("Galaxus");
+    else if (c === "BE") viaGoogle("Brico");
+    else if (c === "TR") { viaGoogle("Hepsiburada"); viaGoogle("Trendyol"); }
+    else if (c === "PH") { viaGoogle("Lazada Philippines"); viaGoogle("Wilcon Depot"); }
+    else if (c === "JP") viaGoogle("Cainz");
+    else if (c === "KR") viaGoogle("Coupang");
+    else if (c === "CN") { viaGoogle("Taobao"); viaGoogle("JD.com"); }
+    else if (c === "TH") { viaGoogle("HomePro"); viaGoogle("Thai Watsadu"); viaGoogle("Global House"); viaGoogle("DoHome"); viaGoogle("Lazada Thailand"); }
+    else if (c === "LA") { viaGoogle("HomePro Thailand"); viaGoogle("Thai Watsadu"); }
+    direct("Google Shopping", "https://www.google.com/search?tbm=shop&q=" + enc(q));
+    return list;
+  }
+
+  var POSTAL_LABEL = { US: "ZIP code", GB: "Postcode", AU: "Postcode", CA: "Postal code", MX: "Código postal", ES: "Código postal", PH: "ZIP code", JP: "Postal code", KR: "Postal code", DE: "Postleitzahl", AT: "Postleitzahl", CH: "Postleitzahl", FR: "Code postal", BE: "Postal code", TR: "Postal code", TH: "Postal code", LA: "Postal code", CN: "Postal code" };
+  function postalLabel() { return POSTAL_LABEL[countryInfo().code] || "Postal code"; }
+  // Where the home or business is. Used only for local search links, never sent to the photo AI.
+  function nearText() {
+    var p = state.profile || {}, ci = countryInfo();
+    var bits = [p.postal_code, p.city].filter(Boolean);
+    return bits.length ? bits.join(" ") + (ci.code === "ZZ" ? "" : ", " + ci.name) : "";
+  }
+  function saveLocation(patch, msgEl) {
+    msgEl.className = "result"; msgEl.textContent = "Saving…";
+    return rest("profiles?id=eq." + encodeURIComponent(state.profile.id), { method: "PATCH", headers: JSON_ONE, body: JSON.stringify(patch) })
+      .then(function (rows) { Object.assign(state.profile, (rows && rows[0]) || patch); state.help = {}; msgEl.textContent = "Saved."; })
+      .catch(function (err) { msgEl.className = "result bad"; msgEl.textContent = "Not saved. " + err.message; });
+  }
+  function countryCard() {
+    var info = countryInfo(), p = state.profile || {};
+    var sel = h("select", { "aria-label": "Your country", "data-testid": "country-select" }, COUNTRIES.map(function (c) { return h("option", { value: c[0], text: c[1] + (c[2] ? " (" + c[2] + ")" : "") }); }));
+    sel.value = info.code;
+    var postalSpan = h("span", { text: postalLabel() });
+    var postal = h("input", { type: "text", maxlength: "20", autocomplete: "postal-code", value: p.postal_code || "", "data-testid": "postal-input" });
+    var city = h("input", { type: "text", maxlength: "80", autocomplete: "address-level2", value: p.city || "", "data-testid": "city-input" });
+    var msg = h("div", { class: "result", role: "status" });
+    var summary = h("summary", { text: "Where this " + (p.kind === "business" ? "business" : "home") + " is: " + (nearText() || info.name), style: "cursor:pointer;font-weight:700" });
+    sel.addEventListener("change", function () { postalSpan.textContent = POSTAL_LABEL[sel.value] || "Postal code"; saveLocation({ country: sel.value }, msg).then(function () { summary.textContent = "Where this " + (p.kind === "business" ? "business" : "home") + " is: " + (nearText() || countryInfo().name); }); });
+    var save = h("button", { type: "button", class: "small", "data-testid": "location-save", text: "Save location", onclick: function () {
+      saveLocation({ postal_code: postal.value.trim() || null, city: city.value.trim() || null }, msg).then(function () { summary.textContent = "Where this " + (p.kind === "business" ? "business" : "home") + " is: " + (nearText() || countryInfo().name); });
+    } });
+    return h("details", { class: "card noprint" }, [
+      summary,
+      h("p", { class: "hint", style: "margin-top:8px", text: "Saved to this " + (p.kind === "business" ? "business" : "home") + ". I use it to point store and “near me” searches at your area. The photo AI never sees it. It only gets your country and currency." }),
+      h("label", { class: "field" }, [h("span", { text: "Country" }), sel]),
+      h("label", { class: "field" }, [postalSpan, postal]),
+      h("label", { class: "field" }, [h("span", { text: "City or town (optional)" }), city]),
+      h("div", { class: "actions", style: "margin-top:0" }, [save]), msg
+    ]);
+  }
+
+  // ---- Asking the AI for help (text only; no photos, no address) ----
+  function helpContext(item) {
+    var ci = countryInfo();
+    var bits = [
+      "Item: " + item.name + ".",
+      item.brand ? "Brand: " + item.brand + "." : "", item.model ? "Model: " + item.model + "." : "", item.year ? "Year: " + item.year + "." : "",
+      item.problem ? "Problem described by the owner: \"" + item.problem + "\"." : "No specific problem was described.",
+      "Setting: " + (state.profile && state.profile.kind === "business" ? "a business" : "a home") + ".",
+      "Country: " + ci.name + (ci.currency ? ". Currency: " + ci.currency + "." : ".")
+    ];
+    var open = tasksFor(item.id).filter(function (t) { return t.status !== "done"; }).slice(0, 6).map(function (t) { return t.title; });
+    if (open.length) bits.push("Related tasks: " + open.join("; ") + ".");
+    return bits.filter(Boolean).join(" ");
+  }
+  function parseJsonLoose(text) {
+    var t = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""), data = null;
+    try { data = JSON.parse(t); } catch (e) {
+      var m = t.match(/\{[\s\S]*\}/);
+      try { data = m ? JSON.parse(m[0]) : null; } catch (e2) { data = null; }
+    }
+    if (!data || typeof data !== "object") throw new Error("The AI answered, but I couldn’t read it. Try again.");
+    return data;
+  }
+  function str(s, n) { return typeof s === "string" && s.trim() ? s.trim().slice(0, n) : null; }
+  function strs(a, max, n) { return (Array.isArray(a) ? a : []).map(function (x) { return str(x, n); }).filter(Boolean).slice(0, max); }
+  function askJson(prompt, onBackup) {
+    return callAI([{ text: prompt }], { timeoutMs: 30000, config: { temperature: 0.3, maxOutputTokens: 4096, responseMimeType: "application/json" }, onBackup: onBackup }).then(parseJsonLoose);
+  }
+
+  function partsPrompt(item) {
+    return [
+      "You help someone fix something at their home or business. " + helpContext(item),
+      "Suggest 1 to 4 replacement parts or supplies they are most likely to need, most likely first. You cannot check stock or prices, so never claim a part is in stock.",
+      "Never invent a part number: use null unless it is a standard you are sure of. Sizes and types (for example a bulb base or a hose diameter) belong in the name.",
+      "If the item is old or the part may be discontinued, give one close alternative that fits. life_days is roughly how long the part lasts, or null.",
+      "Reply with JSON only: {\"parts\": [{\"name\": string, \"why\": string, \"part_number\": string|null, \"life_days\": number|null, \"search_query\": string, \"alternative\": {\"name\": string, \"note\": string}|null}]}"
+    ].join("\n");
+  }
+  function diyPrompt(item) {
+    return [
+      "You write clear do-it-yourself instructions for a beginner. " + helpContext(item),
+      "Cover the job the owner described, or the most useful upkeep job for this item if none was described.",
+      "Reply with JSON only: {\"job\": string, \"summary\": string, \"difficulty\": \"easy\"|\"medium\"|\"hard\", \"time\": string, \"tools\": [{\"name\": string, \"qty\": string}], \"materials\": [{\"name\": string, \"qty\": string}], \"remove_or_in_place\": {\"answer\": \"remove\"|\"in place\"|\"either\", \"note\": string}, \"protect\": [string], \"steps\": [string], \"safety\": [string], \"call_a_pro_if\": string}",
+      "Give real quantities (for example \"2 quarts\" or \"1 roll, 1.5 inch\"). In protect, say how to mask and protect the surroundings and prevent overspray or drips when it matters (painting, spraying, sanding, adhesives). Say whether the item must be removed or can stay in place and why. 5 to 12 short steps. Turn power or water off first where relevant."
+    ].join("\n");
+  }
+  function bigPrompt(item) {
+    return [
+      "A person is deciding whether to hire a professional. " + helpContext(item),
+      "Reply with JSON only: {\"trade\": string, \"is_big_job\": boolean, \"why\": string, \"questions\": [string], \"request\": string}",
+      "trade is the kind of professional to look for, like \"electrician\" or \"painter\". why is one or two plain sentences on whether it is a job for a pro. questions are 3 to 5 things to ask a pro before agreeing. request is a short, polite message asking for a quote describing the job in plain words, with no names, phone numbers or addresses in it."
+    ].join("\n");
+  }
+
+  function parseParts(d) {
+    return (Array.isArray(d.parts) ? d.parts : []).slice(0, 4).map(function (p) {
+      var life = Math.round(Number(p && p.life_days)), alt = p && p.alternative;
+      var name = str(p && p.name, 160);
+      return {
+        name: name, why: str(p && p.why, 300), partNumber: str(p && p.part_number, 80),
+        lifeDays: life >= 7 && life <= 3660 ? life : null, query: str(p && p.search_query, 120) || name,
+        alt: alt && str(alt.name, 160) ? { name: str(alt.name, 160), note: str(alt.note, 240) } : null
+      };
+    }).filter(function (p) { return p.name; });
+  }
+  function parseDiy(d) {
+    var pairs = function (a) { return (Array.isArray(a) ? a : []).slice(0, 14).map(function (x) { return { name: str(x && x.name, 120), qty: str(x && x.qty, 60) }; }).filter(function (x) { return x.name; }); };
+    var rm = d.remove_or_in_place || {};
+    return {
+      job: str(d.job, 160), summary: str(d.summary, 400), difficulty: ["easy", "medium", "hard"].indexOf(d.difficulty) >= 0 ? d.difficulty : null, time: str(d.time, 60),
+      tools: pairs(d.tools), materials: pairs(d.materials), where: str(rm.answer, 20), whereNote: str(rm.note, 300),
+      protect: strs(d.protect, 8, 300), steps: strs(d.steps, 14, 400), safety: strs(d.safety, 6, 300), proIf: str(d.call_a_pro_if, 300)
+    };
+  }
+  function parseBig(d) {
+    return { trade: str(d.trade, 60) || "professional", big: d.is_big_job === true, why: str(d.why, 300), questions: strs(d.questions, 5, 200), request: str(d.request, 600) || "" };
+  }
+
+  // ---- Panels inside an item card ----
+  function helpList(title, items) { return items.length ? h("div", {}, [h("div", { class: "label", text: title }), h("ul", { class: "plain" }, items.map(function (x) { return h("li", { text: x }); }))]) : null; }
+
+  function renderParts(item, box, parts) {
+    box.textContent = "";
+    if (!parts.length) { box.appendChild(h("p", { class: "hint", text: "No parts came to mind for this one. Try DIY or Big job? instead." })); return; }
+    box.appendChild(h("p", { class: "hint", text: "Stock and prices aren’t checked here. Tap a store to see what’s available near you." }));
+    parts.forEach(function (p) {
+      var card = h("div", { class: "part", "data-testid": "part" }, [
+        h("div", { class: "t", style: "font-weight:700", text: p.name }),
+        p.why ? h("div", { class: "m", text: p.why }) : null,
+        p.partNumber ? h("div", { class: "m", text: "Part number: " + p.partNumber }) : null,
+        h("div", { class: "chips" }, storeLinks(p.query).map(function (s) { return h("a", { class: "chip", href: s.url, target: "_blank", rel: "noopener noreferrer", text: s.name }); })
+          .concat([h("a", { class: "chip", href: "https://www.google.com/search?tbm=isch&q=" + enc(p.query), target: "_blank", rel: "noopener noreferrer", text: "See pictures" })])),
+        p.alt ? h("div", { class: "m", text: "If it’s discontinued or out of stock, a close alternative: " + p.alt.name + (p.alt.note ? " — " + p.alt.note : "") }) : null
+      ]);
+      var slot = h("div", {});
+      card.appendChild(slot);
+      slot.appendChild(h("button", { type: "button", class: "quiet small", "data-testid": "part-replaced", text: "I replaced this", onclick: function () { replacedForm(item, p, slot); } }));
+      box.appendChild(card);
+    });
+  }
+
+  function replacedForm(item, part, slot) {
+    var presets = [["Don’t remind me", 0], ["In 3 months", 90], ["In 6 months", 180], ["In 1 year", 365], ["In 2 years", 730], ["In 5 years", 1825]];
+    var sel = h("select", { "aria-label": "Remind me to replace it again", "data-testid": "part-remind" }, presets.map(function (o) { return h("option", { value: String(o[1]), text: o[0] }); }));
+    if (part.lifeDays) {
+      var best = presets.slice(1).reduce(function (a, b) { return Math.abs(b[1] - part.lifeDays) < Math.abs(a[1] - part.lifeDays) ? b : a; });
+      sel.value = String(best[1]);
+    }
+    var msg = h("div", { class: "result", role: "status" });
+    var save = h("button", { type: "button", class: "small", "data-testid": "part-save", text: "Save" });
+    save.addEventListener("click", function () {
+      var days = Number(sel.value), today = todayIso();
+      save.disabled = true; msg.className = "result"; msg.textContent = "Saving…";
+      rest("parts", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ profile_id: state.profile.id, item_id: item.id, name: part.name, part_number: part.partNumber, replaced_on: today, next_due_on: days ? addDaysIso(today, days) : null }) })
+        .then(function (rows) {
+          state.parts.unshift(rows[0]);
+          if (!days) return null;
+          return rest("maintenance_tasks", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ profile_id: state.profile.id, item_id: item.id, title: "Replace " + part.name, detail: "Last replaced " + today + ".", kind: "maintenance", repeat_days: days, status: "active", due_on: addDaysIso(today, days) }) })
+            .then(function (t) { state.tasks.push(t[0]); });
+        })
+        .then(function () { state.notice = "Logged! " + part.name + " replaced today" + (days ? ", and I’ll remind you in " + sel.options[sel.selectedIndex].text.replace("In ", "") + "." : "."); showHome(); })
+        .catch(function (err) { save.disabled = false; msg.className = "result bad"; msg.textContent = "Not saved. " + err.message; });
+    });
+    slot.textContent = "";
+    slot.appendChild(h("div", { class: "snooze" }, [h("span", { class: "m", text: "Replaced today. Remind me to do it again:" }), sel, h("div", { class: "actions", style: "margin-top:0" }, [save]), msg]));
+  }
+
+  function renderDiy(box, d) {
+    box.textContent = "";
+    var rm = d.where ? (d.where === "remove" ? "Take it off first" : d.where === "in place" ? "Leave it in place" : "Either works") : null;
+    box.appendChild(h("div", { class: "diy", "data-testid": "diy" }, [
+      d.job ? h("div", { class: "t", style: "font-weight:700", text: d.job }) : null,
+      d.summary ? h("div", { class: "m", text: d.summary }) : null,
+      h("div", { class: "m", text: [d.difficulty ? "Difficulty: " + d.difficulty : "", d.time ? "Time: " + d.time : ""].filter(Boolean).join(" · ") }),
+      d.tools.length ? h("div", {}, [h("div", { class: "label", text: "Tools" }), h("ul", { class: "plain", "data-testid": "diy-tools" }, d.tools.map(function (x) { return h("li", { text: x.name + (x.qty ? " — " + x.qty : "") }); }))]) : null,
+      d.materials.length ? h("div", {}, [h("div", { class: "label", text: "Materials" }), h("ul", { class: "plain", "data-testid": "diy-materials" }, d.materials.map(function (x) { return h("li", { text: x.name + (x.qty ? " — " + x.qty : "") }); }))]) : null,
+      rm ? h("div", {}, [h("div", { class: "label", text: "Remove it, or work in place?" }), h("div", { class: "m", text: rm + (d.whereNote ? ". " + d.whereNote : ".") })]) : null,
+      helpList("Mask and protect", d.protect),
+      d.steps.length ? h("div", {}, [h("div", { class: "label", text: "Steps" }), h("ol", { class: "plain" }, d.steps.map(function (x) { return h("li", { text: x }); }))]) : null,
+      helpList("Stay safe", d.safety),
+      d.proIf ? h("div", { class: "m", text: "Call a pro if: " + d.proIf }) : null
+    ]));
+  }
+
+  function renderBig(item, box, d) {
+    box.textContent = "";
+    var me = state.person || {};
+    var who = [[me.first_name, me.last_name].filter(Boolean).join(" "), me.phone ? "Phone: " + me.phone : "", me.email ? "Email: " + me.email : ""].filter(Boolean);
+    var text = (d.request || ("Hello, I’d like a quote for work on my " + item.name + ".")) + (who.length ? "\n\n" + who.join("\n") : "") + "\n\nThank you!";
+    var ta = h("textarea", { "aria-label": "Message to send", "data-testid": "quote-message", maxlength: "3000" });
+    ta.value = text;
+    var msg = h("div", { class: "result", role: "status" });
+    var subject = "Quote request: " + item.name;
+    function link(label, href, tid) { return h("a", { class: "chip", href: href, target: "_blank", rel: "noopener noreferrer", text: label, "data-testid": tid }); }
+    var links = h("div", { class: "chips" }, []);
+    function drawLinks() {
+      links.textContent = "";
+      links.appendChild(link("Find " + d.trade + "s near me", "https://www.google.com/maps/search/" + enc(d.trade + " near " + (nearText() || "me")), "find-pros"));
+      links.appendChild(link("Email it", "mailto:?subject=" + enc(subject) + "&body=" + enc(ta.value), "quote-email"));
+      links.appendChild(link("Text it", "sms:?&body=" + enc(ta.value), "quote-text"));
+    }
+    ta.addEventListener("input", drawLinks); drawLinks();
+    var copy = h("button", { type: "button", class: "quiet small", text: "Copy message", onclick: function () {
+      (navigator.clipboard ? navigator.clipboard.writeText(ta.value) : Promise.reject()).then(function () { msg.className = "result"; msg.textContent = "Copied."; }, function () { ta.select(); msg.className = "result"; msg.textContent = "Select the text and copy it."; });
+    } });
+    var save = h("button", { type: "button", class: "quiet small", "data-testid": "save-quote", text: "Save this request", onclick: function () {
+      save.disabled = true;
+      rest("quote_requests", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ profile_id: state.profile.id, item_id: item.id, trade: d.trade, message: ta.value.slice(0, 3000) }) })
+        .then(function () { msg.className = "result"; msg.textContent = "Saved to this item’s history."; })
+        .catch(function (err) { save.disabled = false; msg.className = "result bad"; msg.textContent = "Not saved. " + err.message; });
+    } });
+    box.appendChild(h("div", { class: "diy", "data-testid": "bigjob" }, [
+      h("div", { class: "t", style: "font-weight:700", text: d.big ? "This one is worth a " + d.trade : "Look for a " + d.trade + " if you’d rather not DIY" }),
+      d.why ? h("div", { class: "m", text: d.why }) : null,
+      helpList("Ask them", d.questions),
+      h("div", { class: "label", text: "Message (edit it, then send)" }), ta,
+      links,
+      h("div", { class: "actions", style: "margin-top:0" }, [copy, save]), msg,
+      h("div", { class: "m", text: "I can’t see which businesses are near you, so the search opens in Maps. Add the business’s email or number when you send." })
+    ]));
+  }
+
+  var HELP = {
+    parts: { prompt: partsPrompt, parse: parseParts, render: renderParts, label: "Looking up parts…" },
+    diy: { prompt: diyPrompt, parse: parseDiy, render: function (item, box, d) { renderDiy(box, d); }, label: "Writing your instructions…" },
+    big: { prompt: bigPrompt, parse: parseBig, render: renderBig, label: "Checking if it’s a big job…" }
+  };
+  function openHelp(item, kind, box, btns) {
+    var spec = HELP[kind];
+    if (box.getAttribute("data-kind") === kind && box.style.display !== "none") { box.style.display = "none"; btns[kind].setAttribute("aria-pressed", "false"); return; }
+    Object.keys(btns).forEach(function (k) { btns[k].setAttribute("aria-pressed", String(k === kind)); });
+    box.setAttribute("data-kind", kind); box.style.display = "";
+    var key = item.id + ":" + kind + ":" + countryInfo().code;
+    if (state.help[key]) { spec.render(item, box, state.help[key]); return; }
+    box.textContent = "";
+    var status = h("div", { class: "result", role: "status", text: spec.label });
+    box.appendChild(status);
+    var slow = setTimeout(function () { status.textContent = "Let me think harder about this, one moment…"; }, 6000);
+    askJson(spec.prompt(item), function () { status.textContent = "That model is busy. Trying a backup…"; })
+      .then(spec.parse).then(function (parsed) {
+        clearTimeout(slow);
+        state.help[key] = parsed;
+        if (box.getAttribute("data-kind") === kind) spec.render(item, box, parsed);
+      }).catch(function (err) {
+        clearTimeout(slow);
+        if (box.getAttribute("data-kind") !== kind) return;
+        status.className = "result bad";
+        status.textContent = /sign in/i.test(err.message) ? "Please sign in again." : err.message;
+      });
+  }
+  function helpRow(item) {
+    var box = h("div", { class: "help-box", "data-testid": "help-panel", style: "display:none" });
+    var btns = {};
+    function mk(kind, label, tid) { btns[kind] = h("button", { type: "button", class: "quiet small", "aria-pressed": "false", "data-testid": tid, text: label, onclick: function () { openHelp(item, kind, box, btns); } }); return btns[kind]; }
+    var row = h("div", { class: "actions" }, [mk("parts", "Parts", "help-parts"), mk("diy", "DIY", "help-diy"), mk("big", "Big job?", "help-bigjob")]);
+    return h("div", {}, [row, box]);
+  }
+  function partsLog(item) {
+    var mine = state.parts.filter(function (p) { return p.item_id === item.id && p.replaced_on; });
+    if (!mine.length) return null;
+    return h("div", {}, [h("div", { class: "label", text: "Parts replaced" }), h("ul", { class: "plain", "data-testid": "parts-log" }, mine.map(function (p) {
+      return h("li", { text: p.name + " — " + niceDate(p.replaced_on) + (p.next_due_on ? " (next around " + niceDate(p.next_due_on) + ")" : "") });
+    }))]);
+  }
+
   function signedUrl(path) {
     return api("/storage/v1/", "object/sign/item-photos/" + path.split("/").map(encodeURIComponent).join("/"), { method: "POST", body: JSON.stringify({ expiresIn: 3600 }) })
       .then(readJson).then(function (b) { return b && b.signedURL ? SUPABASE_URL + "/storage/v1" + b.signedURL : null; });
@@ -808,6 +1125,8 @@
     body.appendChild(thumbs);
     if (tasks.length) body.appendChild(h("ul", { class: "tasks" }, tasks.map(taskRow)));
     else body.appendChild(h("div", { class: "detail", text: "No tasks yet." }));
+    var pl = partsLog(item); if (pl) body.appendChild(pl);
+    body.appendChild(helpRow(item));
     body.appendChild(h("div", { class: "actions" }, [
       h("button", { type: "button", class: "quiet small", "data-testid": "add-another", text: "Add another in a different room", onclick: function () {
         showAddItem({ name: item.name, brand: item.brand || "", model: item.model || "", year: item.year || "" });
@@ -878,6 +1197,7 @@
           ideas.length ? h("div", { class: "chips" }, ideas.map(function (n) { return h("button", { type: "button", class: "chip", text: "+ " + n, onclick: function () { submitRoom(n); } }); })) : null
         ])
       ]),
+      countryCard(),
       connectionsCard()
     ]);
   }
