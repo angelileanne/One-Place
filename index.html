@@ -344,17 +344,25 @@
     out.className = "result";
     if (!file) return;
     out.textContent = "Looking at your photo…";
+    var slowTimer = null, onBackup = false;
+    function stopSlow() { if (slowTimer) { clearTimeout(slowTimer); slowTimer = null; } }
     downscale(file, 1024).then(function (img) {
       var prev = $("photoPreview");
       prev.src = img.dataUrl;
       prev.style.display = "block";
+      // If the answer takes a while, say so kindly instead of looking stuck.
+      slowTimer = setTimeout(function () {
+        if (!onBackup) out.textContent = "Let me think harder about this, one moment…";
+      }, 5000);
       return callAI([
         { text: "What is this item? Answer in one or two short sentences. If you can read a make, model, or year, include it. If you can’t, say so." },
         { inline_data: { mime_type: "image/jpeg", data: img.base64 } }
-      ], function () { out.textContent = "That model is busy. Trying a backup…"; });
+      ], function () { onBackup = true; out.textContent = "That model is busy. Trying a backup…"; });
     }).then(function (text) {
+      stopSlow();
       out.textContent = text;
     }).catch(function (err) {
+      stopSlow();
       out.className = "result bad";
       out.textContent = err && err.message ? err.message : "Something went wrong.";
     });
