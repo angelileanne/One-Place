@@ -8,149 +8,126 @@
 <title>One Place</title>
 <style>
   :root {
-    --bg: #f1f5ee;
-    --surface: #ffffff;
-    --line: #d9e3d6;
-    --ink: #1d3a2c;
-    --soft: #4d6a5a;
-    --accent: #1f5c43;
-    --accent-ink: #ffffff;
-    --ok: #1f7a4d;
-    --bad: #b3261e;
-    --wait: #8a6a12;
-    --shadow: 0 1px 2px rgba(29, 58, 44, .08), 0 6px 18px rgba(29, 58, 44, .06);
+    --bg: #f1f5ee; --surface: #ffffff; --line: #d9e3d6; --ink: #1d3a2c; --soft: #4d6a5a;
+    --accent: #1f5c43; --accent-ink: #ffffff; --ok: #1f7a4d; --bad: #b3261e; --wait: #8a6a12;
+    --tint: #e6efe3;
+    --shadow: 0 1px 2px rgba(29,58,44,.08), 0 6px 18px rgba(29,58,44,.06);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #13201a;
-      --surface: #1b2c24;
-      --line: #2c4237;
-      --ink: #e6f1e8;
-      --soft: #a9c2b1;
-      --accent: #7fd1a5;
-      --accent-ink: #0f1f17;
-      --ok: #7fd1a5;
-      --bad: #ff8a80;
-      --wait: #e6c66b;
-      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .25);
+      --bg: #13201a; --surface: #1b2c24; --line: #2c4237; --ink: #e6f1e8; --soft: #a9c2b1;
+      --accent: #7fd1a5; --accent-ink: #0f1f17; --ok: #7fd1a5; --bad: #ff8a80; --wait: #e6c66b;
+      --tint: #22372d;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.25);
     }
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
+    margin: 0; background: var(--bg); color: var(--ink);
     font: 16px/1.5 ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
     padding: max(20px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
   }
-  .wrap { max-width: 34rem; margin: 0 auto; display: grid; gap: 16px; }
-  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 4px 2px; }
-  h1 { margin: 0; font-size: 1.7rem; letter-spacing: -.01em; }
-  .build { font-size: .85rem; color: var(--soft); }
+  .wrap { max-width: 36rem; margin: 0 auto; display: grid; gap: 16px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 2px; }
+  h1 { margin: 0; font-size: 1.6rem; letter-spacing: -.01em; overflow-wrap: anywhere; }
+  .build { font-size: .8rem; color: var(--soft); text-align: center; }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; box-shadow: var(--shadow); }
-  h2 { margin: 0 0 4px; font-size: 1.05rem; }
+  h2 { margin: 0 0 4px; font-size: 1.1rem; }
   .hint { margin: 0 0 12px; color: var(--soft); font-size: .92rem; }
   .row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
   .row:first-of-type { border-top: 0; }
   .dot { flex: none; width: 12px; height: 12px; border-radius: 50%; margin-top: 7px; background: var(--wait); }
-  .dot.ok { background: var(--ok); }
-  .dot.bad { background: var(--bad); }
+  .dot.ok { background: var(--ok); } .dot.bad { background: var(--bad); }
   .label { font-weight: 700; }
   .detail { color: var(--soft); font-size: .92rem; overflow-wrap: anywhere; }
   button, .filebtn {
-    font: inherit; font-weight: 700; cursor: pointer;
-    background: var(--accent); color: var(--accent-ink);
+    font: inherit; font-weight: 700; cursor: pointer; background: var(--accent); color: var(--accent-ink);
     border: 0; border-radius: 12px; padding: 10px 16px; min-height: 44px;
-    transition: transform .12s ease, opacity .12s ease;
+    transition: transform .12s ease, opacity .12s ease; display: inline-flex; align-items: center; justify-content: center;
   }
   button:active, .filebtn:active { transform: scale(.97); }
   button:disabled { opacity: .5; cursor: default; }
-  button.quiet { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-  input[type="text"] {
-    font: inherit; color: var(--ink); background: var(--bg);
-    border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-height: 44px; width: 100%;
+  button.quiet, .filebtn.quiet { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  button.small { min-height: 36px; padding: 6px 12px; font-size: .9rem; }
+  button.link { background: none; color: var(--accent); padding: 4px 0; min-height: 32px; text-decoration: underline; }
+  input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], select, textarea {
+    font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 12px; padding: 10px 12px; min-height: 44px; width: 100%;
   }
+  textarea { min-height: 80px; resize: vertical; }
   input[type="file"] { display: none; }
   :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  .inline { display: flex; gap: 8px; }
-  ul.notes { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
-  ul.notes li { background: var(--bg); border-radius: 10px; padding: 8px 12px; font-size: .95rem; overflow-wrap: anywhere; }
-  ul.notes small { color: var(--soft); display: block; }
-  .preview { max-width: 100%; max-height: 220px; border-radius: 12px; margin-top: 12px; display: none; }
-  .result { margin-top: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .field { display: grid; gap: 4px; margin-bottom: 12px; }
+  .field > span { font-weight: 700; font-size: .92rem; }
+  .field small { color: var(--soft); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .seg { display: flex; gap: 8px; flex-wrap: wrap; }
+  .seg label { flex: 1 1 8rem; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg span { display: flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; font-weight: 700; cursor: pointer; background: var(--bg); text-align: center; }
+  .seg input:checked + span { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .seg input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+  .chip { min-height: 36px; padding: 4px 14px; border-radius: 999px; background: var(--tint); color: var(--ink); border: 1px solid var(--line); font-weight: 600; font-size: .92rem; }
+  .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .banner { border-radius: 12px; padding: 10px 12px; background: var(--tint); margin-bottom: 12px; font-size: .95rem; }
+  .banner.bad { color: var(--bad); border: 1px solid var(--bad); background: transparent; }
+  .result { margin-top: 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
   .result.bad { color: var(--bad); }
+  .thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .thumb { position: relative; width: 84px; height: 84px; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: block; }
+  .thumb button { position: absolute; top: -6px; right: -6px; min-height: 28px; width: 28px; padding: 0; border-radius: 50%; font-size: 1rem; }
+  details.item { border-top: 1px solid var(--line); padding: 8px 0; }
+  details.item:first-of-type { border-top: 0; }
+  details.item summary { cursor: pointer; font-weight: 700; min-height: 36px; display: flex; align-items: center; gap: 8px; }
+  details.item .body { padding: 4px 0 8px; display: grid; gap: 8px; }
+  .tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .tasks li { background: var(--bg); border-radius: 10px; padding: 8px 12px; display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
+  .tasks .t { font-weight: 600; } .tasks .m { color: var(--soft); font-size: .88rem; }
+  .tasks label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; width: 100%; }
+  .tasks input[type="checkbox"] { width: 22px; height: 22px; margin-top: 2px; flex: none; accent-color: var(--accent); }
+  .badge { font-size: .75rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--tint); color: var(--soft); margin-left: 6px; }
   details.entry { border-top: 1px solid var(--line); padding: 8px 0; }
   details.entry:first-of-type { border-top: 0; }
   details.entry summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   details.entry p { margin: 6px 0 0; color: var(--soft); }
   .new { font-style: italic; text-decoration: underline; color: var(--accent); margin-left: 6px; font-weight: 700; }
   .month { margin: 8px 0 0; font-size: .85rem; color: var(--soft); }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   @media (prefers-reduced-motion: reduce) { button, .filebtn { transition: none; } }
 </style>
 </head>
 <body>
-<div class="wrap" data-testid="app-shell">
-  <header>
-    <h1>One Place</h1>
-    <span class="build" data-testid="build-tag" id="buildTag"></span>
-  </header>
-
-  <section class="card" aria-labelledby="statusTitle">
-    <h2 id="statusTitle">Connections</h2>
-    <p class="hint">Green means it works. If something is red, it says what went wrong.</p>
-    <div class="row" data-testid="db-status">
-      <span class="dot" id="dbDot"></span>
-      <div><div class="label">Database</div><div class="detail" id="dbDetail">Checking…</div></div>
-    </div>
-    <div class="row" data-testid="ai-status">
-      <span class="dot" id="aiDot"></span>
-      <div><div class="label">Photo AI</div><div class="detail" id="aiDetail">Not checked yet.</div></div>
-    </div>
-    <div style="margin-top:12px"><button type="button" id="runChecks" data-testid="run-checks">Check connections</button></div>
-  </section>
-
-  <section class="card" aria-labelledby="saveTitle">
-    <h2 id="saveTitle">Save a test note</h2>
-    <p class="hint">Proves the app can save to the database and read it back.</p>
-    <form class="inline" id="noteForm">
-      <input type="text" id="noteInput" maxlength="200" placeholder="Type anything…" aria-label="Test note" data-testid="save-test-note-input" autocomplete="off">
-      <button type="submit" id="noteSave" data-testid="save-test-note-button">Save</button>
-    </form>
-    <div class="detail result" id="noteMsg" role="status"></div>
-    <ul class="notes" id="notesList" data-testid="test-notes-list"></ul>
-  </section>
-
-  <section class="card" aria-labelledby="photoTitle">
-    <h2 id="photoTitle">Try the photo AI</h2>
-    <p class="hint">Pick or take a photo of anything. The AI says what it thinks it is.</p>
-    <label class="filebtn" for="photoInput" style="display:inline-block">Choose a photo</label>
-    <input type="file" id="photoInput" accept="image/*" data-testid="photo-input">
-    <img class="preview" id="photoPreview" alt="Your chosen photo" data-testid="photo-preview">
-    <div class="result" id="photoResult" role="status" data-testid="photo-result"></div>
-  </section>
-
+<div class="wrap">
+  <div id="app" data-testid="app-shell"></div>
   <section class="card" aria-labelledby="newTitle" data-testid="whats-new">
     <h2 id="newTitle">What’s new</h2>
     <div id="changelog"></div>
   </section>
+  <div class="build" data-testid="build-tag" id="buildTag"></div>
 </div>
-
 <script>
 (function () {
   "use strict";
 
-  // ---- Build info + changelog. Every build adds an entry here. ----
-  var BUILD = { version: "0.1.0", phase: "Phase 1 · Foundation" };
+  // ---- Build info + changelog. Every build adds an entry here (newest first). ----
+  var BUILD = { version: "0.2.0", phase: "Phase 2 · Core loop" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
           date: "Nov 5",
-          title: "Fresh start",
-          detail: "One Place was rebuilt from the ground up. This first build only proves the pieces are connected: the app, the database, and the photo AI.",
+          title: "Sign in, rooms, and Plan my fix",
+          detail: "Sign in with your email, name your home, add rooms, then snap a photo and get a plan. Every suggested task is yours to accept or skip, and nothing is scheduled until you say so.",
           isNew: true
+        },
+        {
+          date: "Nov 5",
+          title: "Fresh start",
+          detail: "One Place was rebuilt from the ground up. The first build proved the app, the database, and the photo AI are connected."
         }
       ]
     }
@@ -160,254 +137,841 @@
   var SUPABASE_URL = "https://ykqnjpgbdwrenilwxkio.supabase.co";
   var SUPABASE_KEY = "sb_publishable_1TrviuurElOjjrQRY56oUg_yzgNwHiR";
   var AI_MODELS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"];
+  var SESSION_KEY = "oneplace.session";
+  var ROOM_IDEAS = ["Kitchen", "Bathroom", "Bedroom", "Living room", "Garage", "Yard"];
 
+  var state = { session: null, person: null, profile: null, rooms: [], items: [], tasks: [], filter: "all", notice: "" };
+
+  // ---- Tiny helpers ----
   function $(id) { return document.getElementById(id); }
-  function setStatus(name, state, text) {
-    $(name + "Dot").className = "dot" + (state ? " " + state : "");
-    $(name + "Detail").textContent = text;
+  function h(tag, props, kids) {
+    var el = document.createElement(tag);
+    Object.keys(props || {}).forEach(function (k) {
+      var v = props[k];
+      if (v === undefined || v === null || v === false) return;
+      if (k === "class") el.className = v;
+      else if (k === "text") el.textContent = v;
+      else if (k.slice(0, 2) === "on") el.addEventListener(k.slice(2), v);
+      else if (k === "value") el.value = v;
+      else el.setAttribute(k, v === true ? "" : v);
+    });
+    [].concat(kids || []).forEach(function (c) {
+      if (c === null || c === undefined || c === false) return;
+      el.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return el;
+  }
+  function view(nodes) {
+    var app = $("app");
+    app.textContent = "";
+    [].concat(nodes).forEach(function (n) { if (n) app.appendChild(n); });
+    window.scrollTo(0, 0);
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function isoIn(days) {
+    var d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+  function niceDate(iso) {
+    return new Date(iso + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+  function repeatText(days) {
+    if (!days) return "one time";
+    if (days === 7) return "weekly";
+    if (days === 30) return "monthly";
+    if (days === 365) return "yearly";
+    if (days % 365 === 0) return "every " + (days / 365) + " years";
+    if (days % 30 === 0 && days < 365) return "every " + (days / 30) + " months";
+    return "every " + days + " days";
+  }
+  function roomName(id) {
+    for (var i = 0; i < state.rooms.length; i++) if (state.rooms[i].id === id) return state.rooms[i].name;
+    return "";
   }
 
-  // ---- Database ----
-  function dbFetch(path, options) {
-    options = options || {};
-    options.headers = Object.assign({ apikey: SUPABASE_KEY, "Content-Type": "application/json" }, options.headers || {});
-    return fetch(SUPABASE_URL + "/rest/v1/" + path, options);
+  // ---- Session (email + password through Supabase Auth) ----
+  function loadSession() {
+    try { var s = JSON.parse(localStorage.getItem(SESSION_KEY)); return s && s.access_token ? s : null; } catch (e) { return null; }
   }
-
-  function explainDbError(res, body) {
-    var code = body && body.code;
-    if (code === "PGRST205" || res.status === 404) return "The test table is missing in Supabase.";
-    if (res.status === 401) return "Supabase rejected the app’s key (401). The key in the page may be wrong or disabled.";
-    if (res.status === 403 || code === "42501") return "Supabase blocked this by its security rules (403).";
-    return "Supabase answered with an error (" + res.status + ")" + (body && body.message ? ": " + body.message : ".");
+  function saveSession(s) {
+    try { if (s) localStorage.setItem(SESSION_KEY, JSON.stringify(s)); else localStorage.removeItem(SESSION_KEY); } catch (e) {}
   }
+  function setSession(body, user) {
+    state.session = {
+      access_token: body.access_token,
+      refresh_token: body.refresh_token,
+      expires_at: Date.now() + (body.expires_in || 3600) * 1000,
+      user: body.user || user || (state.session && state.session.user) || null
+    };
+    saveSession(state.session);
+  }
+  function authFetch(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ apikey: SUPABASE_KEY, "Content-Type": "application/json" }, opts.headers || {});
+    return fetch(SUPABASE_URL + "/auth/v1/" + path, opts);
+  }
+  function readJson(res) { return res.json().catch(function () { return null; }); }
 
-  function checkDatabase() {
-    setStatus("db", "", "Checking…");
-    return dbFetch("connection_checks?select=id&limit=1").then(function (res) {
-      return res.json().catch(function () { return null; }).then(function (body) {
-        if (res.ok) { setStatus("db", "ok", "Connected. The database answered."); return true; }
-        setStatus("db", "bad", explainDbError(res, body));
-        return false;
-      });
-    }).catch(function () {
-      setStatus("db", "bad", "Couldn’t reach Supabase at all. Check the internet connection, then try again.");
-      return false;
+  var refreshing = null;
+  function ensureFresh() {
+    var s = state.session;
+    if (!s) return Promise.reject(new Error("Please sign in."));
+    if (s.expires_at - Date.now() > 60000) return Promise.resolve(s);
+    if (!refreshing) {
+      refreshing = authFetch("token?grant_type=refresh_token", { method: "POST", body: JSON.stringify({ refresh_token: s.refresh_token }) })
+        .then(function (res) {
+          return readJson(res).then(function (b) {
+            if (!res.ok || !b || !b.access_token) throw new Error("Your sign-in expired. Please sign in again.");
+            setSession(b);
+            return state.session;
+          });
+        })
+        .then(function (x) { refreshing = null; return x; }, function (e) { refreshing = null; signOutLocal(); throw e; });
+    }
+    return refreshing;
+  }
+  function api(base, path, opts) {
+    opts = opts || {};
+    return ensureFresh().then(function (s) {
+      opts.headers = Object.assign({ apikey: SUPABASE_KEY, Authorization: "Bearer " + s.access_token }, opts.headers || {});
+      if (typeof opts.body === "string" && !opts.headers["Content-Type"]) opts.headers["Content-Type"] = "application/json";
+      return fetch(SUPABASE_URL + base + path, opts);
     });
   }
-
-  function loadNotes() {
-    return dbFetch("connection_checks?select=id,note,created_at&order=id.desc&limit=5").then(function (res) {
-      return res.json().then(function (rows) {
-        var list = $("notesList");
-        list.textContent = "";
-        if (!res.ok || !Array.isArray(rows)) return;
-        rows.forEach(function (r) {
-          var li = document.createElement("li");
-          li.textContent = r.note;
-          var small = document.createElement("small");
-          small.textContent = new Date(r.created_at).toLocaleString();
-          li.appendChild(small);
-          list.appendChild(li);
-        });
+  function dbMessage(res, body) {
+    var code = body && body.code;
+    if (res.status === 401) return "Your sign-in expired. Please sign in again.";
+    if (res.status === 403 || code === "42501") return "Supabase blocked this by its security rules.";
+    if (code === "23505") return "That one already exists.";
+    return "Supabase answered with an error (" + res.status + ")" + (body && body.message ? ": " + body.message : ".");
+  }
+  // Returns the parsed rows/row, or throws an Error with a plain-language message.
+  function rest(path, opts) {
+    return api("/rest/v1/", path, opts).then(function (res) {
+      return readJson(res).then(function (body) {
+        if (!res.ok) { var e = new Error(dbMessage(res, body)); e.code = body && body.code; throw e; }
+        return body;
       });
-    }).catch(function () {});
+    }, function (err) {
+      if (err && /sign in/i.test(err.message)) throw err;
+      throw new Error("Couldn’t reach Supabase. Check the internet connection, then try again.");
+    });
+  }
+  var JSON_ONE = { Prefer: "return=representation" };
+
+  // ---- Sign in / create account ----
+  function signOutLocal() {
+    state.session = null; state.person = null; state.profile = null;
+    state.rooms = []; state.items = []; state.tasks = [];
+    saveSession(null);
+  }
+  function signOut() {
+    var s = state.session;
+    if (s) authFetch("logout", { method: "POST", headers: { Authorization: "Bearer " + s.access_token } }).catch(function () {});
+    signOutLocal();
+    showAuth("signin");
+  }
+  function authMessage(res, body) {
+    var text = body && (body.error_description || body.msg || body.message || "");
+    var code = body && (body.error_code || body.code || "");
+    if (/invalid login/i.test(text)) return "That email and password don’t match.";
+    if (/not confirmed/i.test(text) || code === "email_not_confirmed") return "Please confirm your email first. Check your inbox for the link.";
+    if (res.status === 429 || /rate limit/i.test(text) || code === "over_email_send_rate_limit") return "Too many emails were sent just now. Wait a few minutes and try again.";
+    if (/already registered/i.test(text) || code === "user_already_exists") return "That email already has an account. Try signing in.";
+    if (/password/i.test(text) && /(short|least|weak)/i.test(text)) return "Choose a password with at least 8 characters.";
+    return text || ("Sign-in answered with an error (" + res.status + ").");
   }
 
-  $("noteForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    var text = $("noteInput").value.trim();
-    var msg = $("noteMsg");
-    msg.className = "detail result";
-    if (!text) { msg.textContent = "Type a note first."; return; }
-    $("noteSave").disabled = true;
-    msg.textContent = "Saving…";
-    dbFetch("connection_checks", {
-      method: "POST",
-      headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({ note: text })
-    }).then(function (res) {
-      if (res.ok) {
-        msg.textContent = "Saved to the database.";
-        $("noteInput").value = "";
-        return loadNotes();
-      }
-      return res.json().catch(function () { return null; }).then(function (body) {
-        msg.className = "detail result bad";
-        msg.textContent = "Not saved. " + explainDbError(res, body);
+  function showAuth(mode, note) {
+    var isNew = mode === "signup";
+    var msg = h("div", { class: "result", role: "status", "data-testid": "auth-message" }, note || "");
+    var email = h("input", { type: "email", id: "authEmail", autocomplete: "email", required: true, "data-testid": "auth-email" });
+    var pw = h("input", { type: "password", id: "authPw", autocomplete: isNew ? "new-password" : "current-password", minlength: "8", required: true, "data-testid": "auth-password" });
+    var submit = h("button", { type: "submit", "data-testid": "auth-submit", text: isNew ? "Create account" : "Sign in" });
+
+    var form = h("form", { novalidate: true }, [
+      h("label", { class: "field" }, [h("span", { text: "Email" }), email]),
+      h("label", { class: "field" }, [h("span", { text: "Password" }), pw, isNew ? h("small", { text: "At least 8 characters." }) : null]),
+      submit, msg
+    ]);
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var em = email.value.trim(), p = pw.value;
+      msg.className = "result";
+      if (!/^\S+@\S+\.\S+$/.test(em)) { msg.className = "result bad"; msg.textContent = "Type a full email address."; return; }
+      if (p.length < 8) { msg.className = "result bad"; msg.textContent = "Choose a password with at least 8 characters."; return; }
+      submit.disabled = true;
+      msg.textContent = isNew ? "Creating your account…" : "Signing in…";
+      var req = isNew
+        ? authFetch("signup", { method: "POST", body: JSON.stringify({ email: em, password: p }) })
+        : authFetch("token?grant_type=password", { method: "POST", body: JSON.stringify({ email: em, password: p }) });
+      req.then(function (res) {
+        return readJson(res).then(function (b) {
+          if (!res.ok) throw new Error(authMessage(res, b));
+          if (b && b.access_token) { setSession(b); return loadAll(); }
+          // Account made, but the email must be confirmed before signing in.
+          showAuth("signin", "Almost there! We sent a link to " + em + ". Tap it to confirm, then sign in here.");
+        });
+      }).catch(function (err) {
+        msg.className = "result bad";
+        msg.textContent = err instanceof TypeError || !err.message ? "Couldn’t reach the sign-in service. Check the internet connection." : err.message;
+        submit.disabled = false;
       });
-    }).catch(function () {
-      msg.className = "detail result bad";
-      msg.textContent = "Not saved. Couldn’t reach Supabase.";
-    }).then(function () { $("noteSave").disabled = false; });
-  });
+    });
 
-  // ---- Photo AI ----
-  var AI_TIMEOUT_MS = 12000; // a busy model can hang, so each try gets a time limit
+    var forgot = h("button", { type: "button", class: "link", text: "Forgot your password?", onclick: function () {
+      var em = email.value.trim();
+      if (!/^\S+@\S+\.\S+$/.test(em)) { msg.className = "result bad"; msg.textContent = "Type your email above first, then tap this again."; return; }
+      msg.className = "result"; msg.textContent = "Sending…";
+      authFetch("recover", { method: "POST", body: JSON.stringify({ email: em }) }).then(function (res) {
+        return readJson(res).then(function (b) {
+          if (!res.ok) throw new Error(authMessage(res, b));
+          msg.textContent = "If that email has an account, a reset link is on its way.";
+        });
+      }).catch(function (err) { msg.className = "result bad"; msg.textContent = err.message || "Couldn’t send that. Try again."; });
+    } });
 
-  function callAIWith(model, parts) {
+    view(h("section", { class: "card", "data-testid": "auth-card" }, [
+      h("h1", { text: "One Place" }),
+      h("p", { class: "hint", text: isNew ? "Make an account with your email. It keeps your home private and lets you send feedback and reach local pros." : "Welcome back. Sign in with your email." }),
+      h("div", { class: "chips", role: "group", "aria-label": "Sign in or create account" }, [
+        h("button", { type: "button", class: "chip", "aria-pressed": String(!isNew), text: "Sign in", onclick: function () { showAuth("signin"); } }),
+        h("button", { type: "button", class: "chip", "aria-pressed": String(isNew), text: "Create account", onclick: function () { showAuth("signup"); } })
+      ]),
+      form,
+      isNew ? null : forgot
+    ]));
+  }
+
+  function showNewPassword() {
+    var pw = h("input", { type: "password", autocomplete: "new-password", minlength: "8", "data-testid": "new-password" });
+    var msg = h("div", { class: "result", role: "status" });
+    var form = h("form", { novalidate: true }, [
+      h("label", { class: "field" }, [h("span", { text: "New password" }), pw, h("small", { text: "At least 8 characters." })]),
+      h("button", { type: "submit", text: "Save new password" }), msg
+    ]);
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (pw.value.length < 8) { msg.className = "result bad"; msg.textContent = "Choose a password with at least 8 characters."; return; }
+      api("/auth/v1/", "user", { method: "PUT", body: JSON.stringify({ password: pw.value }) }).then(function (res) {
+        return readJson(res).then(function (b) {
+          if (!res.ok) throw new Error(authMessage(res, b));
+          return loadAll();
+        });
+      }).catch(function (err) { msg.className = "result bad"; msg.textContent = err.message; });
+    });
+    view(h("section", { class: "card" }, [h("h2", { text: "Choose a new password" }), form]));
+  }
+
+  // Sign-in and reset links come back to this page with the tokens after a "#".
+  function takeLinkTokens() {
+    var hash = location.hash.replace(/^#/, "");
+    if (hash.indexOf("access_token=") === -1) return Promise.resolve(null);
+    var q = {};
+    hash.split("&").forEach(function (p) { var i = p.indexOf("="); if (i > 0) q[decodeURIComponent(p.slice(0, i))] = decodeURIComponent(p.slice(i + 1)); });
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    if (!q.access_token) return Promise.resolve(null);
+    return fetch(SUPABASE_URL + "/auth/v1/user", { headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + q.access_token } })
+      .then(readJson).then(function (user) {
+        if (!user || !user.id) return null;
+        setSession({ access_token: q.access_token, refresh_token: q.refresh_token, expires_in: Number(q.expires_in) || 3600 }, user);
+        return q.type || "signin";
+      }).catch(function () { return null; });
+  }
+
+  // ---- Load everything for the signed-in person ----
+  function loadAll() {
+    view(h("section", { class: "card" }, [h("p", { class: "hint", text: "Loading…" })]));
+    var uid = state.session.user && state.session.user.id;
+    return rest("people?select=*&id=eq." + encodeURIComponent(uid)).then(function (rows) {
+      state.person = rows[0] || null;
+      return rest("profiles?select=*&order=created_at.asc");
+    }).then(function (profiles) {
+      if (!state.person || !profiles.length) { showWelcome(); return null; }
+      state.profile = profiles[0];
+      return loadHome().then(showHome);
+    }).catch(function (err) {
+      if (/sign in/i.test(err.message)) { showAuth("signin", err.message); return; }
+      view(h("section", { class: "card" }, [
+        h("h2", { text: "Something went wrong" }),
+        h("p", { class: "result bad", text: err.message }),
+        h("div", { class: "actions" }, [h("button", { type: "button", text: "Try again", onclick: loadAll }), h("button", { type: "button", class: "quiet", text: "Sign out", onclick: signOut })])
+      ]));
+    });
+  }
+  function loadHome() {
+    var pid = encodeURIComponent(state.profile.id);
+    return Promise.all([
+      rest("rooms?select=*&profile_id=eq." + pid + "&order=sort_order.asc,created_at.asc"),
+      rest("items?select=*&profile_id=eq." + pid + "&order=created_at.desc"),
+      rest("maintenance_tasks?select=*&profile_id=eq." + pid + "&order=created_at.asc")
+    ]).then(function (r) { state.rooms = r[0]; state.items = r[1]; state.tasks = r[2]; });
+  }
+
+  // ---- Welcome (first sign-in) ----
+  function showWelcome() {
+    var user = state.session.user || {};
+    var p = state.person || {};
+    var kind = "home", tenure = "owner";
+    var msg = h("div", { class: "result", role: "status" });
+    var nameLabel = h("span", { text: "Name your home" });
+    var tenureOwner = h("span", { text: "Homeowner" });
+
+    function radio(name, value, label, checked, onchange) {
+      var input = h("input", { type: "radio", name: name, value: value, checked: checked, onchange: onchange });
+      var text = typeof label === "string" ? h("span", { text: label }) : label;
+      return h("label", {}, [input, text]);
+    }
+    function sync() {
+      nameLabel.textContent = kind === "home" ? "Name your home" : "Name your business";
+      tenureOwner.textContent = kind === "home" ? "Homeowner" : "Business owner";
+      nameInput.placeholder = kind === "home" ? "e.g. Our house" : "e.g. Corner Bakery";
+    }
+    var first = h("input", { type: "text", maxlength: "60", autocomplete: "given-name", value: p.first_name || "", "data-testid": "welcome-first" });
+    var last = h("input", { type: "text", maxlength: "60", autocomplete: "family-name", value: p.last_name || "" });
+    var phone = h("input", { type: "tel", maxlength: "40", autocomplete: "tel", value: p.phone || "" });
+    var email = h("input", { type: "email", maxlength: "254", autocomplete: "email", value: p.email || user.email || "" });
+    var nameInput = h("input", { type: "text", maxlength: "80", "data-testid": "welcome-name" });
+
+    var form = h("form", { novalidate: true, "data-testid": "welcome" }, [
+      h("div", { class: "field" }, [h("span", { text: "This is a…" }), h("div", { class: "seg", role: "radiogroup" }, [
+        radio("kind", "home", "Home", true, function () { kind = "home"; sync(); }),
+        radio("kind", "business", "Business", false, function () { kind = "business"; sync(); })
+      ])]),
+      h("div", { class: "field" }, [h("span", { text: "I’m the…" }), h("div", { class: "seg", role: "radiogroup" }, [
+        radio("tenure", "owner", tenureOwner, true, function () { tenure = "owner"; }),
+        radio("tenure", "renter", "Renter", false, function () { tenure = "renter"; })
+      ])]),
+      h("div", { class: "two" }, [
+        h("label", { class: "field" }, [h("span", { text: "First name" }), first]),
+        h("label", { class: "field" }, [h("span", { text: "Last name" }), last])
+      ]),
+      h("label", { class: "field" }, [h("span", { text: "Phone" }), phone]),
+      h("label", { class: "field" }, [h("span", { text: "Email" }), email]),
+      h("label", { class: "field" }, [nameLabel, nameInput]),
+      h("button", { type: "submit", text: "Start" }), msg
+    ]);
+    sync();
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var fn = first.value.trim(), hn = nameInput.value.trim();
+      msg.className = "result bad";
+      if (!fn) { msg.textContent = "Add your first name."; return; }
+      if (!hn) { msg.textContent = kind === "home" ? "Give your home a name." : "Give your business a name."; return; }
+      var btn = form.querySelector("button[type=submit]");
+      btn.disabled = true; msg.className = "result"; msg.textContent = "Setting up…";
+      var me = { id: state.session.user.id, first_name: fn, last_name: last.value.trim(), phone: phone.value.trim() || null, email: email.value.trim() || null };
+      rest("people", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(me) }).then(function () {
+        if (state.profile) return null;
+        return rest("profiles", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ kind: kind, tenure: tenure, name: hn, contact_phone: me.phone, contact_email: me.email }) })
+          .then(function (rows) { state.profile = rows[0]; });
+      }).then(function () { state.person = me; return loadHome(); }).then(showHome).catch(function (err) {
+        msg.className = "result bad"; msg.textContent = "Not saved. " + err.message; btn.disabled = false;
+      });
+    });
+
+    view(h("section", { class: "card" }, [
+      h("h1", { text: "Welcome to One Place" }),
+      h("p", { class: "hint", text: "A few quick details and you’re in." }),
+      form
+    ]));
+  }
+
+  // ---- Home ----
+  function addRoom(name) {
+    name = name.trim();
+    if (!name) return Promise.reject(new Error("Type a room name first."));
+    var dupe = state.rooms.filter(function (r) { return r.name.toLowerCase() === name.toLowerCase(); })[0];
+    if (dupe) return Promise.resolve(dupe);
+    return rest("rooms", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ profile_id: state.profile.id, name: name, sort_order: state.rooms.length }) })
+      .then(function (rows) { state.rooms.push(rows[0]); return rows[0]; });
+  }
+
+  function tasksFor(itemId) { return state.tasks.filter(function (t) { return t.item_id === itemId; }); }
+
+  function acceptTask(task, btn) {
+    btn.disabled = true;
+    var patch = { status: "active", due_on: task.due_on || isoIn(Math.min(task.repeat_days || 30, 365)) };
+    rest("maintenance_tasks?id=eq." + encodeURIComponent(task.id), { method: "PATCH", headers: JSON_ONE, body: JSON.stringify(patch) })
+      .then(function (rows) { Object.assign(task, rows[0] || patch); showHome(); })
+      .catch(function (err) { btn.disabled = false; state.notice = "Couldn’t add that task. " + err.message; showHome(); });
+  }
+
+  function taskRow(t) {
+    var meta = t.status === "active"
+      ? (t.kind === "repair" ? "Repair" : "Upkeep") + " · " + repeatText(t.repeat_days) + (t.due_on ? " · due " + niceDate(t.due_on) : "")
+      : "Suggestion · " + (t.kind === "repair" ? "Repair" : "Upkeep") + " · " + repeatText(t.repeat_days);
+    var left = h("div", {}, [h("div", { class: "t", text: t.title }), h("div", { class: "m", text: meta }), t.detail ? h("div", { class: "m", text: t.detail }) : null]);
+    var li = h("li", { "data-testid": t.status === "active" ? "task-active" : "task-suggested" }, [left]);
+    if (t.status !== "active") {
+      var btn = h("button", { type: "button", class: "small", text: "Add", "aria-label": "Add " + t.title });
+      btn.addEventListener("click", function () { acceptTask(t, btn); });
+      li.appendChild(btn);
+    }
+    return li;
+  }
+
+  function signedUrl(path) {
+    return api("/storage/v1/", "object/sign/item-photos/" + path.split("/").map(encodeURIComponent).join("/"), { method: "POST", body: JSON.stringify({ expiresIn: 3600 }) })
+      .then(readJson).then(function (b) { return b && b.signedURL ? SUPABASE_URL + "/storage/v1" + b.signedURL : null; });
+  }
+
+  function itemCard(item) {
+    var tasks = tasksFor(item.id);
+    var active = tasks.filter(function (t) { return t.status === "active"; }).length;
+    var details = h("details", { class: "item", "data-testid": "item" });
+    var summary = h("summary", {}, [item.name + " — " + roomName(item.room_id)]);
+    if (active) summary.appendChild(h("span", { class: "badge", text: active + (active === 1 ? " reminder" : " reminders") }));
+    var body = h("div", { class: "body" });
+    var bits = [item.brand, item.model, item.year].filter(Boolean).join(" · ");
+    if (bits) body.appendChild(h("div", { class: "detail", text: bits }));
+    if (item.problem) body.appendChild(h("div", { class: "detail", text: "Problem: " + item.problem }));
+    var thumbs = h("div", { class: "thumbs" });
+    body.appendChild(thumbs);
+    if (tasks.length) body.appendChild(h("ul", { class: "tasks" }, tasks.map(taskRow)));
+    else body.appendChild(h("div", { class: "detail", text: "No tasks yet." }));
+    body.appendChild(h("div", { class: "actions" }, [
+      h("button", { type: "button", class: "quiet small", "data-testid": "add-another", text: "Add another in a different room", onclick: function () {
+        showAddItem({ name: item.name, brand: item.brand || "", model: item.model || "", year: item.year || "" });
+      } })
+    ]));
+    details.appendChild(summary); details.appendChild(body);
+    var loaded = false;
+    details.addEventListener("toggle", function () {
+      if (!details.open || loaded) return;
+      loaded = true;
+      (item.photos || []).forEach(function (path) {
+        signedUrl(path).then(function (url) {
+          if (url) thumbs.appendChild(h("div", { class: "thumb" }, [h("img", { src: url, alt: "Photo of " + item.name })]));
+        }).catch(function () {});
+      });
+    });
+    return details;
+  }
+
+  function showHome() {
+    var notice = state.notice; state.notice = "";
+    var itemsBox = h("div", { "data-testid": "items-list" });
+    var shown = state.items.filter(function (i) { return state.filter === "all" || i.room_id === state.filter; });
+    if (!state.items.length) itemsBox.appendChild(h("p", { class: "hint", text: "Nothing here yet. Tap “Plan my fix” to add your first item." }));
+    else if (!shown.length) itemsBox.appendChild(h("p", { class: "hint", text: "No items in this room yet." }));
+    shown.forEach(function (i) { itemsBox.appendChild(itemCard(i)); });
+
+    var filterChips = null;
+    if (state.rooms.length) {
+      filterChips = h("div", { class: "chips", role: "group", "aria-label": "Show items by room" }, [{ id: "all", name: "All" }].concat(state.rooms).map(function (r) {
+        return h("button", { type: "button", class: "chip", "aria-pressed": String(state.filter === r.id), text: r.name, "data-testid": "room-tab", onclick: function () { state.filter = r.id; showHome(); } });
+      }));
+    }
+
+    var roomInput = h("input", { type: "text", maxlength: "60", placeholder: "Add a room, like Kitchen", "aria-label": "New room name", "data-testid": "new-room-input" });
+    var roomMsg = h("div", { class: "result", role: "status" });
+    var roomForm = h("form", { class: "actions", style: "flex-wrap:nowrap" }, [roomInput, h("button", { type: "submit", text: "Add", "data-testid": "new-room-button" })]);
+    function submitRoom(name) {
+      roomMsg.className = "result"; roomMsg.textContent = "";
+      addRoom(name).then(function () { showHome(); }).catch(function (err) { roomMsg.className = "result bad"; roomMsg.textContent = err.message; });
+    }
+    roomForm.addEventListener("submit", function (e) { e.preventDefault(); submitRoom(roomInput.value); });
+    var ideas = ROOM_IDEAS.filter(function (n) { return !state.rooms.some(function (r) { return r.name.toLowerCase() === n.toLowerCase(); }); });
+
+    view([
+      h("header", {}, [
+        h("h1", { text: state.profile.name, "data-testid": "profile-name" }),
+        h("button", { type: "button", class: "quiet small", text: "Sign out", "data-testid": "sign-out", onclick: signOut })
+      ]),
+      notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
+      h("section", { class: "card" }, [
+        h("h2", { text: "Something to fix? Start with a photo." }),
+        h("p", { class: "hint", text: "Snap a photo, say what’s wrong, and get a plan you can accept or skip." }),
+        h("button", { type: "button", "data-testid": "plan-my-fix", text: "Plan my fix", onclick: function () { showAddItem({}); } })
+      ]),
+      h("section", { class: "card", "aria-labelledby": "roomsTitle" }, [
+        h("h2", { id: "roomsTitle", text: "Rooms and items" }),
+        filterChips,
+        itemsBox,
+        h("div", { style: "margin-top:12px" }, [
+          roomForm, roomMsg,
+          ideas.length ? h("div", { class: "chips" }, ideas.map(function (n) { return h("button", { type: "button", class: "chip", text: "+ " + n, onclick: function () { submitRoom(n); } }); })) : null
+        ])
+      ]),
+      connectionsCard()
+    ]);
+  }
+
+  // ---- Connections check (kept so a problem is easy to spot) ----
+  function connectionsCard() {
+    var dbDot = h("span", { class: "dot" }), dbText = h("div", { class: "detail", text: "Not checked yet." });
+    var aiDot = h("span", { class: "dot" }), aiText = h("div", { class: "detail", text: "Not checked yet." });
+    function set(dot, text, st, t) { dot.className = "dot" + (st ? " " + st : ""); text.textContent = t; }
+    var btn = h("button", { type: "button", class: "quiet small", "data-testid": "run-checks", text: "Check connections" });
+    btn.addEventListener("click", function () {
+      btn.disabled = true;
+      set(dbDot, dbText, "", "Checking…"); set(aiDot, aiText, "", "Checking…");
+      var db = rest("people?select=id&limit=1").then(function () { set(dbDot, dbText, "ok", "Connected. The database answered."); }, function (e) { set(dbDot, dbText, "bad", e.message); });
+      var ai = callAI([{ text: "Reply with exactly one word: ready" }], { onBackup: function () { set(aiDot, aiText, "", "That model is busy. Trying a backup…"); } })
+        .then(function () { set(aiDot, aiText, "ok", "Connected. The photo AI answered."); }, function (e) { set(aiDot, aiText, "bad", e.message); });
+      Promise.all([db, ai]).then(function () { btn.disabled = false; });
+    });
+    return h("details", { class: "card" }, [
+      h("summary", { text: "Connections", style: "cursor:pointer;font-weight:700" }),
+      h("div", { class: "row", "data-testid": "db-status" }, [dbDot, h("div", {}, [h("div", { class: "label", text: "Database" }), dbText])]),
+      h("div", { class: "row", "data-testid": "ai-status" }, [aiDot, h("div", {}, [h("div", { class: "label", text: "Photo AI" }), aiText])]),
+      btn
+    ]);
+  }
+
+  // ---- Photo AI (through our own server function; sign-in required) ----
+  function callAIWith(model, parts, opts) {
     var ctrl = new AbortController();
-    var timer = setTimeout(function () { ctrl.abort(); }, AI_TIMEOUT_MS);
-    return fetch("/api/gemini", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal: ctrl.signal,
-      body: JSON.stringify({
-        model: model,
-        contents: [{ role: "user", parts: parts }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 400 }
-      })
+    var timer = setTimeout(function () { ctrl.abort(); }, opts.timeoutMs);
+    return ensureFresh().then(function (s) {
+      return fetch("/api/gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + s.access_token },
+        signal: ctrl.signal,
+        body: JSON.stringify({ model: model, contents: [{ role: "user", parts: parts }], generationConfig: opts.config })
+      });
     }).catch(function (err) {
       var e;
-      if (err && err.name === "AbortError") {
-        e = new Error("That model took too long to answer.");
-      } else {
-        e = new Error("Couldn’t reach the app’s server function (/api/gemini).");
-        e.fatal = true;
-      }
+      if (err && err.name === "AbortError") e = new Error("That model took too long to answer.");
+      else if (err && /sign in/i.test(err.message || "")) { e = err; e.fatal = true; }
+      else { e = new Error("Couldn’t reach the app’s server function (/api/gemini)."); e.fatal = true; }
       throw e;
     }).then(function (res) {
-      return res.json().catch(function () { return null; }).then(function (body) {
+      return readJson(res).then(function (body) {
         if (!res.ok) {
-          var why = (body && body.error) || ("The photo AI answered with an error (" + res.status + ").");
-          var e = new Error(why);
-          e.fatal = res.status === 500; // 500 = key missing, so other models won't help
+          var e = new Error((body && body.error) || ("The photo AI answered with an error (" + res.status + ")."));
+          e.fatal = res.status === 500 || res.status === 401;
           throw e;
         }
         var cands = body && body.candidates;
-        var parts2 = cands && cands[0] && cands[0].content && cands[0].content.parts;
-        var text = (parts2 || []).map(function (p) { return p.text || ""; }).join("").trim();
+        var ps = cands && cands[0] && cands[0].content && cands[0].content.parts;
+        var text = (ps || []).map(function (p) { return p.text || ""; }).join("").trim();
         if (!text) throw new Error("The photo AI answered, but with nothing in it.");
         return text;
       });
-    }).then(function (text) {
-      clearTimeout(timer);
-      return text;
-    }, function (err) {
-      clearTimeout(timer);
-      throw err;
-    });
+    }).then(function (t) { clearTimeout(timer); return t; }, function (e) { clearTimeout(timer); throw e; });
   }
-
   // Tries each model in turn; if one is busy or slow, the next one gets a go.
-  function callAI(parts, onBackup) {
+  function callAI(parts, opts) {
+    opts = Object.assign({ timeoutMs: 12000, config: { temperature: 0.2, maxOutputTokens: 400 } }, opts || {});
     var i = 0, last = null;
     function next() {
-      if (i >= AI_MODELS.length) {
-        throw new Error("The photo AI is busy right now. Wait a minute and try again. (" + (last && last.message || "no details") + ")");
-      }
-      if (i > 0 && onBackup) onBackup();
-      return callAIWith(AI_MODELS[i++], parts).catch(function (err) {
-        if (err.fatal) throw err;
-        last = err;
-        return next();
-      });
+      if (i >= AI_MODELS.length) throw new Error("The photo AI is busy right now. Wait a minute and try again. (" + (last && last.message || "no details") + ")");
+      if (i > 0 && opts.onBackup) opts.onBackup();
+      return callAIWith(AI_MODELS[i++], parts, opts).catch(function (err) { if (err.fatal) throw err; last = err; return next(); });
     }
     return next();
   }
 
-  function checkAI() {
-    setStatus("ai", "", "Checking…");
-    return callAI([{ text: "Reply with exactly one word: ready" }], function () {
-      setStatus("ai", "", "That model is busy. Trying a backup…");
-    }).then(function () {
-      setStatus("ai", "ok", "Connected. The photo AI answered.");
-      return true;
-    }).catch(function (err) {
-      setStatus("ai", "bad", err && err.message ? err.message : "Unknown problem.");
-      return false;
-    });
+  function planPrompt(f) {
+    var lines = [
+      "You help a person plan upkeep and repairs for something in their " + (state.profile && state.profile.kind === "business" ? "business" : "home") + ".",
+      f.name ? "They say the item is: \"" + f.name + "\". Treat that as certain and do not rename it. Use the photos only for brand, model, year, material and condition." : "They did not name the item. Work out what it is from the photos.",
+      f.roomName ? "Room: " + f.roomName + "." : "",
+      f.brand || f.model ? "Known so far: " + [f.brand, f.model, f.year].filter(Boolean).join(" ") + "." : "",
+      f.problem ? "What they say is wrong: \"" + f.problem + "\"." : "They did not describe a problem.",
+      "Reply with JSON only, in exactly this shape:",
+      "{\"name\": string, \"brand\": string|null, \"model\": string|null, \"year\": number|null, \"plate_visible\": boolean, \"closeup_hint\": string|null, \"summary\": string, \"tasks\": [{\"title\": string, \"detail\": string, \"kind\": \"maintenance\"|\"repair\", \"repeat_days\": number|null, \"first_due_in_days\": number}]}",
+      "Rules: never guess a brand, model or year; use null unless you can read it or it was given. plate_visible is true only if a model or serial plate or label is readable. If no model can be read, closeup_hint is one short sentence on where to photograph the plate on this kind of item, otherwise null. Give 3 to 6 tasks, repairs first if a problem was described. Titles under 60 characters, details one or two plain sentences. repeat_days is null for a one-time repair. first_due_in_days is 0 to 365."
+    ];
+    return lines.filter(Boolean).join("\n");
+  }
+  function parsePlan(text) {
+    var t = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+    var data;
+    try { data = JSON.parse(t); } catch (e) {
+      var m = t.match(/\{[\s\S]*\}/);
+      try { data = m ? JSON.parse(m[0]) : null; } catch (e2) { data = null; }
+    }
+    if (!data || typeof data !== "object") throw new Error("The photo AI answered, but I couldn’t read its plan. Try again.");
+    function clean(s, n) { return typeof s === "string" && s.trim() ? s.trim().slice(0, n) : null; }
+    var year = Number(data.year);
+    var tasks = (Array.isArray(data.tasks) ? data.tasks : []).slice(0, 8).map(function (t) {
+      var rd = Math.round(Number(t && t.repeat_days)), fd = Math.round(Number(t && t.first_due_in_days));
+      return {
+        title: clean(t && t.title, 160),
+        detail: clean(t && t.detail, 1000),
+        kind: t && t.kind === "repair" ? "repair" : "maintenance",
+        repeat_days: rd >= 1 && rd <= 3660 ? rd : null,
+        first_due_in_days: fd >= 0 && fd <= 365 ? fd : 30
+      };
+    }).filter(function (t) { return t.title; });
+    return {
+      name: clean(data.name, 120), brand: clean(data.brand, 80), model: clean(data.model, 80),
+      year: year >= 1900 && year <= 2100 ? Math.round(year) : null,
+      plateVisible: data.plate_visible === true, closeupHint: clean(data.closeup_hint, 300),
+      summary: clean(data.summary, 300), tasks: tasks
+    };
   }
 
+  // ---- Photos ----
   function downscale(file, maxSide) {
     return new Promise(function (resolve, reject) {
-      var url = URL.createObjectURL(file);
-      var img = new Image();
+      var url = URL.createObjectURL(file), img = new Image();
       img.onload = function () {
         var scale = Math.min(1, maxSide / Math.max(img.width, img.height));
-        var w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+        var w = Math.round(img.width * scale), hgt = Math.round(img.height * scale);
         var canvas = document.createElement("canvas");
-        canvas.width = w; canvas.height = h;
-        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-        var dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        canvas.width = w; canvas.height = hgt;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, hgt);
+        var dataUrl = canvas.toDataURL("image/jpeg", 0.8);
         URL.revokeObjectURL(url);
-        resolve({ dataUrl: dataUrl, base64: dataUrl.split(",")[1] });
+        canvas.toBlob(function (blob) {
+          if (!blob) return reject(new Error("That file couldn’t be read as a photo."));
+          resolve({ dataUrl: dataUrl, base64: dataUrl.split(",")[1], blob: blob });
+        }, "image/jpeg", 0.8);
       };
       img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("That file couldn’t be read as a photo.")); };
       img.src = url;
     });
   }
+  function uid() {
+    return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  }
+  function uploadPhoto(blob) {
+    var path = state.profile.id + "/" + uid() + ".jpg";
+    return api("/storage/v1/", "object/item-photos/" + path, { method: "POST", headers: { "Content-Type": "image/jpeg", "x-upsert": "false" }, body: blob })
+      .then(function (res) {
+        if (res.ok) return path;
+        return readJson(res).then(function (b) { throw new Error("A photo didn’t upload" + (b && b.message ? ": " + b.message : " (" + res.status + ").")); });
+      });
+  }
 
-  $("photoInput").addEventListener("change", function () {
-    var file = this.files && this.files[0];
-    var out = $("photoResult");
-    out.className = "result";
-    if (!file) return;
-    out.textContent = "Looking at your photo…";
-    var slowTimer = null, onBackup = false;
-    function stopSlow() { if (slowTimer) { clearTimeout(slowTimer); slowTimer = null; } }
-    downscale(file, 1024).then(function (img) {
-      var prev = $("photoPreview");
-      prev.src = img.dataUrl;
-      prev.style.display = "block";
-      // If the answer takes a while, say so kindly instead of looking stuck.
-      slowTimer = setTimeout(function () {
-        if (!onBackup) out.textContent = "Let me think harder about this, one moment…";
-      }, 5000);
-      return callAI([
-        { text: "What is this item? Answer in one or two short sentences. If you can read a make, model, or year, include it. If you can’t, say so." },
-        { inline_data: { mime_type: "image/jpeg", data: img.base64 } }
-      ], function () { onBackup = true; out.textContent = "That model is busy. Trying a backup…"; });
-    }).then(function (text) {
-      stopSlow();
-      out.textContent = text;
-    }).catch(function (err) {
-      stopSlow();
-      out.className = "result bad";
-      out.textContent = err && err.message ? err.message : "Something went wrong.";
+  // ---- Add an item: step 1 (what is it?) ----
+  var MAX_PHOTOS = 6;
+
+  function showAddItem(prefill) {
+    renderStep1({
+      name: prefill.name || "", brand: prefill.brand || "", model: prefill.model || "", year: prefill.year || "",
+      roomId: "", newRoom: "", problem: "", files: [], plan: null, another: !!prefill.name
     });
-    this.value = "";
-  });
+  }
 
-  // ---- Buttons + startup ----
-  $("runChecks").addEventListener("click", function () {
-    var btn = this;
-    btn.disabled = true;
-    Promise.all([checkDatabase(), checkAI()]).then(function () { btn.disabled = false; });
-  });
+  function resolveRoom(f) {
+    if (f.roomId && f.roomId !== "__new") return Promise.resolve(f.roomId);
+    return addRoom(f.newRoom).then(function (r) { return r.id; });
+  }
 
-  // ---- Changelog ----
+  function renderStep1(f) {
+    var name = h("input", { type: "text", maxlength: "120", value: f.name, placeholder: "e.g. Oven, toilet, stair railing", "data-testid": "add-item-name" });
+    var roomSel = h("select", { "data-testid": "add-item-room" },
+      [h("option", { value: "", text: "Choose a room" })]
+        .concat(state.rooms.map(function (r) { return h("option", { value: r.id, text: r.name }); }))
+        .concat([h("option", { value: "__new", text: "+ New room…" })]));
+    roomSel.value = f.roomId;
+    var newRoom = h("input", { type: "text", maxlength: "60", value: f.newRoom, placeholder: "Room name, like Guest Bathroom", "aria-label": "New room name", style: "margin-top:8px", "data-testid": "add-item-new-room" });
+    function syncRoom() { newRoom.style.display = roomSel.value === "__new" ? "" : "none"; }
+    roomSel.addEventListener("change", syncRoom); syncRoom();
+    var problem = h("textarea", { maxlength: "1000", placeholder: "e.g. The oven light is out", "data-testid": "add-item-problem" });
+    problem.value = f.problem;
+
+    var thumbs = h("div", { class: "thumbs" });
+    var count = h("div", { class: "detail" });
+    var photoMsg = h("div", { class: "result", role: "status" });
+    function drawThumbs() {
+      thumbs.textContent = "";
+      f.files.forEach(function (p, idx) {
+        thumbs.appendChild(h("div", { class: "thumb" }, [
+          h("img", { src: p.dataUrl, alt: "Chosen photo " + (idx + 1) }),
+          h("button", { type: "button", "aria-label": "Remove photo " + (idx + 1), text: "×", onclick: function () { f.files.splice(idx, 1); drawThumbs(); } })
+        ]));
+      });
+      count.textContent = f.files.length + " of " + MAX_PHOTOS + " photos";
+      addLabel.style.display = f.files.length >= MAX_PHOTOS ? "none" : "";
+    }
+    var fileInput = h("input", { type: "file", id: "addPhotos", accept: "image/*", multiple: true, "data-testid": "add-item-photos" });
+    var addLabel = h("label", { class: "filebtn quiet", for: "addPhotos", text: "Add photos" });
+    fileInput.addEventListener("change", function () {
+      var picked = [].slice.call(fileInput.files || []).slice(0, MAX_PHOTOS - f.files.length);
+      var tooMany = (fileInput.files || []).length > picked.length;
+      fileInput.value = "";
+      photoMsg.className = "result"; photoMsg.textContent = picked.length ? "Getting your photos ready…" : "";
+      Promise.all(picked.map(function (file) { return downscale(file, 900).then(function (p) { return p; }, function (e) { return { error: e.message }; }); })).then(function (res) {
+        var bad = res.filter(function (r) { return r.error; })[0];
+        res.filter(function (r) { return !r.error; }).forEach(function (r) { f.files.push(r); });
+        drawThumbs();
+        photoMsg.className = bad ? "result bad" : "result";
+        photoMsg.textContent = bad ? bad.error : (tooMany ? "Only " + MAX_PHOTOS + " photos fit. The rest were left out." : "");
+      });
+    });
+
+    var status = h("div", { class: "result", role: "status", "data-testid": "add-item-status" });
+    var planBtn = h("button", { type: "button", "data-testid": "plan-submit", text: "Plan my fix" });
+    var skipBtn = h("button", { type: "button", class: "quiet", "data-testid": "save-without-plan", text: "Save without a plan" });
+    var backBtn = h("button", { type: "button", class: "quiet", text: "Back", onclick: function () { showHome(); } });
+
+    function collect() {
+      f.name = name.value.trim(); f.problem = problem.value.trim();
+      f.roomId = roomSel.value; f.newRoom = newRoom.value.trim();
+    }
+    function fail(msg) { status.className = "result bad"; status.textContent = msg; }
+    function roomOk() {
+      if (!f.roomId) { fail("Choose a room first."); return false; }
+      if (f.roomId === "__new" && !f.newRoom) { fail("Type a name for the new room."); return false; }
+      return true;
+    }
+    function busy(on) { [planBtn, skipBtn, backBtn].forEach(function (b) { b.disabled = on; }); }
+
+    planBtn.addEventListener("click", function () {
+      collect(); status.className = "result";
+      if (!f.name && !f.files.length) return fail("Add a photo or type what the item is.");
+      if (!roomOk()) return;
+      f.roomName = f.roomId === "__new" ? f.newRoom : roomName(f.roomId);
+      busy(true);
+      var onBackup = false;
+      status.textContent = "Looking at your item…";
+      var slow = setTimeout(function () { if (!onBackup) status.textContent = "Let me think harder about this, one moment…"; }, 6000);
+      var parts = [{ text: planPrompt(f) }].concat(f.files.map(function (p) { return { inline_data: { mime_type: "image/jpeg", data: p.base64 } }; }));
+      callAI(parts, { timeoutMs: 30000, config: { temperature: 0.2, maxOutputTokens: 2048, responseMimeType: "application/json" },
+        onBackup: function () { onBackup = true; status.textContent = "That model is busy. Trying a backup…"; } })
+        .then(parsePlan).then(function (plan) { clearTimeout(slow); f.plan = plan; renderReview(f); })
+        .catch(function (err) {
+          clearTimeout(slow); busy(false);
+          if (/sign in/i.test(err.message)) { showAuth("signin", err.message); return; }
+          fail(err.message + " You can still save the item without a plan.");
+        });
+    });
+    skipBtn.addEventListener("click", function () {
+      collect(); status.className = "result";
+      if (!f.name) return fail("Type what the item is first.");
+      if (!roomOk()) return;
+      busy(true); status.textContent = "Saving…";
+      saveItem(f, { name: f.name, brand: f.brand, model: f.model, year: f.year }, []).catch(function (err) { busy(false); fail("Not saved. " + err.message); });
+    });
+
+    drawThumbs();
+    view(h("section", { class: "card", "data-testid": "add-item-flow" }, [
+      h("h2", { text: f.another ? "Add another " + (f.name || "item").toLowerCase() : "Plan my fix" }),
+      h("p", { class: "hint", text: "Tell me what it is and add a photo or two. I’ll suggest a plan, and you choose what to keep." }),
+      h("label", { class: "field" }, [h("span", { text: "What is it?" }), name]),
+      h("label", { class: "field" }, [h("span", { text: "Which room?" }), roomSel, newRoom]),
+      h("div", { class: "field" }, [h("span", { text: "Photos (up to 6)" }), h("div", { class: "actions" }, [addLabel, fileInput]), thumbs, count, photoMsg,
+        h("small", { text: "Include the model plate or label if you can see one." })]),
+      h("label", { class: "field" }, [h("span", { text: "What’s wrong? (optional)" }), problem]),
+      h("div", { class: "actions" }, [planBtn, skipBtn, backBtn]),
+      status
+    ]));
+  }
+
+  // ---- Add an item: step 2 (review the plan) ----
+  function renderReview(f) {
+    var plan = f.plan;
+    var name = h("input", { type: "text", maxlength: "120", value: f.name || plan.name || "", "data-testid": "review-name" });
+    var brand = h("input", { type: "text", maxlength: "80", value: f.brand || plan.brand || "" });
+    var model = h("input", { type: "text", maxlength: "80", value: f.model || plan.model || "" });
+    var year = h("input", { type: "number", min: "1900", max: "2100", inputmode: "numeric", value: f.year || plan.year || "" });
+    var boxes = plan.tasks.map(function (t) {
+      var cb = h("input", { type: "checkbox", "data-testid": "task-accept", "aria-label": "Add " + t.title });
+      var li = h("li", {}, [h("label", {}, [cb, h("div", {}, [
+        h("div", { class: "t", text: t.title }),
+        h("div", { class: "m", text: (t.kind === "repair" ? "Repair" : "Upkeep") + " · " + repeatText(t.repeat_days) + (t.kind === "repair" || t.repeat_days === null ? "" : " · first due " + niceDate(isoIn(t.first_due_in_days))) }),
+        t.detail ? h("div", { class: "m", text: t.detail }) : null
+      ])])]);
+      return { cb: cb, li: li };
+    });
+
+    var status = h("div", { class: "result", role: "status" });
+    var saveBtn = h("button", { type: "button", "data-testid": "review-save", text: "Save" });
+    var allBtn = h("button", { type: "button", class: "quiet", "data-testid": "add-all", text: "Add all", onclick: function () { boxes.forEach(function (b) { b.cb.checked = true; }); } });
+    var skipAll = h("button", { type: "button", class: "quiet", "data-testid": "skip-list", text: "Skip the whole list" });
+    var backBtn = h("button", { type: "button", class: "quiet", text: "Back", onclick: function () { renderStep1(f); } });
+
+    function fields() {
+      var y = Number(year.value);
+      return { name: name.value.trim(), brand: brand.value.trim(), model: model.value.trim(), year: y >= 1900 && y <= 2100 ? Math.round(y) : "" };
+    }
+    function go(acceptAll) {
+      var fl = fields();
+      if (!fl.name) { status.className = "result bad"; status.textContent = "Give the item a name."; return; }
+      [saveBtn, allBtn, skipAll, backBtn].forEach(function (b) { b.disabled = true; });
+      status.className = "result"; status.textContent = "Saving…";
+      var items = plan.tasks.map(function (t, i) { return Object.assign({}, t, { accept: acceptAll === false ? false : boxes[i].cb.checked }); });
+      saveItem(f, fl, items).catch(function (err) {
+        [saveBtn, allBtn, skipAll, backBtn].forEach(function (b) { b.disabled = false; });
+        status.className = "result bad"; status.textContent = "Not saved. " + err.message;
+      });
+    }
+    saveBtn.addEventListener("click", function () { go(); });
+    skipAll.addEventListener("click", function () { go(false); });
+
+    var needPlate = f.files.length && !plan.plateVisible && !(plan.brand && plan.model);
+    view(h("section", { class: "card", "data-testid": "add-item-flow" }, [
+      h("h2", { text: "Here’s the plan" }),
+      plan.summary ? h("p", { class: "hint", text: plan.summary }) : null,
+      needPlate ? h("div", { class: "banner", role: "status", "data-testid": "plate-notice" }, [
+        "I couldn’t see a model plate in these photos. " + (plan.closeupHint || "A close-up of the model plate would help."),
+        h("div", { class: "actions" }, [h("button", { type: "button", class: "small quiet", text: "Add a close-up", onclick: function () { renderStep1(f); } })])
+      ]) : null,
+      h("label", { class: "field" }, [h("span", { text: "Name" }), name]),
+      h("div", { class: "two" }, [
+        h("label", { class: "field" }, [h("span", { text: "Brand" }), brand]),
+        h("label", { class: "field" }, [h("span", { text: "Model" }), model])
+      ]),
+      h("label", { class: "field" }, [h("span", { text: "Year" }), year]),
+      boxes.length
+        ? h("div", {}, [h("h2", { text: "Suggested tasks" }), h("p", { class: "hint", text: "Tick the ones you want as reminders. The rest stay here as suggestions." }), h("ul", { class: "tasks", "data-testid": "suggestions" }, boxes.map(function (b) { return b.li; }))])
+        : h("p", { class: "hint", text: "No tasks were suggested. You can still save the item." }),
+      h("div", { class: "actions" }, boxes.length ? [saveBtn, allBtn, skipAll, backBtn] : [saveBtn, backBtn]),
+      status
+    ]));
+  }
+
+  // ---- Save: room -> photos -> item -> tasks ----
+  function saveItem(f, fl, tasks) {
+    var roomId, itemRow;
+    return resolveRoom(f).then(function (rid) {
+      roomId = rid;
+      return Promise.all(f.files.map(function (p) { return uploadPhoto(p.blob); }));
+    }).then(function (paths) {
+      var y = Number(fl.year);
+      return rest("items", { method: "POST", headers: JSON_ONE, body: JSON.stringify({
+        profile_id: state.profile.id, room_id: roomId, name: fl.name,
+        brand: fl.brand || null, model: fl.model || null, year: y >= 1900 && y <= 2100 ? Math.round(y) : null,
+        problem: f.problem || null, photos: paths
+      }) });
+    }).then(function (rows) {
+      itemRow = rows[0];
+      if (!tasks.length) return null;
+      return rest("maintenance_tasks", { method: "POST", headers: JSON_ONE, body: JSON.stringify(tasks.map(function (t) {
+        return {
+          profile_id: state.profile.id, item_id: itemRow.id, title: t.title, detail: t.detail, kind: t.kind,
+          repeat_days: t.repeat_days, status: t.accept ? "active" : "suggested",
+          due_on: t.accept ? isoIn(t.first_due_in_days) : null
+        };
+      })) }).catch(function (err) { throw new Error("The item saved, but its tasks didn’t: " + err.message); });
+    }).then(function () {
+      var kept = tasks.filter(function (t) { return t.accept; }).length;
+      state.notice = "Saved! " + fl.name + " is in " + roomName(roomId) + (kept ? ", with " + kept + (kept === 1 ? " reminder." : " reminders.") : ".");
+      state.filter = "all";
+      return loadHome().then(showHome);
+    });
+  }
+
+  // ---- What's new ----
   function renderChangelog() {
     var root = $("changelog");
     CHANGELOG.forEach(function (group) {
-      var m = document.createElement("div");
-      m.className = "month";
-      m.textContent = group.month;
-      root.appendChild(m);
+      root.appendChild(h("div", { class: "month", text: group.month }));
       group.entries.forEach(function (entry) {
-        var d = document.createElement("details");
-        d.className = "entry";
-        d.setAttribute("data-testid", "whats-new-entry");
-        var s = document.createElement("summary");
-        s.textContent = entry.date + " · " + entry.title;
-        if (entry.isNew) {
-          var n = document.createElement("span");
-          n.className = "new";
-          n.textContent = "New!";
-          s.appendChild(n);
-        }
-        var p = document.createElement("p");
-        p.textContent = entry.detail;
-        d.appendChild(s);
-        d.appendChild(p);
-        root.appendChild(d);
+        var s = h("summary", { text: entry.date + " · " + entry.title });
+        if (entry.isNew) s.appendChild(h("span", { class: "new", text: "New!" }));
+        root.appendChild(h("details", { class: "entry", "data-testid": "whats-new-entry" }, [s, h("p", { text: entry.detail })]));
       });
     });
   }
 
+  // ---- Start ----
   $("buildTag").textContent = BUILD.phase + " · v" + BUILD.version;
   renderChangelog();
-  checkDatabase().then(loadNotes);
+  state.session = loadSession();
+  takeLinkTokens().then(function (type) {
+    if (type === "recovery") return showNewPassword();
+    if (state.session) return loadAll();
+    showAuth("signin");
+  });
 })();
 </script>
 </body>
