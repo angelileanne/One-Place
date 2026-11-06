@@ -161,16 +161,22 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.4.0", phase: "Phase 4 · Fix-it help" };
+  var BUILD = { version: "0.5.0", phase: "Phase 5 · Testers" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
+          date: "Nov 6",
+          title: "Send feedback and invite friends",
+          detail: "Tap “Send feedback” at the bottom of home to tell us what you love or what broke, with an optional photo. “Invite a friend” gives you a ready-made message to share.",
+          isNew: true
+        },
+        {
           date: "Nov 5",
           title: "Fix-it help: Parts, DIY, and Big job?",
           detail: "Open any item to find three new buttons. Parts suggests what to replace and links to stores for your country. DIY gives full instructions with tools, quantities, and how to protect around the job. Big job? helps you ask a pro for a quote. Pick your country at the bottom of home.",
-          isNew: true
+          isNew: false
         },
         {
           date: "Nov 5",
@@ -1106,6 +1112,70 @@
     }))]);
   }
 
+  // ---- Feedback and invites ----
+  function feedbackCard() {
+    var kinds = [["idea", "Idea"], ["bug", "Something broke"], ["love", "Love it"], ["question", "Question"]], kind = "idea", photo = null;
+    var msg = h("div", { class: "result", role: "status", "data-testid": "feedback-status" });
+    var text = h("textarea", { maxlength: "3000", placeholder: "What’s on your mind?", "aria-label": "Your feedback", "data-testid": "feedback-text" });
+    var chips = h("div", { class: "chips", role: "group", "aria-label": "Kind of feedback" });
+    function drawChips() { chips.textContent = ""; kinds.forEach(function (k) { chips.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(kind === k[0]), text: k[1], "data-testid": "feedback-kind-" + k[0], onclick: function () { kind = k[0]; drawChips(); } })); }); }
+    drawChips();
+    var thumb = h("div", { class: "thumbs" });
+    var file = h("input", { type: "file", id: "fbPhoto", accept: "image/*", "data-testid": "feedback-photo" });
+    var label = h("label", { class: "filebtn quiet", for: "fbPhoto", text: "Add a photo" });
+    file.addEventListener("change", function () {
+      var f = file.files && file.files[0]; file.value = "";
+      if (!f) return;
+      msg.className = "result"; msg.textContent = "Getting your photo ready…";
+      downscale(f, 1000).then(function (p) {
+        photo = p; msg.textContent = "";
+        thumb.textContent = "";
+        thumb.appendChild(h("div", { class: "thumb" }, [h("img", { src: p.dataUrl, alt: "Photo to send" }), h("button", { type: "button", "aria-label": "Remove photo", text: "×", onclick: function () { photo = null; thumb.textContent = ""; } })]));
+      }, function (e) { msg.className = "result bad"; msg.textContent = e.message; });
+    });
+    var send = h("button", { type: "button", "data-testid": "feedback-send", text: "Send" });
+    send.addEventListener("click", function () {
+      var m = text.value.trim();
+      if (!m) { msg.className = "result bad"; msg.textContent = "Type a few words first."; return; }
+      send.disabled = true; msg.className = "result"; msg.textContent = "Sending…";
+      var uidv = state.session.user.id;
+      var up = photo ? api("/storage/v1/", "object/feedback-photos/" + uidv + "/" + uid() + ".jpg", { method: "POST", headers: { "Content-Type": "image/jpeg", "x-upsert": "false" }, body: photo.blob })
+        .then(function (res) { return readJson(res).then(function (b) { if (!res.ok) throw new Error("The photo didn’t upload" + (b && b.message ? ": " + b.message : ".")); return b.Key ? b.Key.replace(/^feedback-photos\//, "") : null; }); }) : Promise.resolve(null);
+      up.then(function (path) {
+        return rest("feedback", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ kind: kind, message: m, photo: path, page: "home", build: BUILD.version }) });
+      }).then(function () {
+        text.value = ""; photo = null; thumb.textContent = ""; send.disabled = false;
+        msg.className = "result"; msg.textContent = "Sent! Thank you 💛";
+      }).catch(function (err) { send.disabled = false; msg.className = "result bad"; msg.textContent = "Not sent. " + err.message; });
+    });
+    return h("details", { class: "card noprint", "data-testid": "feedback-card" }, [
+      h("summary", { text: "Send feedback", style: "cursor:pointer;font-weight:700" }),
+      h("p", { class: "hint", style: "margin-top:8px", text: "Tell us what you love or what broke. A photo or screenshot helps a lot." }),
+      chips, text, h("div", { class: "actions" }, [label, file, send]), thumb, msg
+    ]);
+  }
+
+  function inviteCard() {
+    var link = location.origin + "/";
+    var kindWord = state.profile && state.profile.kind === "business" ? "business" : "home";
+    var me = (state.person && state.person.first_name) || "";
+    var ta = h("textarea", { "aria-label": "Invite message", "data-testid": "invite-text" });
+    ta.value = "Hi! " + (me ? "It’s " + me + ". " : "") + "I’m trying out One Place, an app that helps keep track of everything in a " + kindWord + " and reminds you when things need attention. Would you try it and tell me what you think? " + link + "\n\nCreate an account with your email, add a room, then tap “Plan my fix” with a photo. There’s a “Send feedback” button at the bottom of the home screen. Thank you!";
+    var msg = h("div", { class: "result", role: "status" });
+    var copy = h("button", { type: "button", class: "small", text: "Copy message", "data-testid": "invite-copy", onclick: function () {
+      (navigator.clipboard ? navigator.clipboard.writeText(ta.value) : Promise.reject()).then(function () { msg.textContent = "Copied."; }, function () { ta.select(); msg.textContent = "Select the text and copy it."; });
+    } });
+    var sms = h("a", { class: "chip", text: "Text it", "data-testid": "invite-sms" }), mail = h("a", { class: "chip", text: "Email it" });
+    function links() { sms.href = "sms:?&body=" + enc(ta.value); mail.href = "mailto:?subject=" + enc("Try One Place with me") + "&body=" + enc(ta.value); }
+    ta.addEventListener("input", links); links();
+    return h("details", { class: "card noprint", "data-testid": "invite-card" }, [
+      h("summary", { text: "Invite a friend", style: "cursor:pointer;font-weight:700" }),
+      h("p", { class: "hint", style: "margin-top:8px", text: "Edit the message if you like, then paste it into a text or email." }),
+      ta,
+      h("div", { class: "actions" }, [copy, sms, mail]), msg
+    ]);
+  }
+
   function signedUrl(path) {
     return api("/storage/v1/", "object/sign/item-photos/" + path.split("/").map(encodeURIComponent).join("/"), { method: "POST", body: JSON.stringify({ expiresIn: 3600 }) })
       .then(readJson).then(function (b) { return b && b.signedURL ? SUPABASE_URL + "/storage/v1" + b.signedURL : null; });
@@ -1198,6 +1268,8 @@
         ])
       ]),
       countryCard(),
+      feedbackCard(),
+      inviteCard(),
       connectionsCard()
     ]);
   }
