@@ -25,7 +25,7 @@
   html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0; background: var(--bg); color: var(--ink);
-    font: 16px/1.5 ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font: 1rem/1.5 ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
     padding: max(20px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
   }
   .wrap { max-width: 36rem; margin: 0 auto; display: grid; gap: 16px; }
@@ -134,13 +134,21 @@
   .help-box { margin-top: 8px; }
   .help-box .m { color: var(--soft); font-size: .92rem; }
   .muted { color: var(--soft); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: 8px; margin-top: 8px; }
+  .tile { flex-direction: column; gap: 6px; background: var(--bg); color: var(--ink); border: 2px solid var(--line); padding: 10px 8px; }
+  .tile[aria-checked="true"] { border-color: var(--accent); }
+  .bubbles { display: flex; gap: 4px; }
+  .bubble { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(128,128,128,.35); display: block; }
+  .tname { font-size: .85rem; }
+  details.sub { border-top: 1px solid var(--line); padding: 8px 0; }
+  details.sub summary { cursor: pointer; font-weight: 700; min-height: 36px; display: flex; align-items: center; }
   @media print {
     body { background: #fff; color: #000; padding: 0; }
     .noprint { display: none !important; }
     .card { box-shadow: none; border: 0; padding: 0; background: #fff; }
     .cal-cell, .cal-ev { background: #fff; border-color: #999; color: #000; }
-    .cal-dot { color: #000; }
-    .cal-ev { border: 1px solid #bbb; }
+    .cal-dot { display: block; color: var(--accent); font-size: .6rem; letter-spacing: 1px; line-height: 1.1; }
+  .cal-ev { border: 1px solid #bbb; }
     .cal-title, h2, h3, .muted { color: #000; }
   }
   @media (prefers-reduced-motion: reduce) { button, .filebtn { transition: none; } }
@@ -161,16 +169,22 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.5.0", phase: "Phase 5 · Testers" };
+  var BUILD = { version: "0.6.0", phase: "Phase 6 · Make it yours" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
           date: "Nov 6",
-          title: "Send feedback and invite friends",
-          detail: "Tap “Send feedback” at the bottom of home to tell us what you love or what broke, with an optional photo. “Invite a friend” gives you a ready-made message to share.",
+          title: "Make it yours: themes, lighting, text size",
+          detail: "Open \u201cMake it yours\u201d at the bottom of home. Pick one of 10 themes, choose Auto, Light or Dark, and make the text bigger or smaller. It only changes the look, and it\u2019s remembered on your device.",
           isNew: true
+        },
+        {
+          date: "Nov 6",
+          title: "Send feedback and invite friends",
+          detail: "Tap \u201cSend feedback\u201d at the bottom of home to tell us what you love or what broke, with an optional photo. \u201cInvite a friend\u201d gives you a ready-made message to share.",
+          isNew: false
         },
         {
           date: "Nov 5",
@@ -181,7 +195,7 @@
         {
           date: "Nov 5",
           title: "Reminders and a calendar",
-          detail: "A “Needs attention this month” list on the home screen. Tap Done! (with an Undo), or snooze a task for 1 week, 2 weeks, 1 month, 3 months, or a date you pick. There’s also a weekly, monthly, and yearly calendar you can print."
+          detail: "A \u201cNeeds attention this month\u201d list on the home screen. Tap Done! (with an Undo), or snooze a task for 1 week, 2 weeks, 1 month, 3 months, or a date you pick. There\u2019s also a weekly, monthly, and yearly calendar you can print."
         },
         {
           date: "Nov 5",
@@ -231,6 +245,72 @@
     [].concat(nodes).forEach(function (n) { if (n) app.appendChild(n); });
     window.scrollTo(0, 0);
   }
+  // ---- Make it yours: themes, lighting, text size (look only; never changes what the app does) ----
+  var PREFS_KEY = "oneplace.prefs";
+  var THEMES = [
+    { id: "pine", name: "Pine", l: ["#f1f5ee", "#ffffff", "#d9e3d6", "#1d3a2c", "#4d6a5a", "#1f5c43", "#ffffff", "#e6efe3"], d: ["#13201a", "#1b2c24", "#2c4237", "#e6f1e8", "#a9c2b1", "#7fd1a5", "#0f1f17", "#22372d"] },
+    { id: "organic", name: "Organic", l: ["#f6f0e6", "#fffaf1", "#e3d6bf", "#3b2f20", "#6b5a43", "#7a5a2b", "#ffffff", "#eadfc8"], d: ["#211a12", "#2c2318", "#45372a", "#f1e6d3", "#c9b79a", "#e0a96a", "#2a1a08", "#3a2d1f"] },
+    { id: "botanical", name: "Botanical", l: ["#eef3e6", "#fbfdf7", "#d3dfc2", "#26361a", "#53663f", "#4d741a", "#ffffff", "#e0ebcf"], d: ["#171d12", "#212a19", "#37432b", "#e9f1dc", "#b6c6a0", "#b4dc6a", "#1a2a05", "#2b3820"] },
+    { id: "luxury", name: "Luxury", l: ["#f5f1ea", "#fffdf8", "#ddd2bd", "#1c1a16", "#5e5748", "#7d5e17", "#ffffff", "#ece4d1"], d: ["#121110", "#1c1a17", "#38332a", "#f3ecd9", "#bdb39b", "#d9b45a", "#1a1405", "#2a261d"] },
+    { id: "clay", name: "Claymorphism", l: ["#efe7e1", "#faf5f1", "#dccfc5", "#3d2c27", "#6e5a52", "#a84f39", "#ffffff", "#e8d9cf"], d: ["#1f1815", "#2b221e", "#44372f", "#f0e5de", "#c8b4a8", "#f0a58f", "#3a1409", "#382c26"], shadow: "0 4px 0 rgba(120,80,60,.18), 0 10px 22px rgba(120,80,60,.14)" },
+    { id: "ocean", name: "Ocean", l: ["#eaf4f8", "#ffffff", "#c8dfe9", "#12384a", "#44697c", "#0f6f96", "#ffffff", "#d7eaf2"], d: ["#0f1e27", "#172b37", "#284352", "#e3f1f8", "#a5c4d3", "#6cc6ec", "#04202d", "#1f3a49"] },
+    { id: "sunset", name: "Sunset", l: ["#fbf3df", "#fffaee", "#eedfb8", "#43290a", "#78593a", "#a85a00", "#ffffff", "#f6e7c3"], d: ["#221810", "#2f2217", "#4b3724", "#fbebd3", "#d8bd9a", "#ffb04d", "#2e1700", "#3d2d1d"] },
+    { id: "lavender", name: "Lavender", l: ["#f3eff9", "#ffffff", "#ddd3ee", "#33244f", "#625583", "#7040bd", "#ffffff", "#e5dcf4"], d: ["#1b1626", "#261f36", "#3d3356", "#f0e9fb", "#bfb2dc", "#c3a2ff", "#24113f", "#31284a"] },
+    { id: "cherry", name: "Cherry blossom", l: ["#fbeef2", "#ffffff", "#f0d0da", "#4a1d2c", "#7c4a5a", "#b82b58", "#ffffff", "#f7d9e2"], d: ["#25141b", "#321d26", "#4d2f3b", "#fbe6ed", "#dbb0bf", "#ff8fb0", "#330a19", "#402733"] },
+    { id: "graphite", name: "Graphite", l: ["#eceeef", "#ffffff", "#d3d7d9", "#1f2427", "#4f5a60", "#2f3b44", "#ffffff", "#dfe3e5"], d: ["#141718", "#1e2326", "#343b3f", "#eceff0", "#aab3b8", "#cfd8dd", "#12181b", "#272d31"] }
+  ];
+  var SIZES = [["Smaller", 0.9], ["Normal", 1], ["Bigger", 1.15], ["Biggest", 1.3]];
+  function loadPrefs() {
+    var p = { theme: "pine", mode: "auto", size: 1 };
+    try { var s = JSON.parse(localStorage.getItem(PREFS_KEY)); if (s) { if (THEMES.some(function (t) { return t.id === s.theme; })) p.theme = s.theme; if (["auto", "light", "dark"].indexOf(s.mode) >= 0) p.mode = s.mode; if (SIZES.some(function (z) { return z[1] === s.size; })) p.size = s.size; } } catch (e) {}
+    return p;
+  }
+  var prefs = loadPrefs();
+  function savePrefs() { try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (e) {} }
+  function isDarkNow() { return prefs.mode === "dark" || (prefs.mode === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches); }
+  function themeById(id) { return THEMES.filter(function (t) { return t.id === id; })[0] || THEMES[0]; }
+  function applyPrefs() {
+    var root = document.documentElement, t = themeById(prefs.theme), dark = isDarkNow(), c = dark ? t.d : t.l;
+    var names = ["--bg", "--surface", "--line", "--ink", "--soft", "--accent", "--accent-ink", "--tint"];
+    names.forEach(function (n, i) { root.style.setProperty(n, c[i]); });
+    root.style.setProperty("--ok", dark ? "#7fd1a5" : "#1f7a4d"); root.style.setProperty("--bad", dark ? "#ff8a80" : "#b3261e"); root.style.setProperty("--wait", dark ? "#e6c66b" : "#8a6a12");
+    root.style.setProperty("--shadow", t.shadow || (dark ? "0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.25)" : "0 1px 2px rgba(29,58,44,.08), 0 6px 18px rgba(29,58,44,.06)"));
+    root.style.colorScheme = dark ? "dark" : "light";
+    root.style.fontSize = (16 * prefs.size) + "px";
+    root.setAttribute("data-theme", t.id); root.setAttribute("data-mode", dark ? "dark" : "light");
+  }
+  applyPrefs();
+  try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () { if (prefs.mode === "auto") applyPrefs(); }); } catch (e) {}
+
+  function styleCard() {
+    var tiles = h("div", { class: "tiles", role: "radiogroup", "aria-label": "Theme", "data-testid": "theme-tiles" });
+    function drawTiles() {
+      tiles.textContent = "";
+      var dark = isDarkNow();
+      THEMES.forEach(function (t) {
+        var c = dark ? t.d : t.l;
+        tiles.appendChild(h("button", { type: "button", class: "tile", role: "radio", "aria-checked": String(prefs.theme === t.id), "aria-label": t.name, "data-testid": "theme-" + t.id, onclick: function () { prefs.theme = t.id; savePrefs(); applyPrefs(); drawTiles(); } }, [
+          h("span", { class: "bubbles", "aria-hidden": "true" }, [c[0], c[5], c[7]].map(function (col) { return h("span", { class: "bubble", style: "background:" + col }); })),
+          h("span", { class: "tname", text: t.name })
+        ]));
+      });
+    }
+    drawTiles();
+    function seg(label, tid, options, current, set) {
+      var wrap = h("div", { class: "chips", role: "group", "aria-label": label, "data-testid": tid });
+      function draw() { wrap.textContent = ""; options.forEach(function (o) { wrap.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(current() === o[1]), text: o[0], "data-testid": tid + "-" + o[0].toLowerCase(), onclick: function () { set(o[1]); draw(); drawTiles(); } })); }); }
+      draw(); return wrap;
+    }
+    function sub(title, tid, body) { return h("details", { class: "sub", "data-testid": tid }, [h("summary", { text: title }), body]); }
+    return h("details", { class: "card noprint", "data-testid": "make-it-yours" }, [
+      h("summary", { text: "Make it yours", style: "cursor:pointer;font-weight:700" }),
+      h("p", { class: "hint", style: "margin-top:8px", text: "Pick a look. This only changes colors and size, never what the app does. It’s saved on this device." }),
+      sub("Theme", "sub-theme", tiles),
+      sub("Lighting", "sub-lighting", seg("Lighting", "mode", [["Auto", "auto"], ["Light", "light"], ["Dark", "dark"]], function () { return prefs.mode; }, function (v) { prefs.mode = v; savePrefs(); applyPrefs(); })),
+      sub("Text size", "sub-size", seg("Text size", "size", SIZES, function () { return prefs.size; }, function (v) { prefs.size = v; savePrefs(); applyPrefs(); }))
+    ]);
+  }
+
   // ---- Dates (all local, as YYYY-MM-DD text) ----
   function isoOf(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
   function parseIso(iso) { var p = iso.split("-"); return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])); }
@@ -756,7 +836,7 @@
       for (var b = 0; b < first.getDay(); b++) cells.push(h("div", { class: "cal-cell blank" }));
       for (var day = 1; day <= last; day++) {
         var iso = from.slice(0, 8) + pad(day);
-        cells.push(h("div", { class: "cal-cell" + (iso === today ? " today" : "") }, [h("b", { text: String(day) }), (map[iso] || []).length ? h("span", { class: "cal-dot", "aria-hidden": "true", text: "●".repeat(Math.min(map[iso].length, 4)) }) : null]));
+        cells.push(h("div", { class: "cal-cell" + (iso === today ? " today" : "") }, [h("b", { text: String(day) }), (map[iso] || []).length ? h("span", { class: "cal-dot", "aria-hidden": "true", text: "\u25cf".repeat(Math.min(map[iso].length, 4)) }) : null]));
       }
       body = h("div", {}, [
         h("div", { class: "cal-month", "data-testid": "cal-month" }, cells),
@@ -879,7 +959,7 @@
     } });
     return h("details", { class: "card noprint" }, [
       summary,
-      h("p", { class: "hint", style: "margin-top:8px", text: "Saved to this " + (p.kind === "business" ? "business" : "home") + ". I use it to point store and “near me” searches at your area. The photo AI never sees it. It only gets your country and currency." }),
+      h("p", { class: "hint", style: "margin-top:8px", text: "Saved to this " + (p.kind === "business" ? "business" : "home") + ". I use it to point store and \u201cnear me\u201d searches at your area. The photo AI never sees it. It only gets your country and currency." }),
       h("label", { class: "field" }, [h("span", { text: "Country" }), sel]),
       h("label", { class: "field" }, [postalSpan, postal]),
       h("label", { class: "field" }, [h("span", { text: "City or town (optional)" }), city]),
@@ -1116,7 +1196,7 @@
   function feedbackCard() {
     var kinds = [["idea", "Idea"], ["bug", "Something broke"], ["love", "Love it"], ["question", "Question"]], kind = "idea", photo = null;
     var msg = h("div", { class: "result", role: "status", "data-testid": "feedback-status" });
-    var text = h("textarea", { maxlength: "3000", placeholder: "What’s on your mind?", "aria-label": "Your feedback", "data-testid": "feedback-text" });
+    var text = h("textarea", { maxlength: "3000", placeholder: "What\u2019s on your mind?", "aria-label": "Your feedback", "data-testid": "feedback-text" });
     var chips = h("div", { class: "chips", role: "group", "aria-label": "Kind of feedback" });
     function drawChips() { chips.textContent = ""; kinds.forEach(function (k) { chips.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(kind === k[0]), text: k[1], "data-testid": "feedback-kind-" + k[0], onclick: function () { kind = k[0]; drawChips(); } })); }); }
     drawChips();
@@ -1126,26 +1206,26 @@
     file.addEventListener("change", function () {
       var f = file.files && file.files[0]; file.value = "";
       if (!f) return;
-      msg.className = "result"; msg.textContent = "Getting your photo ready…";
+      msg.className = "result"; msg.textContent = "Getting your photo ready\u2026";
       downscale(f, 1000).then(function (p) {
         photo = p; msg.textContent = "";
         thumb.textContent = "";
-        thumb.appendChild(h("div", { class: "thumb" }, [h("img", { src: p.dataUrl, alt: "Photo to send" }), h("button", { type: "button", "aria-label": "Remove photo", text: "×", onclick: function () { photo = null; thumb.textContent = ""; } })]));
+        thumb.appendChild(h("div", { class: "thumb" }, [h("img", { src: p.dataUrl, alt: "Photo to send" }), h("button", { type: "button", "aria-label": "Remove photo", text: "\u00d7", onclick: function () { photo = null; thumb.textContent = ""; } })]));
       }, function (e) { msg.className = "result bad"; msg.textContent = e.message; });
     });
     var send = h("button", { type: "button", "data-testid": "feedback-send", text: "Send" });
     send.addEventListener("click", function () {
       var m = text.value.trim();
       if (!m) { msg.className = "result bad"; msg.textContent = "Type a few words first."; return; }
-      send.disabled = true; msg.className = "result"; msg.textContent = "Sending…";
+      send.disabled = true; msg.className = "result"; msg.textContent = "Sending\u2026";
       var uidv = state.session.user.id;
       var up = photo ? api("/storage/v1/", "object/feedback-photos/" + uidv + "/" + uid() + ".jpg", { method: "POST", headers: { "Content-Type": "image/jpeg", "x-upsert": "false" }, body: photo.blob })
-        .then(function (res) { return readJson(res).then(function (b) { if (!res.ok) throw new Error("The photo didn’t upload" + (b && b.message ? ": " + b.message : ".")); return b.Key ? b.Key.replace(/^feedback-photos\//, "") : null; }); }) : Promise.resolve(null);
+        .then(function (res) { return readJson(res).then(function (b) { if (!res.ok) throw new Error("The photo didn\u2019t upload" + (b && b.message ? ": " + b.message : ".")); return b.Key ? b.Key.replace(/^feedback-photos\//, "") : null; }); }) : Promise.resolve(null);
       up.then(function (path) {
         return rest("feedback", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ kind: kind, message: m, photo: path, page: "home", build: BUILD.version }) });
       }).then(function () {
         text.value = ""; photo = null; thumb.textContent = ""; send.disabled = false;
-        msg.className = "result"; msg.textContent = "Sent! Thank you 💛";
+        msg.className = "result"; msg.textContent = "Sent! Thank you \ud83d\udc9b";
       }).catch(function (err) { send.disabled = false; msg.className = "result bad"; msg.textContent = "Not sent. " + err.message; });
     });
     return h("details", { class: "card noprint", "data-testid": "feedback-card" }, [
@@ -1160,7 +1240,7 @@
     var kindWord = state.profile && state.profile.kind === "business" ? "business" : "home";
     var me = (state.person && state.person.first_name) || "";
     var ta = h("textarea", { "aria-label": "Invite message", "data-testid": "invite-text" });
-    ta.value = "Hi! " + (me ? "It’s " + me + ". " : "") + "I’m trying out One Place, an app that helps keep track of everything in a " + kindWord + " and reminds you when things need attention. Would you try it and tell me what you think? " + link + "\n\nCreate an account with your email, add a room, then tap “Plan my fix” with a photo. There’s a “Send feedback” button at the bottom of the home screen. Thank you!";
+    ta.value = "Hi! " + (me ? "It\u2019s " + me + ". " : "") + "I\u2019m trying out One Place, an app that helps keep track of everything in a " + kindWord + " and reminds you when things need attention. Would you try it and tell me what you think? " + link + "\n\nCreate an account with your email, add a room, then tap \u201cPlan my fix\u201d with a photo. There\u2019s a \u201cSend feedback\u201d button at the bottom of the home screen. Thank you!";
     var msg = h("div", { class: "result", role: "status" });
     var copy = h("button", { type: "button", class: "small", text: "Copy message", "data-testid": "invite-copy", onclick: function () {
       (navigator.clipboard ? navigator.clipboard.writeText(ta.value) : Promise.reject()).then(function () { msg.textContent = "Copied."; }, function () { ta.select(); msg.textContent = "Select the text and copy it."; });
@@ -1267,6 +1347,7 @@
           ideas.length ? h("div", { class: "chips" }, ideas.map(function (n) { return h("button", { type: "button", class: "chip", text: "+ " + n, onclick: function () { submitRoom(n); } }); })) : null
         ])
       ]),
+      styleCard(),
       countryCard(),
       feedbackCard(),
       inviteCard(),
