@@ -241,7 +241,7 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.7", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.8", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
@@ -390,6 +390,7 @@
     "Calendar": ["Calendario", "Kalendaryo", "日历", "カレンダー", "캘린더", "Kalender", "Calendrier", "Takvim", "ปฏิทิน", "ປະຕິທິນ"],
     "Sign out": ["Cerrar sesión", "Mag-sign out", "退出登录", "ログアウト", "로그아웃", "Abmelden", "Se déconnecter", "Çıkış yap", "ออกจากระบบ", "ອອກຈາກລະບົບ"],
     "Needs attention this month": ["Requiere atención este mes", "Kailangang asikasuhin ngayong buwan", "本月需要处理", "今月の要対応", "이번 달 확인할 일", "Diesen Monat zu erledigen", "À traiter ce mois-ci", "Bu ay ilgilenilmesi gerekenler", "ต้องดูแลในเดือนนี้", "ຕ້ອງເບິ່ງແຍງໃນເດືອນນີ້"],
+    "Needs attention this month:": ["Requiere atención este mes:", "Kailangang asikasuhin ngayong buwan:", "本月需要处理:", "今月の要対応:", "이번 달 확인할 일:", "Diesen Monat zu erledigen:", "À traiter ce mois-ci:", "Bu ay ilgilenilmesi gerekenler:", "ต้องดูแลในเดือนนี้:", "ຕ້ອງເບິ່ງແຍງໃນເດືອນນີ້:"],
     "All caught up!": ["¡Todo al día!", "Tapos na lahat!", "全部完成！", "すべて完了！", "모두 끝났어요!", "Alles erledigt!", "Tout est à jour !", "Hepsi tamam!", "เรียบร้อยหมดแล้ว!", "ສຳເລັດໝົດແລ້ວ!"],
     "Done!": ["¡Listo!", "Tapos na!", "完成！", "完了！", "완료!", "Erledigt!", "Fait !", "Tamam!", "เสร็จแล้ว!", "ສຳເລັດ!"],
     "Snooze": ["Posponer", "Ipagpaliban", "稍后提醒", "スヌーズ", "미루기", "Später erinnern", "Reporter", "Ertele", "เลื่อนไปก่อน", "ເລື່ອນໄວ້ກ່ອນ"],
@@ -1008,7 +1009,7 @@
         return box;
       }));
     }
-    return h("section", { class: "card", "data-testid": "needs-attention", "aria-labelledby": "attnTitle" }, [h("h2", { id: "attnTitle", text: "Needs attention this month" }), body]);
+    return h("section", { class: "card", "data-testid": "needs-attention", "aria-labelledby": "attnTitle" }, [h("h2", { id: "attnTitle", text: "Needs attention this month:" }), body]);
   }
 
   // ---- Calendar ----
