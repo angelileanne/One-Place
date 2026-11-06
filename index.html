@@ -243,18 +243,28 @@
   });
 
   // ---- Photo AI ----
+  var AI_TIMEOUT_MS = 12000; // a busy model can hang, so each try gets a time limit
+
   function callAIWith(model, parts) {
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, AI_TIMEOUT_MS);
     return fetch("/api/gemini", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: ctrl.signal,
       body: JSON.stringify({
         model: model,
         contents: [{ role: "user", parts: parts }],
         generationConfig: { temperature: 0.2, maxOutputTokens: 400 }
       })
-    }).catch(function () {
-      var e = new Error("Couldn’t reach the app’s server function (/api/gemini).");
-      e.fatal = true;
+    }).catch(function (err) {
+      var e;
+      if (err && err.name === "AbortError") {
+        e = new Error("That model took too long to answer.");
+      } else {
+        e = new Error("Couldn’t reach the app’s server function (/api/gemini).");
+        e.fatal = true;
+      }
       throw e;
     }).then(function (res) {
       return res.json().catch(function () { return null; }).then(function (body) {
@@ -270,16 +280,23 @@
         if (!text) throw new Error("The photo AI answered, but with nothing in it.");
         return text;
       });
+    }).then(function (text) {
+      clearTimeout(timer);
+      return text;
+    }, function (err) {
+      clearTimeout(timer);
+      throw err;
     });
   }
 
-  // Tries each model in turn; if one is busy, the next one gets a go.
-  function callAI(parts) {
+  // Tries each model in turn; if one is busy or slow, the next one gets a go.
+  function callAI(parts, onBackup) {
     var i = 0, last = null;
     function next() {
       if (i >= AI_MODELS.length) {
         throw new Error("The photo AI is busy right now. Wait a minute and try again. (" + (last && last.message || "no details") + ")");
       }
+      if (i > 0 && onBackup) onBackup();
       return callAIWith(AI_MODELS[i++], parts).catch(function (err) {
         if (err.fatal) throw err;
         last = err;
@@ -291,7 +308,9 @@
 
   function checkAI() {
     setStatus("ai", "", "Checking…");
-    return callAI([{ text: "Reply with exactly one word: ready" }]).then(function () {
+    return callAI([{ text: "Reply with exactly one word: ready" }], function () {
+      setStatus("ai", "", "That model is busy. Trying a backup…");
+    }).then(function () {
       setStatus("ai", "ok", "Connected. The photo AI answered.");
       return true;
     }).catch(function (err) {
@@ -332,7 +351,7 @@
       return callAI([
         { text: "What is this item? Answer in one or two short sentences. If you can read a make, model, or year, include it. If you can’t, say so." },
         { inline_data: { mime_type: "image/jpeg", data: img.base64 } }
-      ]);
+      ], function () { out.textContent = "That model is busy. Trying a backup…"; });
     }).then(function (text) {
       out.textContent = text;
     }).catch(function (err) {
