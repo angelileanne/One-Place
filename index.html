@@ -176,8 +176,8 @@
       entries: [
         {
           date: "Nov 6",
-          title: "Make it yours: themes, lighting, text size",
-          detail: "Open \u201cMake it yours\u201d at the bottom of home. Pick one of 10 themes, choose Auto, Light or Dark, and make the text bigger or smaller. It only changes the look, and it\u2019s remembered on your device.",
+          title: "Make it yours: themes, lighting, text size, languages",
+          detail: "Open \u201cMake it yours\u201d at the bottom of home. Pick one of 10 themes, choose Auto, Light or Dark, pick one of 11 languages, and make the text bigger or smaller. It only changes the look, and it\u2019s remembered on your device.",
           isNew: true
         },
         {
@@ -261,8 +261,8 @@
   ];
   var SIZES = [["Smaller", 0.9], ["Normal", 1], ["Bigger", 1.15], ["Biggest", 1.3]];
   function loadPrefs() {
-    var p = { theme: "pine", mode: "auto", size: 1 };
-    try { var s = JSON.parse(localStorage.getItem(PREFS_KEY)); if (s) { if (THEMES.some(function (t) { return t.id === s.theme; })) p.theme = s.theme; if (["auto", "light", "dark"].indexOf(s.mode) >= 0) p.mode = s.mode; if (SIZES.some(function (z) { return z[1] === s.size; })) p.size = s.size; } } catch (e) {}
+    var p = { theme: "pine", mode: "auto", size: 1, lang: "en" };
+    try { var s = JSON.parse(localStorage.getItem(PREFS_KEY)); if (s) { if (THEMES.some(function (t) { return t.id === s.theme; })) p.theme = s.theme; if (["auto", "light", "dark"].indexOf(s.mode) >= 0) p.mode = s.mode; if (typeof s.lang === "string" && /^(en|es|tl|zh|ja|ko|de|fr|tr|th|lo)$/.test(s.lang)) p.lang = s.lang; if (SIZES.some(function (z) { return z[1] === s.size; })) p.size = s.size; } } catch (e) {}
     return p;
   }
   var prefs = loadPrefs();
@@ -281,6 +281,111 @@
   }
   applyPrefs();
   try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () { if (prefs.mode === "auto") applyPrefs(); }); } catch (e) {}
+
+  // ---- Languages: exact-phrase translation of the app's own labels (your items and notes are never touched) ----
+  var LANGS = [["en", "English"], ["es", "Español"], ["tl", "Tagalog"], ["zh", "中文"], ["ja", "日本語"], ["ko", "한국어"], ["de", "Deutsch"], ["fr", "Français"], ["tr", "Türkçe"], ["th", "ไทย"], ["lo", "ລາວ"]];
+  var LANG_NAME = { en: "English", es: "Spanish", tl: "Tagalog", zh: "Simplified Chinese", ja: "Japanese", ko: "Korean", de: "German", fr: "French", tr: "Turkish", th: "Thai", lo: "Lao" };
+  var DICT_ORDER = ["es", "tl", "zh", "ja", "ko", "de", "fr", "tr", "th", "lo"];
+  var DICT = {
+    "Sign in": ["Iniciar sesión", "Mag-sign in", "登录", "ログイン", "로그인", "Anmelden", "Se connecter", "Giriş yap", "เข้าสู่ระบบ", "ເຂົ້າສູ່ລະບົບ"],
+    "Create account": ["Crear cuenta", "Gumawa ng account", "创建账户", "アカウント作成", "계정 만들기", "Konto erstellen", "Créer un compte", "Hesap oluştur", "สร้างบัญชี", "ສ້າງບັນຊີ"],
+    "Email": ["Correo electrónico", "Email", "电子邮件", "メール", "이메일", "E-Mail", "E-mail", "E-posta", "อีเมล", "ອີເມວ"],
+    "Password": ["Contraseña", "Password", "密码", "パスワード", "비밀번호", "Passwort", "Mot de passe", "Şifre", "รหัสผ่าน", "ລະຫັດຜ່ານ"],
+    "Calendar": ["Calendario", "Kalendaryo", "日历", "カレンダー", "캘린더", "Kalender", "Calendrier", "Takvim", "ปฏิทิน", "ປະຕິທິນ"],
+    "Sign out": ["Cerrar sesión", "Mag-sign out", "退出登录", "ログアウト", "로그아웃", "Abmelden", "Se déconnecter", "Çıkış yap", "ออกจากระบบ", "ອອກຈາກລະບົບ"],
+    "Needs attention this month": ["Requiere atención este mes", "Kailangang asikasuhin ngayong buwan", "本月需要处理", "今月の要対応", "이번 달 확인할 일", "Diesen Monat zu erledigen", "À traiter ce mois-ci", "Bu ay ilgilenilmesi gerekenler", "ต้องดูแลในเดือนนี้", "ຕ້ອງເບິ່ງແຍງໃນເດືອນນີ້"],
+    "All caught up!": ["¡Todo al día!", "Tapos na lahat!", "全部完成！", "すべて完了！", "모두 끝났어요!", "Alles erledigt!", "Tout est à jour !", "Hepsi tamam!", "เรียบร้อยหมดแล้ว!", "ສຳເລັດໝົດແລ້ວ!"],
+    "Done!": ["¡Listo!", "Tapos na!", "完成！", "完了！", "완료!", "Erledigt!", "Fait !", "Tamam!", "เสร็จแล้ว!", "ສຳເລັດ!"],
+    "Snooze": ["Posponer", "Ipagpaliban", "稍后提醒", "スヌーズ", "미루기", "Später erinnern", "Reporter", "Ertele", "เลื่อนไปก่อน", "ເລື່ອນໄວ້ກ່ອນ"],
+    "Something to fix? Start with a photo.": ["¿Algo que arreglar? Empieza con una foto.", "May aayusin? Magsimula sa isang litrato.", "要修东西？先拍张照片。", "直したいものは？まず写真から。", "고칠 게 있나요? 사진부터 시작하세요.", "Etwas zu reparieren? Starte mit einem Foto.", "Quelque chose à réparer ? Commencez par une photo.", "Tamir edilecek bir şey mi var? Fotoğraflarla başlayın.", "มีอะไรต้องซ่อม? เริ่มด้วยการถ่ายรูป", "ມີຫຍັງຕ້ອງສ້ອມບ້? ເລີ່ມດ້ວຍການຖ່າຍຮູບ"],
+    "Plan my fix": ["Planear mi arreglo", "Planuhin ang ayos", "规划维修", "修理プランを作る", "수리 계획 세우기", "Reparatur planen", "Planifier ma réparation", "Onarımımı planla", "วางแผนการซ่อม", "ວາງແຜນການສ້ອມ"],
+    "Rooms and items": ["Habitaciones y objetos", "Mga kuwarto at gamit", "房间和物品", "部屋とアイテム", "방과 물건", "Räume und Gegenstände", "Pièces et objets", "Odalar ve eşyalar", "ห้องและสิ่งของ", "ຫ້ອງ ແລະ ສິ່ງຂອງ"],
+    "All": ["Todo", "Lahat", "全部", "すべて", "전체", "Alle", "Tout", "Tümü", "ทั้งหมด", "ທັງໝົດ"],
+    "Make it yours": ["Hazlo tuyo", "Gawing sa iyo", "个性化", "自分好みに", "나에게 맞게", "Nach deinem Geschmack", "Personnaliser", "Sana göre ayarla", "ปรับให้เป็นของคุณ", "ປັບແຕ່ງຕາມໃຈ"],
+    "Theme": ["Tema", "Tema", "主题", "テーマ", "테마", "Design", "Thème", "Tema", "ธีม", "ຮູບແບບ"],
+    "Lighting": ["Iluminación", "Liwanag", "亮度模式", "明るさ", "밝기", "Beleuchtung", "Luminosité", "Aydınlatma", "แสงสว่าง", "ແສງ"],
+    "Text size": ["Tamaño del texto", "Laki ng teksto", "文字大小", "文字サイズ", "글자 크기", "Textgröße", "Taille du texte", "Yazı boyutu", "ขนาดตัวอักษร", "ຂະໜາດຕົວອັກສອນ"],
+    "Auto": ["Automático", "Awtomatiko", "自动", "自動", "자동", "Automatisch", "Auto", "Otomatik", "อัตโนมัติ", "ອັດຕະລະໜົດ"],
+    "Light": ["Claro", "Maliwanag", "浅色", "ライト", "밝게", "Hell", "Clair", "Açık", "สว่าง", "ສະຫວ່າງ"],
+    "Dark": ["Oscuro", "Madilim", "深色", "ダーク", "어둡게", "Dunkel", "Sombre", "Koyu", "มืด", "ມືດ"],
+    "Smaller": ["Más pequeño", "Mas maliit", "更小", "小さく", "더 작게", "Kleiner", "Plus petit", "Daha küçük", "เล็กลง", "ນ້ອຍລົງ"],
+    "Normal": ["Normal", "Normal", "正常", "標準", "보통", "Normal", "Normal", "Normal", "ปกติ", "ປະກະຕິ"],
+    "Bigger": ["Más grande", "Mas malaki", "更大", "大きく", "더 크게", "Größer", "Plus grand", "Daha büyük", "ใหญ่ขึ้น", "ໃຫຍ່ຂຶ້ນ"],
+    "Biggest": ["Lo más grande", "Pinakamalaki", "最大", "最大", "가장 크게", "Am größten", "Le plus grand", "En büyük", "ใหญ่ที่สุด", "ໃຫຍ່ທີ່ສຸດ"],
+    "Send feedback": ["Enviar comentarios", "Magpadala ng feedback", "发送反馈", "フィードバックを送る", "의견 보내기", "Feedback senden", "Envoyer un avis", "Geri bildirim gönder", "ส่งความคิดเห็น", "ສົ່ງຄຳຕິຊີມ"],
+    "Invite a friend": ["Invitar a un amigo", "Mag-imbita ng kaibigan", "邀请朋友", "友だちを招待", "친구 초대하기", "Freund einladen", "Inviter un ami", "Arkadaş davet et", "เชิญเพื่อน", "ເຊີນໝົ່"],
+    "Send": ["Enviar", "Ipadala", "发送", "送信", "보내기", "Senden", "Envoyer", "Gönder", "ส่ง", "ສົ່ງ"],
+    "Add a photo": ["Añadir una foto", "Magdagdag ng litrato", "添加照片", "写真を追加", "사진 추가", "Foto hinzufügen", "Ajouter une photo", "Fotoğraf ekle", "เพิ่มรูปภาพ", "ເພີ່ມຮູບ"],
+    "Copy message": ["Copiar mensaje", "Kopyahin ang mensahe", "复制消息", "メッセージをコピー", "메시지 복사", "Nachricht kopieren", "Copier le message", "Mesajı kopyala", "คัดลอกข้อความ", "ສຳເນາຂໍ້ຄວາມ"],
+    "Parts": ["Piezas", "Mga piyesa", "零件", "部品", "부품", "Teile", "Pièces", "Parçalar", "อะไหล่", "ອາໄຫລ່"],
+    "DIY": ["Hazlo tú", "Gawin mo", "自己动手", "DIY", "직접 하기", "Selbermachen", "Faire soi-même", "Kendin yap", "ทำเอง", "ເຮັດເอງ"],
+    "Big job?": ["¿Trabajo grande?", "Malaking trabaho?", "大工程？", "大がかり？", "큰 작업?", "Großer Job?", "Gros travail ?", "Büyük iş mi?", "งานใหญ่?", "ວຽກໃຫຍ່ບ້?"],
+    "Back": ["Atrás", "Bumalik", "返回", "戻る", "뒤로", "Zurück", "Retour", "Geri", "ย้อนกลับ", "ກັບຄືນ"],
+    "Save": ["Guardar", "I-save", "保存", "保存", "저장", "Speichern", "Enregistrer", "Kaydet", "บันทึก", "ບັນທຶກ"],
+    "Country": ["País", "Bansa", "国家", "国", "국가", "Land", "Pays", "Ülke", "ประเทศ", "ປະເທດ"],
+    "What’s new": ["Novedades", "Ano’ng bago", "新功能", "新着情報", "새로운 소식", "Neuigkeiten", "Nouveautés", "Yenilikler", "มีอะไรใหม่", "ມີຫຍັງໃໝ່"],
+    "Connections": ["Conexiones", "Mga koneksyon", "连接", "接続", "연결", "Verbindungen", "Connexions", "Bağlantılar", "การเชื่อมต่อ", "ການເຊື່ອມຕໍ່"],
+    "Week": ["Semana", "Linggo", "周", "週", "주", "Woche", "Semaine", "Hafta", "สัปดาห์", "ອາທິດ"],
+    "Month": ["Mes", "Buwan", "月", "月", "월", "Monat", "Mois", "Ay", "เดือน", "ເດືອນ"],
+    "Year": ["Año", "Taon", "年", "年", "연", "Jahr", "Année", "Yıl", "ปี", "ປີ"],
+    "Print": ["Imprimir", "I-print", "打印", "印刷", "인쇄", "Drucken", "Imprimer", "Yazdır", "พิมพ์", "ພິມ"],
+    "Idea": ["Idea", "Ideya", "想法", "アイデア", "아이디어", "Idee", "Idée", "Fikir", "ไอเดีย", "ແນວຄິດ"],
+    "Something broke": ["Algo falló", "May nasira", "出问题了", "不具合", "문제가 생겼어요", "Etwas ist kaputt", "Quelque chose a cassé", "Bir şey bozuldu", "มีบางอย่างเสีย", "ມີບາງຍ່າງເພ"],
+    "Love it": ["Me encanta", "Gusto ko ito", "太喜欢了", "大好き", "너무 좋아요", "Gefällt mir", "J’adore", "Bayıldım", "ชอบมาก", "ມັກຫຼາຍ"],
+    "Question": ["Pregunta", "Tanong", "问题", "質問", "질문", "Frage", "Question", "Soru", "คำถาม", "ຄຳຖາມ"],
+    "Add": ["Añadir", "Idagdag", "添加", "追加", "추가", "Hinzufügen", "Ajouter", "Ekle", "เพิ่ม", "ເພີ່ມ"],
+    "Language": ["Idioma", "Wika", "语言", "言語", "언어", "Sprache", "Langue", "Dil", "ภาษา", "ພາສາ"],
+    "Start": ["Empezar", "Magsimula", "开始", "始める", "시작", "Los geht’s", "Commencer", "Başla", "เริ่ม", "ເລີ່ມ"],
+    "Home": ["Casa", "Bahay", "家", "自宅", "집", "Zuhause", "Maison", "Ev", "บ้าน", "ບ້ານ"],
+    "Business": ["Negocio", "Negosyo", "企业", "事業所", "사업장", "Geschäft", "Entreprise", "İşletme", "ธุรกิจ", "ທຸລະກິດ"],
+    "First name": ["Nombre", "Pangalan", "名", "名", "이름", "Vorname", "Prénom", "Ad", "ชื่อ", "ຊື່"],
+    "Last name": ["Apellido", "Apelyido", "姓", "姓", "성", "Nachname", "Nom", "Soyad", "นามสกุล", "ນາມສະກຸນ"],
+    "Phone": ["Teléfono", "Telepono", "电话", "電話", "전화", "Telefon", "Téléphone", "Telefon", "โทรศัพท์", "ໂທລະສັບ"],
+    "Loading…": ["Cargando…", "Naglo-load…", "加载中…", "読み込み中…", "불러오는 중…", "Lädt…", "Chargement…", "Yükleniyor…", "กำลังโหลด…", "ກຳລັງໂຫລດ…"]
+  };
+  var origText = new WeakMap(), origAttr = new WeakMap();
+  function tx(s) {
+    if (prefs.lang === "en") return s;
+    var row = DICT[s], i = DICT_ORDER.indexOf(prefs.lang);
+    return row && row[i] ? row[i] : s;
+  }
+  function trNode(node) {
+    if (node.nodeType === 3) {
+      var par = node.parentNode;
+      if (par && /^(SCRIPT|STYLE|TEXTAREA)$/.test(par.nodeName)) return; if (par && par.getAttribute && par.getAttribute("data-testid") === "profile-name") return;
+      var o = origText.has(node) ? origText.get(node) : node.nodeValue;
+      var key = o.trim();
+      if (!DICT[key]) { if (origText.has(node) && node.nodeValue !== o) { /* text changed by the app */ origText.delete(node); } return; }
+      if (!origText.has(node)) origText.set(node, o);
+      var out = o.replace(key, tx(key));
+      if (node.nodeValue !== out) node.nodeValue = out;
+    } else if (node.nodeType === 1) {
+      ["aria-label", "placeholder", "title"].forEach(function (a) {
+        if (!node.hasAttribute(a)) return;
+        var m = origAttr.get(node) || {}, cur = node.getAttribute(a), o = a in m ? m[a] : cur;
+        if (!DICT[o]) return;
+        m[a] = o; origAttr.set(node, m);
+        var out = tx(o); if (cur !== out) node.setAttribute(a, out);
+      });
+      for (var c = node.firstChild; c; c = c.nextSibling) trNode(c);
+    }
+  }
+  function applyLang() {
+    document.documentElement.lang = prefs.lang;
+    trNode(document.body);
+  }
+  function startTranslator() {
+    new MutationObserver(function (muts) {
+      muts.forEach(function (m) { m.addedNodes.forEach(trNode); });
+    }).observe(document.body, { childList: true, subtree: true });
+    applyLang();
+  }
+
+  function langChips() {
+    var wrap = h("div", { class: "chips", role: "group", "aria-label": "Language", "data-testid": "langs" });
+    function draw() { wrap.textContent = ""; LANGS.forEach(function (l) { wrap.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(prefs.lang === l[0]), text: l[1], lang: l[0], "data-testid": "lang-" + l[0], onclick: function () { prefs.lang = l[0]; savePrefs(); applyLang(); draw(); } })); }); }
+    draw(); return wrap;
+  }
 
   function styleCard() {
     var tiles = h("div", { class: "tiles", role: "radiogroup", "aria-label": "Theme", "data-testid": "theme-tiles" });
@@ -307,6 +412,7 @@
       h("p", { class: "hint", style: "margin-top:8px", text: "Pick a look. This only changes colors and size, never what the app does. It’s saved on this device." }),
       sub("Theme", "sub-theme", tiles),
       sub("Lighting", "sub-lighting", seg("Lighting", "mode", [["Auto", "auto"], ["Light", "light"], ["Dark", "dark"]], function () { return prefs.mode; }, function (v) { prefs.mode = v; savePrefs(); applyPrefs(); })),
+      sub("Language", "sub-language", langChips()),
       sub("Text size", "sub-size", seg("Text size", "size", SIZES, function () { return prefs.size; }, function (v) { prefs.size = v; savePrefs(); applyPrefs(); }))
     ]);
   }
@@ -975,7 +1081,8 @@
       item.brand ? "Brand: " + item.brand + "." : "", item.model ? "Model: " + item.model + "." : "", item.year ? "Year: " + item.year + "." : "",
       item.problem ? "Problem described by the owner: \"" + item.problem + "\"." : "No specific problem was described.",
       "Setting: " + (state.profile && state.profile.kind === "business" ? "a business" : "a home") + ".",
-      "Country: " + ci.name + (ci.currency ? ". Currency: " + ci.currency + "." : ".")
+      "Country: " + ci.name + (ci.currency ? ". Currency: " + ci.currency + "." : "."),
+      prefs.lang !== "en" ? "Write every text value of your reply in " + LANG_NAME[prefs.lang] + ". Keep the JSON keys in English." : ""
     ];
     var open = tasksFor(item.id).filter(function (t) { return t.status !== "done"; }).slice(0, 6).map(function (t) { return t.title; });
     if (open.length) bits.push("Related tasks: " + open.join("; ") + ".");
@@ -1428,6 +1535,7 @@
       f.roomName ? "Room: " + f.roomName + "." : "",
       f.brand || f.model ? "Known so far: " + [f.brand, f.model, f.year].filter(Boolean).join(" ") + "." : "",
       f.problem ? "What they say is wrong: \"" + f.problem + "\"." : "They did not describe a problem.",
+      prefs.lang !== "en" ? "Write every text value of your reply in " + LANG_NAME[prefs.lang] + ". Keep the JSON keys in English." : "",
       "Reply with JSON only, in exactly this shape:",
       "{\"name\": string, \"brand\": string|null, \"model\": string|null, \"year\": number|null, \"plate_visible\": boolean, \"closeup_hint\": string|null, \"summary\": string, \"tasks\": [{\"title\": string, \"detail\": string, \"kind\": \"maintenance\"|\"repair\", \"repeat_days\": number|null, \"first_due_in_days\": number}]}",
       "Rules: never guess a brand, model or year; use null unless you can read it or it was given. plate_visible is true only if a model or serial plate or label is readable. If no model can be read, closeup_hint is one short sentence on where to photograph the plate on this kind of item, otherwise null. Give 3 to 6 tasks, repairs first if a problem was described. Titles under 60 characters, details one or two plain sentences. repeat_days is null for a one-time repair. first_due_in_days is 0 to 365."
@@ -1721,6 +1829,7 @@
   // ---- Start ----
   $("buildTag").textContent = BUILD.phase + " · v" + BUILD.version;
   renderChangelog();
+  startTranslator();
   state.session = loadSession();
   takeLinkTokens().then(function (type) {
     if (type === "recovery") return showNewPassword();
