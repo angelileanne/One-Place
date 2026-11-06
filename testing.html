@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>One Place · testing switch</title>
+<style>
+  :root { --bg:#f1f5ee; --surface:#fff; --line:#d9e3d6; --ink:#1d3a2c; --soft:#4d6a5a; --accent:#1f5c43; --accent-ink:#fff; --bad:#b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#13201a; --surface:#1b2c24; --line:#2c4237; --ink:#e6f1e8; --soft:#a9c2b1; --accent:#7fd1a5; --accent-ink:#0f1f17; --bad:#ff8a80; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 ui-rounded,"SF Pro Rounded","Nunito",system-ui,sans-serif; padding:20px 16px; }
+  main { max-width:30rem; margin:0 auto; background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:18px; }
+  h1 { margin:0 0 6px; font-size:1.4rem; }
+  p { color:var(--soft); margin:0 0 12px; }
+  .state { font-size:1.2rem; font-weight:800; margin:12px 0; }
+  button { font:inherit; font-weight:700; background:var(--accent); color:var(--accent-ink); border:0; border-radius:12px; padding:10px 16px; min-height:44px; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  .bad { color:var(--bad); }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sign-up email confirmation</h1>
+  <p>For testing. <b>Off</b> means new accounts get in straight away with no email. <b>On</b> means they must tap a link first. Turn it back on before real testers join.</p>
+  <div class="state" id="state" data-testid="confirm-state">Checking…</div>
+  <button id="toggle" type="button" disabled data-testid="confirm-toggle">…</button>
+  <p id="msg" role="status" style="margin-top:12px"></p>
+  <p><a href="/">Back to One Place</a></p>
+</main>
+<script>
+(function () {
+  "use strict";
+  var state = document.getElementById("state"), btn = document.getElementById("toggle"), msg = document.getElementById("msg");
+  var current = null;
+  function token() {
+    try { var s = JSON.parse(localStorage.getItem("oneplace.session")); return s && s.access_token; } catch (e) { return null; }
+  }
+  function show(on) {
+    current = on;
+    state.textContent = "Email confirmation is " + (on ? "ON" : "OFF");
+    btn.textContent = on ? "Turn it OFF for testing" : "Turn it back ON";
+    btn.disabled = false;
+  }
+  function call(method, body) {
+    var t = token();
+    if (!t) return Promise.reject(new Error("Sign in on the One Place app first (same browser), then come back here."));
+    return fetch("/api/auth-mode", {
+      method: method,
+      headers: { Authorization: "Bearer " + t, "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (b) {
+        if (!res.ok) throw new Error((b && b.error) || "Something went wrong (" + res.status + ").");
+        return b;
+      });
+    }, function () { throw new Error("Couldn’t reach the app’s server."); });
+  }
+  function fail(e) { state.textContent = "Can’t read the setting"; msg.className = "bad"; msg.textContent = e.message; btn.disabled = true; btn.textContent = "…"; }
+  btn.addEventListener("click", function () {
+    btn.disabled = true; msg.className = ""; msg.textContent = "Saving…";
+    call("POST", { confirmEmail: !current }).then(function (b) { show(b.confirmEmail); msg.textContent = "Saved."; }).catch(function (e) { fail(e); });
+  });
+  call("GET").then(function (b) { show(b.confirmEmail); }).catch(fail);
+})();
+</script>
+</body>
+</html>
