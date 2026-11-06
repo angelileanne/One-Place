@@ -169,16 +169,22 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.6.0", phase: "Phase 6 · Make it yours" };
+  var BUILD = { version: "0.7.0", phase: "Phase 7 · More sections" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
           date: "Nov 6",
+          title: "Vehicles, phones, pets and printing",
+          detail: "Find \u201cMore to keep track of\u201d on home. Add a car, phone, pet or printer, set reminders like oil change, vet visit or ink check, and they show up in Needs attention and the calendar.",
+          isNew: true
+        },
+        {
+          date: "Nov 6",
           title: "Make it yours: themes, lighting, text size, languages",
           detail: "Open \u201cMake it yours\u201d at the bottom of home. Pick one of 10 themes, choose Auto, Light or Dark, pick one of 11 languages, and make the text bigger or smaller. It only changes the look, and it\u2019s remembered on your device.",
-          isNew: true
+          isNew: false
         },
         {
           date: "Nov 6",
@@ -218,7 +224,7 @@
   var SESSION_KEY = "oneplace.session";
   var ROOM_IDEAS = ["Kitchen", "Bathroom", "Bedroom", "Living room", "Garage", "Yard"];
 
-  var state = { rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, rooms: [], items: [], tasks: [], parts: [], help: {}, filter: "all", notice: "" };
+  var state = { rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, rooms: [], items: [], tasks: [], parts: [], entries: [], help: {}, filter: "all", notice: "" };
 
   // ---- Tiny helpers ----
   function $(id) { return document.getElementById(id); }
@@ -526,7 +532,7 @@
   // ---- Sign in / create account ----
   function signOutLocal() {
     state.session = null; state.person = null; state.profile = null;
-    state.rooms = []; state.items = []; state.tasks = []; state.parts = []; state.help = {};
+    state.rooms = []; state.items = []; state.tasks = []; state.parts = []; state.entries = []; state.help = {};
     saveSession(null);
   }
   function signOut() {
@@ -669,8 +675,9 @@
       rest("rooms?select=*&profile_id=eq." + pid + "&order=sort_order.asc,created_at.asc"),
       rest("items?select=*&profile_id=eq." + pid + "&order=created_at.desc"),
       rest("maintenance_tasks?select=*&profile_id=eq." + pid + "&order=created_at.asc"),
-      rest("parts?select=*&profile_id=eq." + pid + "&order=created_at.desc")
-    ]).then(function (r) { state.rooms = r[0]; state.items = r[1]; state.tasks = r[2]; state.parts = r[3]; });
+      rest("parts?select=*&profile_id=eq." + pid + "&order=created_at.desc"),
+      rest("entries?select=*&profile_id=eq." + pid + "&order=created_at.asc")
+    ]).then(function (r) { state.rooms = r[0]; state.items = r[1]; state.tasks = r[2]; state.parts = r[3]; state.entries = r[4]; });
   }
 
   // ---- Welcome (first sign-in) ----
@@ -883,7 +890,7 @@
       body = h("div", { class: "attn" }, due.map(function (t) {
         var it = itemOf(t), d = dueText(t);
         var box = h("div", { class: "attn-item", "data-testid": "attention-item" }, [
-          it ? h("div", { class: "where", text: it.name + " — " + roomName(it.room_id) }) : null,
+          it ? h("div", { class: "where", text: it.name + " — " + roomName(it.room_id) }) : (entryOf(t) ? h("div", { class: "where", text: entryOf(t).name }) : null),
           h("div", { class: "t", style: "font-weight:600", text: t.title }),
           h("div", { class: "due" + (d.over ? " over" : ""), text: d.text }),
           actionButtons(t)
@@ -1363,6 +1370,102 @@
     ]);
   }
 
+  // ---- More sections: vehicles, phones, pets, printing ----
+  var SECTIONS = [
+    { id: "vehicle", label: "Vehicles", icon: "🚗", one: "vehicle", nameHint: "e.g. Family car", fields: [["make", "Make and model", "text"], ["year", "Year", "number"], ["mileage", "Mileage (optional)", "number"]],
+      reminders: [["oil", "Next oil change", "Oil change", 180], ["registration", "Registration due", "Renew registration", 365], ["insurance", "Insurance renews", "Renew insurance", 365]] },
+    { id: "phone", label: "Phones", icon: "📱", one: "phone", nameHint: "e.g. My phone", fields: [["carrier", "Carrier or plan", "text"], ["monthly", "Monthly cost (optional)", "text"]],
+      reminders: [["renewal", "Plan renews", "Review phone plan", 365], ["upgrade", "Upgrade eligible", "Check for a phone upgrade", 730]] },
+    { id: "pet", label: "Pets", icon: "🐾", one: "pet", nameHint: "e.g. Mochi", fields: [["kind", "Kind of pet", "text"], ["birthday", "Birthday (optional)", "date"]],
+      reminders: [["vet", "Next vet visit", "Vet visit", 365], ["vaccine", "Vaccines due", "Vaccines", 365], ["flea", "Flea and tick treatment", "Flea and tick treatment", 30]] },
+    { id: "printing", label: "Printing", icon: "🖨️", one: "printer", nameHint: "e.g. Office printer", fields: [["model", "Printer model", "text"], ["ink", "Ink or toner type", "text"]],
+      reminders: [["ink", "Check ink or toner on", "Check ink or toner", 90], ["clean", "Clean the print heads on", "Clean print heads", 180]] }
+  ];
+  function entryOf(t) { for (var i = 0; i < state.entries.length; i++) if (state.entries[i].id === t.entry_id) return state.entries[i]; return null; }
+
+  function entryRow(sec, en) {
+    var d = en.details || {};
+    var bits = sec.fields.map(function (f) { return d[f[0]] ? (f[2] === "date" ? niceDate(d[f[0]]) : String(d[f[0]])) : ""; }).filter(Boolean).join(" · ");
+    var tasks = state.tasks.filter(function (t) { return t.entry_id === en.id; });
+    var rm = h("button", { type: "button", class: "quiet small", text: "Remove", "data-testid": "entry-remove" });
+    rm.addEventListener("click", function () {
+      if (rm.getAttribute("data-sure") !== "1") { rm.setAttribute("data-sure", "1"); rm.textContent = "Tap again to remove"; return; }
+      rm.disabled = true;
+      rest("entries?id=eq." + encodeURIComponent(en.id), { method: "DELETE" }).then(function () {
+        state.entries = state.entries.filter(function (x) { return x.id !== en.id; });
+        state.tasks = state.tasks.filter(function (t) { return t.entry_id !== en.id; });
+        state.notice = "Removed " + en.name + "."; showHome();
+      }).catch(function (err) { rm.disabled = false; state.notice = "Couldn’t remove that. " + err.message; showHome(); });
+    });
+    return h("details", { class: "item", "data-testid": "entry" }, [
+      h("summary", {}, [en.name]),
+      h("div", { class: "body" }, [
+        bits ? h("div", { class: "detail", text: bits }) : null,
+        tasks.length ? h("ul", { class: "tasks" }, tasks.map(taskRow)) : h("div", { class: "detail", text: "No reminders yet." }),
+        h("div", { class: "actions" }, [rm])
+      ])
+    ]);
+  }
+
+  function entryForm(sec, onDone) {
+    var name = h("input", { type: "text", maxlength: "80", placeholder: sec.nameHint, "aria-label": "Name", "data-testid": "entry-name" });
+    var inputs = {}, dates = {};
+    var fieldEls = sec.fields.map(function (f) {
+      var inp = h("input", { type: f[2], maxlength: f[2] === "text" ? "80" : null, inputmode: f[2] === "number" ? "numeric" : null, "data-testid": "entry-" + f[0] });
+      inputs[f[0]] = inp; return h("label", { class: "field" }, [h("span", { text: f[1] }), inp]);
+    });
+    var remEls = sec.reminders.map(function (r) {
+      var inp = h("input", { type: "date", "data-testid": "entry-rem-" + r[0], style: "font:inherit;min-height:44px;width:100%" });
+      dates[r[0]] = inp; return h("label", { class: "field" }, [h("span", { text: r[1] }), inp]);
+    });
+    var msg = h("div", { class: "result", role: "status" });
+    var save = h("button", { type: "button", "data-testid": "entry-save", text: "Save" });
+    var cancel = h("button", { type: "button", class: "quiet", text: "Back", onclick: onDone });
+    save.addEventListener("click", function () {
+      var nm = name.value.trim();
+      if (!nm) { msg.className = "result bad"; msg.textContent = "Give it a name."; return; }
+      var details = {};
+      sec.fields.forEach(function (f) { var v = inputs[f[0]].value.trim(); if (v) details[f[0]] = f[2] === "number" ? Number(v) : v; });
+      save.disabled = true; msg.className = "result"; msg.textContent = "Saving…";
+      var made;
+      rest("entries", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ profile_id: state.profile.id, section: sec.id, name: nm, details: details }) }).then(function (rows) {
+        made = rows[0]; state.entries.push(made);
+        var tasks = sec.reminders.filter(function (r) { return dates[r[0]].value; }).map(function (r) {
+          return { profile_id: state.profile.id, entry_id: made.id, title: r[2] + " — " + nm, kind: "maintenance", repeat_days: r[3], status: "active", due_on: dates[r[0]].value };
+        });
+        if (!tasks.length) return null;
+        return rest("maintenance_tasks", { method: "POST", headers: JSON_ONE, body: JSON.stringify(tasks) }).then(function (t) { t.forEach(function (x) { state.tasks.push(x); }); });
+      }).then(function () { state.notice = "Saved! " + nm + " is in " + sec.label + "."; showHome(); })
+        .catch(function (err) { save.disabled = false; msg.className = "result bad"; msg.textContent = "Not saved. " + err.message; });
+    });
+    return h("div", { class: "snooze", "data-testid": "entry-form" }, [h("label", { class: "field" }, [h("span", { text: "Name" }), name])].concat(fieldEls, [h("div", { class: "label", text: "Reminders (optional)" })], remEls, [h("div", { class: "actions" }, [save, cancel]), msg]));
+  }
+
+  function sectionsCard() {
+    var current = state.sectionOpen || null;
+    var box = h("div", { "data-testid": "sections-body" });
+    function draw() {
+      box.textContent = "";
+      var adding = state.sectionAdding;
+      SECTIONS.forEach(function (sec) {
+        var list = state.entries.filter(function (e) { return e.section === sec.id; });
+        var d = h("details", { class: "sub", "data-testid": "section-" + sec.id });
+        if (state.sectionOpen === sec.id) d.open = true;
+        d.addEventListener("toggle", function () { if (d.open) state.sectionOpen = sec.id; });
+        d.appendChild(h("summary", { text: sec.icon + " " + sec.label + (list.length ? " (" + list.length + ")" : "") }));
+        if (adding === sec.id) d.appendChild(entryForm(sec, function () { state.sectionAdding = null; draw(); }));
+        else {
+          if (!list.length) d.appendChild(h("p", { class: "hint", text: "Nothing here yet." }));
+          list.forEach(function (e) { d.appendChild(entryRow(sec, e)); });
+          d.appendChild(h("div", { class: "actions" }, [h("button", { type: "button", class: "small", "data-testid": "add-" + sec.id, text: "Add a " + sec.one, onclick: function () { state.sectionOpen = sec.id; state.sectionAdding = sec.id; draw(); } })]));
+        }
+        box.appendChild(d);
+      });
+    }
+    draw();
+    return h("section", { class: "card", "data-testid": "more-sections" }, [h("h2", { text: "More to keep track of" }), h("p", { class: "hint", text: "Vehicles, phones, pets and printers, with their own reminders." }), box]);
+  }
+
   function signedUrl(path) {
     return api("/storage/v1/", "object/sign/item-photos/" + path.split("/").map(encodeURIComponent).join("/"), { method: "POST", body: JSON.stringify({ expiresIn: 3600 }) })
       .then(readJson).then(function (b) { return b && b.signedURL ? SUPABASE_URL + "/storage/v1" + b.signedURL : null; });
@@ -1454,6 +1557,7 @@
           ideas.length ? h("div", { class: "chips" }, ideas.map(function (n) { return h("button", { type: "button", class: "chip", text: "+ " + n, onclick: function () { submitRoom(n); } }); })) : null
         ])
       ]),
+      sectionsCard(),
       styleCard(),
       countryCard(),
       feedbackCard(),
