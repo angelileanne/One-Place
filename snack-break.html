@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>One Place · back in a bite</title>
+<style>
+  :root {
+    --bg: #f1f5ee;
+    --ink: #1d3a2c;
+    --soft: #4d6a5a;
+    --chick-hi: #fff2a0;
+    --chick: #ffd84f;
+    --chick-lo: #f5b82e;
+    --beak: #ff8a3d;
+    --beak-lo: #e8702a;
+    --cookie: #dca064;
+    --cookie-lo: #c5864a;
+    --chip: #5a3a22;
+    --hair: #1c1c1e;
+    --halo: #f1f5ee;
+    --blush: #ff9bb0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #13201a;
+      --halo: #8fa896;
+      --ink: #e6f1e8;
+      --soft: #a9c2b1;
+      --chip: #4a2f1b;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Quicksand", system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: grid;
+    place-items: center;
+    padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  main { max-width: 30rem; }
+  .chick { width: min(66vw, 16rem); height: auto; display: block; margin: 0 auto 1.25rem; overflow: visible; }
+  .squish { transform-origin: 110px 190px; animation: chew 1.6s ease-in-out infinite; }
+  .hair { transform-origin: 110px 56px; animation: sway 3.2s ease-in-out infinite; }
+  .crumb { opacity: 0; animation: crumb 1.6s ease-in infinite; }
+  .crumb.b { animation-delay: .55s; }
+  .crumb.c { animation-delay: 1.05s; }
+  @keyframes chew {
+    0%, 100% { transform: scale(1, 1); }
+    25% { transform: scale(1.025, .965); }
+    50% { transform: scale(.992, 1.02); }
+    75% { transform: scale(1.025, .965); }
+  }
+  @keyframes sway {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(2.5deg); }
+  }
+  @keyframes crumb {
+    0% { opacity: 0; transform: translate(0, 0); }
+    20% { opacity: 1; }
+    100% { opacity: 0; transform: translate(4px, 30px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .squish, .hair, .crumb { animation: none; }
+  }
+  h1 { font-size: clamp(1.9rem, 6vw, 2.6rem); line-height: 1.15; margin: 0 0 .6rem; font-weight: 800; letter-spacing: -.01em; }
+  p { margin: 0; font-size: 1.1rem; line-height: 1.5; color: var(--soft); }
+  .name { margin-top: 2rem; font-size: .95rem; font-weight: 700; color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <svg class="chick" viewBox="0 0 220 220" role="img" aria-label="A fluffy round yellow plush chick with two black hair strands, munching on a cookie">
+    <defs>
+      <radialGradient id="fluff" cx="38%" cy="30%" r="80%">
+        <stop offset="0" style="stop-color:var(--chick-hi)"/>
+        <stop offset=".5" style="stop-color:var(--chick)"/>
+        <stop offset="1" style="stop-color:var(--chick-lo)"/>
+      </radialGradient>
+      <radialGradient id="biscuit" cx="35%" cy="30%" r="80%">
+        <stop offset="0" style="stop-color:var(--cookie)"/>
+        <stop offset="1" style="stop-color:var(--cookie-lo)"/>
+      </radialGradient>
+      <mask id="bite">
+        <rect width="220" height="220" fill="#fff"/>
+        <circle cx="112" cy="140" r="11" fill="#000"/>
+        <circle cx="94" cy="144" r="7" fill="#000"/>
+      </mask>
+    </defs>
+
+    <ellipse cx="110" cy="205" rx="62" ry="8" fill="#000" opacity=".13"/>
+
+    <g class="squish">
+      <!-- feet -->
+      <ellipse cx="82" cy="199" rx="17" ry="9" fill="var(--beak)"/>
+      <ellipse cx="138" cy="199" rx="17" ry="9" fill="var(--beak)"/>
+
+      <!-- hair: two fat black strands -->
+      <g class="hair" fill="none" stroke-linecap="round">
+        <g stroke="var(--halo)" stroke-width="11">
+          <path d="M105 58 C104 46 98 38 88 38"/>
+          <path d="M115 58 C116 46 122 38 132 38"/>
+        </g>
+        <g stroke="var(--hair)" stroke-width="7">
+          <path d="M105 58 C104 46 98 38 88 38"/>
+          <path d="M115 58 C116 46 122 38 132 38"/>
+        </g>
+      </g>
+
+      <!-- body -->
+      <ellipse cx="110" cy="124" rx="86" ry="78" fill="url(#fluff)"/>
+      <ellipse cx="78" cy="84" rx="26" ry="13" fill="#fff" opacity=".4" transform="rotate(-24 78 84)"/>
+
+      <!-- face -->
+      <ellipse cx="80" cy="116" rx="8" ry="9.5" fill="#161616"/>
+      <ellipse cx="140" cy="116" rx="8" ry="9.5" fill="#161616"/>
+      <circle cx="83" cy="112.5" r="3.2" fill="#fff"/>
+      <circle cx="143" cy="112.5" r="3.2" fill="#fff"/>
+      <circle cx="77.5" cy="120" r="1.5" fill="#fff" opacity=".8"/>
+      <circle cx="137.5" cy="120" r="1.5" fill="#fff" opacity=".8"/>
+      <ellipse cx="58" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
+      <ellipse cx="162" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
+      <path d="M99 128 Q110 120 121 128 Q118 140 110 141 Q102 140 99 128 Z" fill="var(--beak)"/>
+      <path d="M104 126 Q110 123 116 126" fill="none" stroke="#ffb27a" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+
+      <!-- cookie -->
+      <g mask="url(#bite)">
+        <circle cx="110" cy="166" r="27" fill="url(#biscuit)"/>
+        <circle cx="98" cy="160" r="3.4" fill="var(--chip)"/>
+        <circle cx="122" cy="168" r="3.6" fill="var(--chip)"/>
+        <circle cx="106" cy="178" r="3.1" fill="var(--chip)"/>
+        <circle cx="127" cy="154" r="2.8" fill="var(--chip)"/>
+        <circle cx="92" cy="174" r="2.6" fill="var(--chip)"/>
+      </g>
+
+      <!-- stubby wings holding the cookie -->
+      <ellipse cx="80" cy="168" rx="15" ry="10" fill="var(--chick)" transform="rotate(28 80 168)"/>
+      <ellipse cx="140" cy="168" rx="15" ry="10" fill="var(--chick)" transform="rotate(-28 140 168)"/>
+      <ellipse cx="76" cy="165" rx="7" ry="3.5" fill="var(--chick-hi)" opacity=".7" transform="rotate(28 76 165)"/>
+      <ellipse cx="144" cy="165" rx="7" ry="3.5" fill="var(--chick-hi)" opacity=".7" transform="rotate(-28 144 165)"/>
+    </g>
+
+    <circle class="crumb" cx="104" cy="146" r="2.6" fill="var(--cookie)"/>
+    <circle class="crumb b" cx="116" cy="148" r="2.2" fill="var(--cookie)"/>
+    <circle class="crumb c" cx="110" cy="150" r="1.9" fill="var(--cookie)"/>
+  </svg>
+  <h1>We’re having a snack</h1>
+  <p>We’ll be right back. One Place is getting a fresh start.</p>
+  <div class="name">One Place</div>
+</main>
+</body>
+</html>
