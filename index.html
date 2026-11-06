@@ -93,7 +93,16 @@
   details.entry:first-of-type { border-top: 0; }
   details.entry summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   details.entry p { margin: 6px 0 0; color: var(--soft); }
-  .new { font-style: italic; text-decoration: underline; color: var(--accent); margin-left: 6px; font-weight: 700; }
+  input[data-testid=whats-new-search] { width: 100%; margin: 6px 0 8px; }
+  details.wn-month { border-top: 1px solid var(--line); padding: 8px 0; }
+  details.wn-month > summary { cursor: pointer; font-weight: 800; min-height: 32px; }
+  details.wn-date { margin: 6px 0 0 10px; padding: 6px 0 6px 10px; border-left: 2px solid var(--line); }
+  details.wn-date > summary { cursor: pointer; font-weight: 700; font-size: .92rem; min-height: 30px; }
+  .wn-count { font-weight: 400; font-size: .78rem; color: var(--soft); margin-left: 8px; }
+  .wn-item { margin: 8px 0 0; }
+  .wn-title { font-weight: 700; font-size: .85rem; }
+  .wn-item p { margin: 2px 0 0; font-size: .8rem; line-height: 1.4; color: var(--soft); }
+  .new { font-style: italic; text-decoration: underline; color: var(--accent); margin-left: 6px; font-weight: 700; font-size: .85em; }
   .month { margin: 8px 0 0; font-size: .85rem; color: var(--soft); }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   .toast-wrap { position: fixed; left: 0; right: 0; bottom: max(16px, env(safe-area-inset-bottom)); display: flex; justify-content: center; padding: 0 16px; pointer-events: none; z-index: 20; }
@@ -219,7 +228,7 @@
 <div class="wrap">
   <div id="app" data-testid="app-shell"></div>
   <section class="card noprint" aria-labelledby="newTitle" data-testid="whats-new">
-    <h2 id="newTitle">What’s new</h2>
+    <h2 id="newTitle">What’s New!</h2>
     <div id="changelog"></div>
   </section>
   <div class="build noprint" data-testid="build-tag" id="buildTag"></div>
@@ -230,7 +239,7 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.2", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.3", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
@@ -250,7 +259,7 @@
         {
           date: "Nov 6",
           title: "Plushie squad: celebrations and a Why page",
-          detail: "Finish a task and one of the squad (all hand-drawn, fluffy and fat) celebrates (silent, and calmer if your device asks for less motion). Everyone takes turns. The \u201cWhy I created One Place\u201d button at the bottom of home is a little duck with a question mark. Search What\u2019s new to find any fix.",
+          detail: "Finish a task and one of the squad (all hand-drawn, fluffy and fat) celebrates (silent, and calmer if your device asks for less motion). Everyone takes turns. The \u201cWhy I created One Place\u201d button at the bottom of home is a little duck with a question mark. Search What\u2019s New! to find any fix.",
           isNew: false
         },
         {
@@ -2283,18 +2292,36 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
   // ---- What's new ----
   function renderChangelog() {
     var root = $("changelog");
-    var q = h("input", { type: "search", placeholder: "Search fixes", "aria-label": "Search what\u2019s new", "data-testid": "whats-new-search" });
+    var q = h("input", { type: "search", placeholder: "Search What\u2019s New", "aria-label": "Search What\u2019s New", "data-testid": "whats-new-search" });
     root.parentNode.insertBefore(q, root);
+    CHANGELOG.forEach(function (group) {
+      var dates = [], byDate = {};
+      group.entries.forEach(function (e) { if (!byDate[e.date]) { byDate[e.date] = []; dates.push(e.date); } byDate[e.date].push(e); });
+      var month = h("details", { class: "wn-month", "data-testid": "whats-new-month" }, [h("summary", { text: group.month })]);
+      dates.forEach(function (d) {
+        var items = byDate[d], hasNew = items.some(function (e) { return e.isNew; });
+        var sum = h("summary", { text: d }, [h("span", { class: "wn-count", text: items.length + (items.length === 1 ? " update" : " updates") })]);
+        if (hasNew) sum.appendChild(h("span", { class: "new", text: "New!" }));
+        var day = h("details", { class: "wn-date", "data-testid": "whats-new-date" }, [sum]);
+        items.forEach(function (e) {
+          var t = h("div", { class: "wn-title", text: e.title });
+          if (e.isNew) t.appendChild(h("span", { class: "new", text: "New!" }));
+          day.appendChild(h("div", { class: "wn-item", "data-testid": "whats-new-entry" }, [t, h("p", { text: e.detail })]));
+        });
+        month.appendChild(day);
+      });
+      root.appendChild(month);
+    });
     q.addEventListener("input", function () {
       var needle = q.value.trim().toLowerCase();
-      [].forEach.call(root.querySelectorAll("details.entry"), function (d) { d.hidden = !!needle && d.textContent.toLowerCase().indexOf(needle) < 0; });
-    });
-    CHANGELOG.forEach(function (group) {
-      root.appendChild(h("div", { class: "month", text: group.month }));
-      group.entries.forEach(function (entry) {
-        var s = h("summary", { text: entry.date + " · " + entry.title });
-        if (entry.isNew) s.appendChild(h("span", { class: "new", text: "New!" }));
-        root.appendChild(h("details", { class: "entry", "data-testid": "whats-new-entry" }, [s, h("p", { text: entry.detail })]));
+      [].forEach.call(root.querySelectorAll(".wn-month"), function (m) {
+        var monthHit = false;
+        [].forEach.call(m.querySelectorAll(".wn-date"), function (d) {
+          var hit = false;
+          [].forEach.call(d.querySelectorAll(".wn-item"), function (it) { var ok = !needle || it.textContent.toLowerCase().indexOf(needle) >= 0; it.hidden = !ok; if (ok) hit = true; });
+          d.hidden = !hit; d.open = !!needle && hit; if (hit) monthHit = true;
+        });
+        m.hidden = !monthHit; m.open = !!needle && monthHit;
       });
     });
   }
