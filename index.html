@@ -5,153 +5,363 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="color-scheme" content="light dark">
-<title>One Place · back in a bite</title>
+<title>One Place</title>
 <style>
   :root {
     --bg: #f1f5ee;
+    --surface: #ffffff;
+    --line: #d9e3d6;
     --ink: #1d3a2c;
     --soft: #4d6a5a;
-    --chick-hi: #fff2a0;
-    --chick: #ffd84f;
-    --chick-lo: #f5b82e;
-    --beak: #ff8a3d;
-    --beak-lo: #e8702a;
-    --cookie: #dca064;
-    --cookie-lo: #c5864a;
-    --chip: #5a3a22;
-    --hair: #1c1c1e;
-    --halo: #f1f5ee;
-    --blush: #ff9bb0;
+    --accent: #1f5c43;
+    --accent-ink: #ffffff;
+    --ok: #1f7a4d;
+    --bad: #b3261e;
+    --wait: #8a6a12;
+    --shadow: 0 1px 2px rgba(29, 58, 44, .08), 0 6px 18px rgba(29, 58, 44, .06);
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #13201a;
-      --halo: #8fa896;
+      --surface: #1b2c24;
+      --line: #2c4237;
       --ink: #e6f1e8;
       --soft: #a9c2b1;
-      --chip: #4a2f1b;
+      --accent: #7fd1a5;
+      --accent-ink: #0f1f17;
+      --ok: #7fd1a5;
+      --bad: #ff8a80;
+      --wait: #e6c66b;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .25);
     }
   }
   * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
+    margin: 0;
     background: var(--bg);
     color: var(--ink);
-    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Quicksand", system-ui, -apple-system, "Segoe UI", sans-serif;
-    display: grid;
-    place-items: center;
-    padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
-    text-align: center;
+    font: 16px/1.5 ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: max(20px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
   }
-  main { max-width: 30rem; }
-  .chick { width: min(66vw, 16rem); height: auto; display: block; margin: 0 auto 1.25rem; overflow: visible; }
-  .squish { transform-origin: 110px 190px; animation: chew 1.6s ease-in-out infinite; }
-  .hair { transform-origin: 110px 56px; animation: sway 3.2s ease-in-out infinite; }
-  .crumb { opacity: 0; animation: crumb 1.6s ease-in infinite; }
-  .crumb.b { animation-delay: .55s; }
-  .crumb.c { animation-delay: 1.05s; }
-  @keyframes chew {
-    0%, 100% { transform: scale(1, 1); }
-    25% { transform: scale(1.025, .965); }
-    50% { transform: scale(.992, 1.02); }
-    75% { transform: scale(1.025, .965); }
+  .wrap { max-width: 34rem; margin: 0 auto; display: grid; gap: 16px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 4px 2px; }
+  h1 { margin: 0; font-size: 1.7rem; letter-spacing: -.01em; }
+  .build { font-size: .85rem; color: var(--soft); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; box-shadow: var(--shadow); }
+  h2 { margin: 0 0 4px; font-size: 1.05rem; }
+  .hint { margin: 0 0 12px; color: var(--soft); font-size: .92rem; }
+  .row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .row:first-of-type { border-top: 0; }
+  .dot { flex: none; width: 12px; height: 12px; border-radius: 50%; margin-top: 7px; background: var(--wait); }
+  .dot.ok { background: var(--ok); }
+  .dot.bad { background: var(--bad); }
+  .label { font-weight: 700; }
+  .detail { color: var(--soft); font-size: .92rem; overflow-wrap: anywhere; }
+  button, .filebtn {
+    font: inherit; font-weight: 700; cursor: pointer;
+    background: var(--accent); color: var(--accent-ink);
+    border: 0; border-radius: 12px; padding: 10px 16px; min-height: 44px;
+    transition: transform .12s ease, opacity .12s ease;
   }
-  @keyframes sway {
-    0%, 100% { transform: rotate(0deg); }
-    50% { transform: rotate(2.5deg); }
+  button:active, .filebtn:active { transform: scale(.97); }
+  button:disabled { opacity: .5; cursor: default; }
+  button.quiet { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  input[type="text"] {
+    font: inherit; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-height: 44px; width: 100%;
   }
-  @keyframes crumb {
-    0% { opacity: 0; transform: translate(0, 0); }
-    20% { opacity: 1; }
-    100% { opacity: 0; transform: translate(4px, 30px); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .squish, .hair, .crumb { animation: none; }
-  }
-  h1 { font-size: clamp(1.9rem, 6vw, 2.6rem); line-height: 1.15; margin: 0 0 .6rem; font-weight: 800; letter-spacing: -.01em; }
-  p { margin: 0; font-size: 1.1rem; line-height: 1.5; color: var(--soft); }
-  .name { margin-top: 2rem; font-size: .95rem; font-weight: 700; color: var(--ink); }
+  input[type="file"] { display: none; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .inline { display: flex; gap: 8px; }
+  ul.notes { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+  ul.notes li { background: var(--bg); border-radius: 10px; padding: 8px 12px; font-size: .95rem; overflow-wrap: anywhere; }
+  ul.notes small { color: var(--soft); display: block; }
+  .preview { max-width: 100%; max-height: 220px; border-radius: 12px; margin-top: 12px; display: none; }
+  .result { margin-top: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .result.bad { color: var(--bad); }
+  details.entry { border-top: 1px solid var(--line); padding: 8px 0; }
+  details.entry:first-of-type { border-top: 0; }
+  details.entry summary { cursor: pointer; font-weight: 700; min-height: 32px; }
+  details.entry p { margin: 6px 0 0; color: var(--soft); }
+  .new { font-style: italic; text-decoration: underline; color: var(--accent); margin-left: 6px; font-weight: 700; }
+  .month { margin: 8px 0 0; font-size: .85rem; color: var(--soft); }
+  @media (prefers-reduced-motion: reduce) { button, .filebtn { transition: none; } }
 </style>
 </head>
 <body>
-<main>
-  <svg class="chick" viewBox="0 0 220 220" role="img" aria-label="A fluffy round yellow plush chick with two black hair strands, munching on a cookie">
-    <defs>
-      <radialGradient id="fluff" cx="38%" cy="30%" r="80%">
-        <stop offset="0" style="stop-color:var(--chick-hi)"/>
-        <stop offset=".5" style="stop-color:var(--chick)"/>
-        <stop offset="1" style="stop-color:var(--chick-lo)"/>
-      </radialGradient>
-      <radialGradient id="biscuit" cx="35%" cy="30%" r="80%">
-        <stop offset="0" style="stop-color:var(--cookie)"/>
-        <stop offset="1" style="stop-color:var(--cookie-lo)"/>
-      </radialGradient>
-      <mask id="bite">
-        <rect width="220" height="220" fill="#fff"/>
-        <circle cx="112" cy="140" r="11" fill="#000"/>
-        <circle cx="94" cy="144" r="7" fill="#000"/>
-      </mask>
-    </defs>
+<div class="wrap" data-testid="app-shell">
+  <header>
+    <h1>One Place</h1>
+    <span class="build" data-testid="build-tag" id="buildTag"></span>
+  </header>
 
-    <ellipse cx="110" cy="205" rx="62" ry="8" fill="#000" opacity=".13"/>
+  <section class="card" aria-labelledby="statusTitle">
+    <h2 id="statusTitle">Connections</h2>
+    <p class="hint">Green means it works. If something is red, it says what went wrong.</p>
+    <div class="row" data-testid="db-status">
+      <span class="dot" id="dbDot"></span>
+      <div><div class="label">Database</div><div class="detail" id="dbDetail">Checking…</div></div>
+    </div>
+    <div class="row" data-testid="ai-status">
+      <span class="dot" id="aiDot"></span>
+      <div><div class="label">Photo AI</div><div class="detail" id="aiDetail">Not checked yet.</div></div>
+    </div>
+    <div style="margin-top:12px"><button type="button" id="runChecks" data-testid="run-checks">Check connections</button></div>
+  </section>
 
-    <g class="squish">
-      <!-- feet -->
-      <ellipse cx="82" cy="199" rx="17" ry="9" fill="var(--beak)"/>
-      <ellipse cx="138" cy="199" rx="17" ry="9" fill="var(--beak)"/>
+  <section class="card" aria-labelledby="saveTitle">
+    <h2 id="saveTitle">Save a test note</h2>
+    <p class="hint">Proves the app can save to the database and read it back.</p>
+    <form class="inline" id="noteForm">
+      <input type="text" id="noteInput" maxlength="200" placeholder="Type anything…" aria-label="Test note" data-testid="save-test-note-input" autocomplete="off">
+      <button type="submit" id="noteSave" data-testid="save-test-note-button">Save</button>
+    </form>
+    <div class="detail result" id="noteMsg" role="status"></div>
+    <ul class="notes" id="notesList" data-testid="test-notes-list"></ul>
+  </section>
 
-      <!-- hair: two fat black strands -->
-      <g class="hair" fill="none" stroke-linecap="round">
-        <g stroke="var(--halo)" stroke-width="11">
-          <path d="M105 58 C104 46 98 38 88 38"/>
-          <path d="M115 58 C116 46 122 38 132 38"/>
-        </g>
-        <g stroke="var(--hair)" stroke-width="7">
-          <path d="M105 58 C104 46 98 38 88 38"/>
-          <path d="M115 58 C116 46 122 38 132 38"/>
-        </g>
-      </g>
+  <section class="card" aria-labelledby="photoTitle">
+    <h2 id="photoTitle">Try the photo AI</h2>
+    <p class="hint">Pick or take a photo of anything. The AI says what it thinks it is.</p>
+    <label class="filebtn" for="photoInput" style="display:inline-block">Choose a photo</label>
+    <input type="file" id="photoInput" accept="image/*" data-testid="photo-input">
+    <img class="preview" id="photoPreview" alt="Your chosen photo" data-testid="photo-preview">
+    <div class="result" id="photoResult" role="status" data-testid="photo-result"></div>
+  </section>
 
-      <!-- body -->
-      <ellipse cx="110" cy="124" rx="86" ry="78" fill="url(#fluff)"/>
-      <ellipse cx="78" cy="84" rx="26" ry="13" fill="#fff" opacity=".4" transform="rotate(-24 78 84)"/>
+  <section class="card" aria-labelledby="newTitle" data-testid="whats-new">
+    <h2 id="newTitle">What’s new</h2>
+    <div id="changelog"></div>
+  </section>
+</div>
 
-      <!-- face -->
-      <ellipse cx="80" cy="116" rx="8" ry="9.5" fill="#161616"/>
-      <ellipse cx="140" cy="116" rx="8" ry="9.5" fill="#161616"/>
-      <circle cx="83" cy="112.5" r="3.2" fill="#fff"/>
-      <circle cx="143" cy="112.5" r="3.2" fill="#fff"/>
-      <circle cx="77.5" cy="120" r="1.5" fill="#fff" opacity=".8"/>
-      <circle cx="137.5" cy="120" r="1.5" fill="#fff" opacity=".8"/>
-      <ellipse cx="58" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
-      <ellipse cx="162" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
-      <path d="M99 128 Q110 120 121 128 Q118 140 110 141 Q102 140 99 128 Z" fill="var(--beak)"/>
-      <path d="M104 126 Q110 123 116 126" fill="none" stroke="#ffb27a" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+<script>
+(function () {
+  "use strict";
 
-      <!-- cookie -->
-      <g mask="url(#bite)">
-        <circle cx="110" cy="166" r="27" fill="url(#biscuit)"/>
-        <circle cx="98" cy="160" r="3.4" fill="var(--chip)"/>
-        <circle cx="122" cy="168" r="3.6" fill="var(--chip)"/>
-        <circle cx="106" cy="178" r="3.1" fill="var(--chip)"/>
-        <circle cx="127" cy="154" r="2.8" fill="var(--chip)"/>
-        <circle cx="92" cy="174" r="2.6" fill="var(--chip)"/>
-      </g>
+  // ---- Build info + changelog. Every build adds an entry here. ----
+  var BUILD = { version: "0.1.0", phase: "Phase 1 · Foundation" };
+  var CHANGELOG = [
+    {
+      month: "November 2026",
+      entries: [
+        {
+          date: "Nov 5",
+          title: "Fresh start",
+          detail: "One Place was rebuilt from the ground up. This first build only proves the pieces are connected: the app, the database, and the photo AI.",
+          isNew: true
+        }
+      ]
+    }
+  ];
 
-      <!-- stubby wings holding the cookie -->
-      <ellipse cx="80" cy="168" rx="15" ry="10" fill="var(--chick)" transform="rotate(28 80 168)"/>
-      <ellipse cx="140" cy="168" rx="15" ry="10" fill="var(--chick)" transform="rotate(-28 140 168)"/>
-      <ellipse cx="76" cy="165" rx="7" ry="3.5" fill="var(--chick-hi)" opacity=".7" transform="rotate(28 76 165)"/>
-      <ellipse cx="144" cy="165" rx="7" ry="3.5" fill="var(--chick-hi)" opacity=".7" transform="rotate(-28 144 165)"/>
-    </g>
+  // ---- Config. The publishable key is designed to be public; the database rules (RLS) are what protect data. ----
+  var SUPABASE_URL = "https://ykqnjpgbdwrenilwxkio.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_1TrviuurElOjjrQRY56oUg_yzgNwHiR";
+  var AI_MODEL = "gemini-flash-latest";
 
-    <circle class="crumb" cx="104" cy="146" r="2.6" fill="var(--cookie)"/>
-    <circle class="crumb b" cx="116" cy="148" r="2.2" fill="var(--cookie)"/>
-    <circle class="crumb c" cx="110" cy="150" r="1.9" fill="var(--cookie)"/>
-  </svg>
-  <h1>We’re having a snack</h1>
-  <p>We’ll be right back. One Place is getting a fresh start.</p>
-  <div class="name">One Place</div>
-</main>
+  function $(id) { return document.getElementById(id); }
+  function setStatus(name, state, text) {
+    $(name + "Dot").className = "dot" + (state ? " " + state : "");
+    $(name + "Detail").textContent = text;
+  }
+
+  // ---- Database ----
+  function dbFetch(path, options) {
+    options = options || {};
+    options.headers = Object.assign({ apikey: SUPABASE_KEY, "Content-Type": "application/json" }, options.headers || {});
+    return fetch(SUPABASE_URL + "/rest/v1/" + path, options);
+  }
+
+  function explainDbError(res, body) {
+    var code = body && body.code;
+    if (code === "PGRST205" || res.status === 404) return "The test table is missing in Supabase.";
+    if (res.status === 401) return "Supabase rejected the app’s key (401). The key in the page may be wrong or disabled.";
+    if (res.status === 403 || code === "42501") return "Supabase blocked this by its security rules (403).";
+    return "Supabase answered with an error (" + res.status + ")" + (body && body.message ? ": " + body.message : ".");
+  }
+
+  function checkDatabase() {
+    setStatus("db", "", "Checking…");
+    return dbFetch("connection_checks?select=id&limit=1").then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (body) {
+        if (res.ok) { setStatus("db", "ok", "Connected. The database answered."); return true; }
+        setStatus("db", "bad", explainDbError(res, body));
+        return false;
+      });
+    }).catch(function () {
+      setStatus("db", "bad", "Couldn’t reach Supabase at all. Check the internet connection, then try again.");
+      return false;
+    });
+  }
+
+  function loadNotes() {
+    return dbFetch("connection_checks?select=id,note,created_at&order=id.desc&limit=5").then(function (res) {
+      return res.json().then(function (rows) {
+        var list = $("notesList");
+        list.textContent = "";
+        if (!res.ok || !Array.isArray(rows)) return;
+        rows.forEach(function (r) {
+          var li = document.createElement("li");
+          li.textContent = r.note;
+          var small = document.createElement("small");
+          small.textContent = new Date(r.created_at).toLocaleString();
+          li.appendChild(small);
+          list.appendChild(li);
+        });
+      });
+    }).catch(function () {});
+  }
+
+  $("noteForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var text = $("noteInput").value.trim();
+    var msg = $("noteMsg");
+    msg.className = "detail result";
+    if (!text) { msg.textContent = "Type a note first."; return; }
+    $("noteSave").disabled = true;
+    msg.textContent = "Saving…";
+    dbFetch("connection_checks", {
+      method: "POST",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({ note: text })
+    }).then(function (res) {
+      if (res.ok) {
+        msg.textContent = "Saved to the database.";
+        $("noteInput").value = "";
+        return loadNotes();
+      }
+      return res.json().catch(function () { return null; }).then(function (body) {
+        msg.className = "detail result bad";
+        msg.textContent = "Not saved. " + explainDbError(res, body);
+      });
+    }).catch(function () {
+      msg.className = "detail result bad";
+      msg.textContent = "Not saved. Couldn’t reach Supabase.";
+    }).then(function () { $("noteSave").disabled = false; });
+  });
+
+  // ---- Photo AI ----
+  function callAI(parts) {
+    return fetch("/api/gemini", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: AI_MODEL,
+        contents: [{ role: "user", parts: parts }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 400 }
+      })
+    }).catch(function () {
+      throw new Error("Couldn’t reach the app’s server function (/api/gemini).");
+    }).then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (body) {
+        if (!res.ok) {
+          var why = (body && body.error) || ("The photo AI answered with an error (" + res.status + ").");
+          throw new Error(why);
+        }
+        var cands = body && body.candidates;
+        var parts2 = cands && cands[0] && cands[0].content && cands[0].content.parts;
+        var text = (parts2 || []).map(function (p) { return p.text || ""; }).join("").trim();
+        if (!text) throw new Error("The photo AI answered, but with nothing in it.");
+        return text;
+      });
+    });
+  }
+
+  function checkAI() {
+    setStatus("ai", "", "Checking…");
+    return callAI([{ text: "Reply with exactly one word: ready" }]).then(function () {
+      setStatus("ai", "ok", "Connected. The photo AI answered.");
+      return true;
+    }).catch(function (err) {
+      setStatus("ai", "bad", err && err.message ? err.message : "Unknown problem.");
+      return false;
+    });
+  }
+
+  function downscale(file, maxSide) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        var scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        var w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+        var canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        var dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        URL.revokeObjectURL(url);
+        resolve({ dataUrl: dataUrl, base64: dataUrl.split(",")[1] });
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("That file couldn’t be read as a photo.")); };
+      img.src = url;
+    });
+  }
+
+  $("photoInput").addEventListener("change", function () {
+    var file = this.files && this.files[0];
+    var out = $("photoResult");
+    out.className = "result";
+    if (!file) return;
+    out.textContent = "Looking at your photo…";
+    downscale(file, 1024).then(function (img) {
+      var prev = $("photoPreview");
+      prev.src = img.dataUrl;
+      prev.style.display = "block";
+      return callAI([
+        { text: "What is this item? Answer in one or two short sentences. If you can read a make, model, or year, include it. If you can’t, say so." },
+        { inline_data: { mime_type: "image/jpeg", data: img.base64 } }
+      ]);
+    }).then(function (text) {
+      out.textContent = text;
+    }).catch(function (err) {
+      out.className = "result bad";
+      out.textContent = err && err.message ? err.message : "Something went wrong.";
+    });
+    this.value = "";
+  });
+
+  // ---- Buttons + startup ----
+  $("runChecks").addEventListener("click", function () {
+    var btn = this;
+    btn.disabled = true;
+    Promise.all([checkDatabase(), checkAI()]).then(function () { btn.disabled = false; });
+  });
+
+  // ---- Changelog ----
+  function renderChangelog() {
+    var root = $("changelog");
+    CHANGELOG.forEach(function (group) {
+      var m = document.createElement("div");
+      m.className = "month";
+      m.textContent = group.month;
+      root.appendChild(m);
+      group.entries.forEach(function (entry) {
+        var d = document.createElement("details");
+        d.className = "entry";
+        d.setAttribute("data-testid", "whats-new-entry");
+        var s = document.createElement("summary");
+        s.textContent = entry.date + " · " + entry.title;
+        if (entry.isNew) {
+          var n = document.createElement("span");
+          n.className = "new";
+          n.textContent = "New!";
+          s.appendChild(n);
+        }
+        var p = document.createElement("p");
+        p.textContent = entry.detail;
+        d.appendChild(s);
+        d.appendChild(p);
+        root.appendChild(d);
+      });
+    });
+  }
+
+  $("buildTag").textContent = BUILD.phase + " · v" + BUILD.version;
+  renderChangelog();
+  checkDatabase().then(loadNotes);
+})();
+</script>
 </body>
 </html>
