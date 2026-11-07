@@ -326,7 +326,7 @@
         {
           date: "Nov 6",
           title: "Look around as a guest, a cozier welcome, Home Screen steps and easy reordering",
-          detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. Reminders can now remember the make, model or size (like the exact air filter) and where you buy it, with a Reorder button that opens that store or your pasted product link. Add your own recommended pros (handymen, landscapers, mechanics) under My pros and track when you use them. Peek in More for Punchy\u2019s Closet, coming soon: earn coins for finishing tasks and dress Punchy up. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
+          detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. Reminders can now remember the make, model or size (like the exact air filter) and where you buy it, with a Reorder button that opens that store or your pasted product link. Local pros: see recommended pros near you and add your own. Add your own recommended pros (handymen, landscapers, mechanics) under My pros and track when you use them. Peek in More for Punchy\u2019s Closet, coming soon: earn coins for finishing tasks and dress Punchy up. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
           isNew: true
         },
         {
@@ -1028,10 +1028,57 @@
     var w = safeUrl(p.website); if (w) out.push(h("a", { class: "chip", href: w, target: "_blank", rel: "noopener noreferrer", text: "Website ↗" }));
     return out;
   }
+  var lastVisitLog = 0;
+  function logVisit() {
+    if (state.guest || !state.session || Date.now() - lastVisitLog < 30 * 60 * 1000) return;
+    lastVisitLog = Date.now();
+    rest("rpc/log_visit", { method: "POST", body: JSON.stringify({ p_lang: prefs.lang || "en" }) }).catch(function () {});
+  }
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") logVisit(); });
+  function showAnalytics() {
+    state.rerender = showAnalytics; state.pendingTab = "more";
+    var box = h("div", { "data-testid": "analytics" }, [h("p", { class: "hint", text: "Loading\u2026" })]);
+    function tbl(head, rows) {
+      return h("div", { style: "overflow-x:auto" }, [h("table", { style: "width:100%;border-collapse:collapse;font-size:.85rem" }, [
+        h("thead", {}, [h("tr", {}, head.map(function (x) { return h("th", { style: "text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)", text: x }); }))]),
+        h("tbody", {}, rows.map(function (r) { return h("tr", {}, r.map(function (c) { return h("td", { style: "padding:4px 6px;border-bottom:1px solid var(--line)", text: String(c == null ? "" : c) }); })); }))])]);
+    }
+    function sec(title, node) { return h("section", { class: "card", style: "margin:10px 0" }, [h("h2", { text: title }), node]); }
+    rest("rpc/analytics", { method: "POST", body: "{}" }).then(function (a) {
+      box.textContent = "";
+      box.appendChild(h("div", { class: "chips" }, [h("span", { class: "chip", text: a.accounts + " accounts" }), h("span", { class: "chip", text: a.countries.length + " countries" }), h("span", { class: "chip", text: a.languages.length + " languages" })]));
+      box.appendChild(sec("Countries", tbl(["Country", "Accounts"], a.countries.map(function (c) { return [c.country, c.accounts]; }))));
+      box.appendChild(sec("Languages", tbl(["Language", "Accounts"], a.languages.map(function (c) { return [c.lang, c.accounts]; }))));
+      box.appendChild(sec("Last 30 days", tbl(["Day", "Accounts", "Visits"], a.daily.map(function (d) { return [d.day, d.accounts, d.visits]; }))));
+      box.appendChild(sec("Per account", tbl(["Who", "Visits", "Days", "Last seen", "Lang", "Country"], a.per_account.map(function (x) { return [(x.name ? x.name + " " : "") + "(" + x.email + ")", x.visits, x.days, x.last_seen ? dtl(x.last_seen) : "never", x.lang || "", x.country || ""]; }))));
+    }).catch(function (err) { box.textContent = ""; box.appendChild(h("p", { class: "hint", text: "Couldn\u2019t load. " + err.message })); });
+    view([h("header", {}, [h("h1", { text: "Analytics" })]), h("p", { class: "hint", text: "Only you can see this. A visit is one time someone opens One Place (counted at most every 30 minutes). Guests aren\u2019t counted." }), box,
+      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Back", onclick: showMore })])]);
+  }
   function showPros(note) {
     state.rerender = showPros; state.pendingTab = "more";
-    var list = h("div", { "data-testid": "pros-list" }, [h("p", { class: "hint", text: "Loading…" })]);
+    var list = h("div", { "data-testid": "pros-list" }, [h("p", { class: "hint", text: "Loading\u2026" })]);
+    var local = h("div", { "data-testid": "local-pros" });
     var form = null;
+    function loadLocal() {
+      var ctry = (state.profile && state.profile.country) || "US", city = ((state.profile && state.profile.city) || "").trim().toLowerCase();
+      return rest("listed_pros?select=*&country=eq." + encodeURIComponent(ctry) + "&order=created_at.desc").then(function (rows) {
+        rows = rows.map(function (r) { r._near = !!city && (r.area || "").toLowerCase().indexOf(city) > -1; return r; }).sort(function (a, b) { return (b._near ? 1 : 0) - (a._near ? 1 : 0); });
+        local.textContent = "";
+        local.appendChild(h("h2", { style: "margin:16px 0 4px", text: "Local pros" }));
+        if (!rows.length) { local.appendChild(h("p", { class: "hint", text: "No local pros are listed for your area yet. Add the ones you trust above, and we\u2019ll look into inviting them." })); return; }
+        local.appendChild(h("p", { class: "hint", text: city ? "Recommended pros, with the ones near " + state.profile.city + " first." : "Add your city in More to see the closest ones first." }));
+        rows.forEach(function (p) {
+          var add = h("button", { type: "button", class: "small", "data-testid": "local-add", text: "Add to my pros", onclick: function (e) {
+            e.target.disabled = true;
+            rest("pros", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ category: p.category, name: p.name, phone: p.phone, email: p.email, website: p.website, notes: p.notes, area: p.area }) }).then(function () { showPros("Added " + p.name + " to your pros."); }).catch(function () { e.target.disabled = false; });
+          } });
+          local.appendChild(h("div", { class: "card", style: "margin:10px 0;padding:12px 14px", "data-testid": "local-pro" }, [
+            h("div", { class: "m", text: p.category + (p.area ? " \u00b7 " + p.area : "") + (p._near ? " \u00b7 near you" : "") }), h("div", { style: "font-weight:700", text: p.name }),
+            p.notes ? h("div", { class: "m", text: p.notes }) : null, h("div", { class: "chips", style: "margin:8px 0" }, proContactChips(p)), h("div", { class: "actions" }, [add])]));
+        });
+      }).catch(function () {});
+    }
     function load() {
       return Promise.all([rest("pros?select=*&order=created_at.desc"), rest("pro_uses?select=pro_id,used_on&order=used_on.desc")]).then(function (res) {
         var pros = res[0], uses = res[1];
@@ -1067,6 +1114,7 @@
     var email = h("input", { type: "text", inputmode: "email", autocapitalize: "none", maxlength: "120", placeholder: "Email (optional)", "data-testid": "pro-email" });
     var web = h("input", { type: "text", inputmode: "url", autocapitalize: "none", maxlength: "300", placeholder: "Website (optional)", "data-testid": "pro-web" });
     var notes = h("input", { type: "text", maxlength: "500", placeholder: "Why you like them (optional)", "data-testid": "pro-notes" });
+    var area = h("input", { type: "text", maxlength: "80", placeholder: "City or area they serve", value: (state.profile && state.profile.city) || "", "data-testid": "pro-area" });
     var msg = h("div", { class: "result", role: "status" });
     var save = h("button", { type: "button", "data-testid": "pro-save", text: "Add to my pros" });
     save.addEventListener("click", function () {
@@ -1076,7 +1124,7 @@
       if (!phone.value.trim() && !email.value.trim() && !web.value.trim()) { msg.className = "result bad"; msg.textContent = "Add a phone, email or website so you can reach them."; return; }
       if (web.value.trim() && !safeUrl(web.value)) { msg.className = "result bad"; msg.textContent = "That website doesn’t look right."; return; }
       save.disabled = true; msg.className = "result"; msg.textContent = "Saving…";
-      rest("pros", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ category: cat, name: name.value.trim(), phone: phone.value.trim() || null, email: email.value.trim() || null, website: safeUrl(web.value) || null, notes: notes.value.trim() || null }) })
+      rest("pros", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ category: cat, name: name.value.trim(), phone: phone.value.trim() || null, email: email.value.trim() || null, website: safeUrl(web.value) || null, notes: notes.value.trim() || null, area: area.value.trim() || null }) })
         .then(function () { showPros("Added " + name.value.trim() + ". Thank you!"); })
         .catch(function (err) { save.disabled = false; msg.className = "result bad"; msg.textContent = "Not saved. " + err.message; });
     });
@@ -1085,6 +1133,7 @@
       h("div", { class: "field", style: "margin-top:10px" }, [h("span", { text: "What kind of pro?" }), catChips, customCat]),
       h("label", { class: "field" }, [h("span", { text: "Name" }), name]), h("label", { class: "field" }, [h("span", { text: "Phone" }), phone]),
       h("label", { class: "field" }, [h("span", { text: "Email" }), email]), h("label", { class: "field" }, [h("span", { text: "Website" }), web]),
+      h("label", { class: "field" }, [h("span", { text: "City or area they serve" }), area]),
       h("label", { class: "field" }, [h("span", { text: "Notes" }), notes]),
       h("p", { class: "hint", style: "font-size:.82rem", text: "Heads up: One Place may reach out to the pros you add to invite them to be listed. Your name and details are never shared with them." }),
       h("div", { class: "actions" }, [save]), msg
@@ -1094,10 +1143,10 @@
       h("header", {}, [h("h1", { text: "My pros" })]),
       note ? h("div", { class: "banner", role: "status", "data-testid": "notice", text: note }) : null,
       h("p", { class: "hint", text: "Your go-to handymen, landscapers, mechanics and more, all in one place. Tap “I used them again” to keep track." }),
-      form, list,
+      form, list, local,
       h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Back", onclick: showMore })])
     ]);
-    load();
+    load(); loadLocal();
   }
   function showLeads() {
     state.rerender = showLeads; state.pendingTab = "more";
@@ -1107,11 +1156,16 @@
       if (!rows.length) { box.appendChild(h("p", { class: "hint", text: "No recommendations yet." })); return; }
       rows.forEach(function (p) {
         box.appendChild(h("div", { class: "card", style: "margin:10px 0;padding:12px 14px", "data-testid": "lead" }, [
-          h("div", { class: "m", text: p.category + " · added " + dtl(p.first_added) }), h("div", { style: "font-weight:700", text: p.name }),
+          h("div", { class: "m", text: p.category + (p.area ? " \u00b7 " + p.area : "") + " \u00b7 added " + dtl(p.first_added) }), h("div", { style: "font-weight:700", text: p.name }),
           h("div", { class: "m", text: "Recommended by " + p.recommended_by + (Number(p.recommended_by) === 1 ? " person" : " people") + " · used " + p.times_used + (Number(p.times_used) === 1 ? " time" : " times") + (p.last_used ? " (last " + dtl(p.last_used) + ")" : "") }),
           p.notes ? h("div", { class: "m", text: p.notes }) : null,
           h("div", { class: "m", text: [p.phone, p.email, p.website].filter(Boolean).join(" · ") }),
-          h("div", { class: "chips", style: "margin-top:8px" }, proContactChips(p))
+          h("div", { class: "chips", style: "margin-top:8px" }, proContactChips(p)),
+          p.listed ? h("div", { class: "m", text: "Listed as a local pro" }) : h("div", { class: "actions" }, [h("button", { type: "button", class: "small", "data-testid": "list-pro", text: "List as a local pro", onclick: function (e) {
+            var area = window.prompt("Area they serve (city or region):", p.area || ""); if (area === null) return;
+            e.target.disabled = true;
+            rest("listed_pros", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ category: p.category, name: p.name, phone: p.phone, email: p.email, website: p.website, notes: p.notes, area: area.trim() || null, country: p.country || "US" }) }).then(function () { showLeads(); }).catch(function (err) { e.target.disabled = false; window.alert(err.message); });
+          } })])
         ]));
       });
     }).catch(function (err) { box.textContent = ""; box.appendChild(h("p", { class: "hint", text: "Couldn’t load. " + err.message })); });
@@ -1121,7 +1175,7 @@
   function prosCard() {
     var kids = [h("h2", { text: "My pros" }), h("p", { class: "hint", text: "Save the handymen, landscapers, mechanics and pool cleaners you trust, and keep track of when you use them." }),
       h("div", { class: "actions" }, [h("button", { type: "button", class: "small", "data-testid": "open-pros", text: "Open my pros", onclick: function () { showPros(); } })])];
-    if (state.isAdmin) kids.push(h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet small", "data-testid": "open-leads", text: "Pro leads (owner only)", onclick: showLeads })]));
+    if (state.isAdmin) kids.push(h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet small", "data-testid": "open-leads", text: "Pro leads (owner only)", onclick: showLeads }), h("button", { type: "button", class: "quiet small", "data-testid": "open-analytics", text: "Analytics (owner only)", onclick: showAnalytics })]));
     return h("section", { class: "card noprint", "data-testid": "pros-card" }, kids);
   }
 
@@ -1381,7 +1435,7 @@
       return rest("profiles?select=*&order=created_at.asc");
     }).then(function (profiles) {
       if (!state.person || !profiles.length) { showWelcome(); return null; }
-      state.profiles = profiles; state.isAdmin = false;
+      state.profiles = profiles; state.isAdmin = false; logVisit();
       rest("rpc/am_admin", { method: "POST", body: "{}" }).then(function (v) { state.isAdmin = v === true; }).catch(function () {});
       var savedPid = null; try { savedPid = localStorage.getItem("oneplace.profile"); } catch (e) {}
       state.profile = profiles.filter(function (pr) { return pr.id === savedPid; })[0] || profiles[0];
@@ -2391,6 +2445,7 @@
       h("header", {}, [h("h1", { text: "More" })]),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
       h("div", { class: "morelist" }, state.guest ? [guestCard(), installHelpCard(), closetCard(), styleCard(), countryCard(), whyCard()] : [notifyCard(), installHelpCard(), prosCard(), closetCard(), styleCard(), countryCard(), whyCard(), feedbackCard(), inviteCard(), connectionsCard()]),
+      state.guest ? null : h("p", { class: "hint", style: "font-size:.8rem;text-align:center", text: "To make One Place better, we count how often it\u2019s opened and note the language and country you use. Your items and notes stay private." }),
       h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: state.guest ? "Leave guest mode" : "Sign out", "data-testid": "sign-out", onclick: state.guest ? function () { leaveGuest(); showIntro(); } : signOut })])
     ]);
     $("newTitle").closest("section").hidden = false;
