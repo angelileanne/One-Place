@@ -2557,7 +2557,7 @@
     if (!item || !(item.buy_url || item.buy_store)) return null;
     var url = safeUrl(item.buy_url), label;
     if (url) label = "Reorder" + (item.buy_store && item.buy_store !== "Other" ? " on " + item.buy_store : "");
-    else { url = storeSearchUrl(item.buy_store, [item.brand, item.model, item.name].filter(Boolean).join(" ")); label = "Find it on " + item.buy_store; }
+    else { url = storeSearchUrl(item.buy_store, (item.brand || item.model ? [item.brand, item.model, /filter|battery|bulb|cartridge|pad|bag/i.test(item.name) ? item.name : ""] : [item.name]).filter(Boolean).join(" ")); label = "Find it on " + item.buy_store; }
     return { label: label, url: url };
   }
   // Store chips + optional exact-product link (shared by the reminder form and the item card).
