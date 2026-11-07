@@ -259,23 +259,23 @@
   .chip[aria-pressed="true"], .secchip[aria-pressed="true"], .seg input:checked + span { background: var(--tint); color: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
   .tile[aria-checked="true"] { background: var(--tint); color: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
   .cal-cell { border-radius: 10px; }
-  /* ---- Cozy first-run look (welcome, sign-in) ---- */
-  body.cozy { min-height: 100vh; background-attachment: fixed; --bg: #fbf0e1; --surface: #fffaf2; --line: #efd9c0; --ink: #4a3022; --soft: #7d5f4b; --accent: #b4532f; --accent-ink: #fffaf2; --tint: #f9dfc9; --shadow: 0 2px 4px rgba(120,70,40,.08), 0 14px 30px rgba(180,100,60,.12);
-    background: radial-gradient(circle at 12% 0%, #ffe3c7 0, transparent 46%), radial-gradient(circle at 100% 18%, #fbd7d0 0, transparent 40%), var(--bg); }
-  html[data-mode="dark"] body.cozy { --bg: #2a1d16; --surface: #382820; --line: #553d30; --ink: #f8e8d6; --soft: #d9bba3; --accent: #f1a07a; --accent-ink: #3a1608; --tint: #4a3226; --shadow: 0 2px 4px rgba(0,0,0,.4), 0 14px 30px rgba(0,0,0,.3);
-    background: radial-gradient(circle at 12% 0%, #4a2f20 0, transparent 46%), radial-gradient(circle at 100% 18%, #4a2a2a 0, transparent 40%), var(--bg); }
-  body.cozy h1, body.cozy h2 { font-family: "Fraunces", Georgia, "Times New Roman", serif; font-weight: 700; letter-spacing: -.01em; }
-  body.cozy h1 { font-size: 2rem; line-height: 1.15; }
-  body.cozy .card { border-radius: 28px; border-color: var(--line); }
-  body.cozy button { border-radius: 999px; }
-  body.cozy .chip { border-radius: 999px; }
-  body.cozy .attn-item { background: var(--tint); border-color: transparent; border-radius: 18px; }
+  /* ---- Sleek first-run look (welcome, sign-in): light, crisp, sharp corners ---- */
+  body.cozy { min-height: 100vh; --bg: #f7f8f6; --surface: #ffffff; --line: #e3e7e2; --ink: #16231d; --soft: #5f6d65; --accent: #1f5c43; --accent-ink: #ffffff; --tint: #eef3ef; --shadow: 0 1px 0 rgba(22,35,29,.04), 0 18px 40px -18px rgba(22,35,29,.18);
+    background: linear-gradient(180deg, #ffffff 0, #f3f6f2 100%); background-attachment: fixed; }
+  html[data-mode="dark"] body.cozy { --bg: #101814; --surface: #17211c; --line: #29372f; --ink: #eef4ef; --soft: #9fb1a6; --accent: #7fd1a5; --accent-ink: #0c1812; --tint: #1d2a23; --shadow: 0 18px 40px -18px rgba(0,0,0,.6);
+    background: linear-gradient(180deg, #131c17 0, #0d1511 100%); background-attachment: fixed; }
+  body.cozy h1, body.cozy h2 { font-family: "Plus Jakarta Sans", system-ui, sans-serif; font-weight: 800; letter-spacing: -.03em; }
+  body.cozy h1 { font-size: 1.6rem; white-space: nowrap; line-height: 1.12; }
+  body.cozy .card { border-radius: 6px; border: 1px solid var(--line); border-top: 3px solid var(--accent); padding: 26px 22px; }
+  body.cozy button, body.cozy .chip, body.cozy input:not([type=checkbox]):not([type=radio]), body.cozy select { border-radius: 4px; }
+  body.cozy button { letter-spacing: .01em; }
+  body.cozy .attn-item { background: transparent; border: none; border-top: 1px solid var(--line); border-radius: 0; font-size: .95rem; }
   body.cozy .punchy, body.cozy .pocketlink, body.cozy .pocketpill { display: none !important; }
   .signin-link { font-weight: 400; font-size: .8rem; min-height: 0; padding: 2px 6px; }
   .cozy-row { display: flex; justify-content: center; gap: 4px; margin: 0 auto 6px; }
   .cozy-row > div { width: 84px; height: 84px; }
   .cozy-row > div:nth-child(2) { width: 104px; height: 104px; margin-top: -10px; }
-  .cozy-tag { font-family: "Fraunces", Georgia, serif; font-style: italic; color: var(--soft); margin: 0 0 6px; }
+  .cozy-tag { font-style: normal; color: var(--soft); margin: 0 0 6px; }
   .privacy-line { font-size: .85rem; color: var(--soft); margin: 14px 0 0; }
   button.ghost { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
   /* ---- Guest bits ---- */
@@ -748,7 +748,7 @@
     function go(mode) { lsSet("oneplace.welcomed", "1"); showAuth(mode); }
     view(h("section", { class: "card", "data-testid": "intro", style: "text-align:center" }, [
       h("h1", { text: "Welcome to One Place!" }),
-      h("p", { class: "hint", text: "A cozy spot for everything about your home or business: what you have, when it needs some love, and how to fix it." }),
+      h("p", { class: "hint", text: "Everything about your home or business in one welcoming spot: what you have, when it needs care, and how to fix it." }),
       h("ul", { style: "list-style:none;padding:0;margin:16px 0;display:grid;gap:8px" }, [
         "Photo fix-it plans for what\u2019s broken",
         "Reminders for upkeep and repairs",
