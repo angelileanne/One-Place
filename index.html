@@ -326,7 +326,7 @@
         {
           date: "Nov 6",
           title: "Look around as a guest, a cozier welcome, Home Screen steps and easy reordering",
-          detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. Reminders can now remember the make, model or size (like the exact air filter) and where you buy it, with a Reorder button that opens that store or your pasted product link. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
+          detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. Reminders can now remember the make, model or size (like the exact air filter) and where you buy it, with a Reorder button that opens that store or your pasted product link. Peek in More for Punchy\u2019s Closet, coming soon: earn coins for finishing tasks and dress Punchy up. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
           isNew: true
         },
         {
@@ -999,6 +999,14 @@
       h("p", { class: "hint", style: "margin:14px 0 0;font-size:.85rem", text: "On a different device?" }), switcher,
       h("div", { class: "actions", style: "justify-content:center" }, [h("button", { type: "button", class: "quiet", "data-testid": "guide-close", text: "Not now", onclick: back })])
     ]));
+  }
+  function closetCard() {
+    var card = h("section", { class: "card noprint", "aria-disabled": "true", "data-testid": "closet-card", style: "opacity:.55;filter:grayscale(1);cursor:not-allowed" }, [
+      h("h2", { text: "Punchy\u2019s Closet \ud83d\udc40" }),
+      h("p", { class: "hint", text: "Coming soon! Finish tasks, earn coins, and dress Punchy up with clothes, shoes and accessories." }),
+      h("div", { class: "actions" }, [h("button", { type: "button", disabled: "true", "data-testid": "closet-soon", text: "Coming soon" })])
+    ]);
+    return card;
   }
   function installHelpCard() {
     if (isStandalone()) return null;
@@ -2273,7 +2281,7 @@
     view([
       h("header", {}, [h("h1", { text: "More" })]),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
-      h("div", { class: "morelist" }, state.guest ? [guestCard(), installHelpCard(), styleCard(), countryCard(), whyCard()] : [notifyCard(), installHelpCard(), styleCard(), countryCard(), whyCard(), feedbackCard(), inviteCard(), connectionsCard()]),
+      h("div", { class: "morelist" }, state.guest ? [guestCard(), installHelpCard(), closetCard(), styleCard(), countryCard(), whyCard()] : [notifyCard(), installHelpCard(), closetCard(), styleCard(), countryCard(), whyCard(), feedbackCard(), inviteCard(), connectionsCard()]),
       h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: state.guest ? "Leave guest mode" : "Sign out", "data-testid": "sign-out", onclick: state.guest ? function () { leaveGuest(); showIntro(); } : signOut })])
     ]);
     $("newTitle").closest("section").hidden = false;
