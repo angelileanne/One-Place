@@ -281,16 +281,21 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.10", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.11", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
           date: "Nov 6",
-          title: "Everyday reminders",
-          detail: "New \u201cAdd a reminder\u201d on Home for things like a CPAP mask filter, air filters in each room or a humidifier. Say what it is, pick a room (or Around the house), how often (weekly up to yearly, or your own), and the first due date. It shows up in Needs attention this month and the calendar, and comes back around each time you mark it done.",
+          title: "More than one home or business",
+          detail: "The top of Home now has a bar to switch between your homes and businesses, and \u201c+ Add another home or business\u201d. Each one keeps its own rooms, items and reminders, and the app opens on the one you used last. Open an item and tap \u201cMove to another home or business\u201d if you added it in the wrong place: photos, reminders and history all come along, and there\u2019s an Undo.",
           isNew: true
+        },
+        {
+          date: "Nov 6",
+          title: "Everyday reminders",
+          detail: "New \u201cAdd a reminder\u201d on Home for things like a CPAP mask filter, air filters in each room or a humidifier. Say what it is, pick a room (or Around the house), how often (weekly up to yearly, or your own), and the first due date. It shows up in Needs attention this month and the calendar, and comes back around each time you mark it done."
         },
         {
           date: "Nov 6",
@@ -364,7 +369,7 @@
   var SESSION_KEY = "oneplace.session";
   var ROOM_IDEAS = ["Kitchen", "Bathroom", "Bedroom", "Living room", "Garage", "Yard"];
 
-  var state = { pendingTab: null, rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, rooms: [], items: [], tasks: [], parts: [], entries: [], help: {}, filter: "all", notice: "" };
+  var state = { pendingTab: null, rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, profiles: [], rooms: [], items: [], tasks: [], parts: [], entries: [], help: {}, filter: "all", notice: "" };
 
   // ---- Tiny helpers ----
   function $(id) { return document.getElementById(id); }
@@ -689,7 +694,7 @@
 
   // ---- Sign in / create account ----
   function signOutLocal() {
-    state.session = null; state.person = null; state.profile = null;
+    state.session = null; state.person = null; state.profile = null; state.profiles = [];
     state.rooms = []; state.items = []; state.tasks = []; state.parts = []; state.entries = []; state.help = {};
     saveSession(null);
   }
@@ -820,7 +825,9 @@
       return rest("profiles?select=*&order=created_at.asc");
     }).then(function (profiles) {
       if (!state.person || !profiles.length) { showWelcome(); return null; }
-      state.profile = profiles[0];
+      state.profiles = profiles;
+      var savedPid = null; try { savedPid = localStorage.getItem("oneplace.profile"); } catch (e) {}
+      state.profile = profiles.filter(function (pr) { return pr.id === savedPid; })[0] || profiles[0];
       return loadHome().then(showHome);
     }).catch(function (err) {
       if (/sign in/i.test(err.message)) { showAuth("signin", err.message); return; }
@@ -899,7 +906,7 @@
       rest("people", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(me) }).then(function () {
         if (state.profile) return null;
         return rest("profiles", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ kind: kind, tenure: tenure, name: hn, contact_phone: me.phone, contact_email: me.email }) })
-          .then(function (rows) { state.profile = rows[0]; });
+          .then(function (rows) { state.profile = rows[0]; state.profiles = [rows[0]]; });
       }).then(function () { state.person = me; return loadHome(); }).then(showHome).catch(function (err) {
         msg.className = "result bad"; msg.textContent = "Not saved. " + err.message; btn.disabled = false;
       });
@@ -1632,6 +1639,87 @@
       .then(readJson).then(function (b) { return b && b.signedURL ? SUPABASE_URL + "/storage/v1" + b.signedURL : null; });
   }
 
+
+  // ---- Several homes and businesses: switch, add another, move an item ----
+  function switchProfile(pr) {
+    state.profile = pr; try { localStorage.setItem("oneplace.profile", pr.id); } catch (e) {}
+    state.filter = "all"; state.help = {}; state.snoozing = null;
+    return loadHome().then(function () { showHome(); }).catch(function (err) { state.notice = "Couldn’t open that. " + err.message; showHome(); });
+  }
+  function profileBar() {
+    var kids = [];
+    if (state.profiles.length > 1) state.profiles.forEach(function (pr) {
+      kids.push(h("button", { type: "button", class: "chip", "aria-pressed": String(pr.id === state.profile.id), text: pr.name, "data-testid": "profile-" + pr.id, onclick: function () { if (pr.id !== state.profile.id) switchProfile(pr); } }));
+    });
+    kids.push(h("button", { type: "button", class: "chip", "data-testid": "add-profile", text: "+ Add another home or business", onclick: showAddProfile }));
+    return h("div", { class: "chips", role: "group", "aria-label": "Your homes and businesses", style: "margin:-4px 0 12px", "data-testid": "profile-bar" }, kids);
+  }
+  function showAddProfile() {
+    state.rerender = showAddProfile; state.pendingTab = "home";
+    var kind = "home", tenure = "owner";
+    var msg = h("div", { class: "result", role: "status" });
+    var nameLabel = h("span", { text: "Name your home" });
+    var ownerLabel = h("span", { text: "Homeowner" });
+    var nameInput = h("input", { type: "text", maxlength: "80", placeholder: "e.g. Lake house", "data-testid": "newprofile-name" });
+    function sync() {
+      nameLabel.textContent = kind === "home" ? "Name your home" : "Name your business";
+      ownerLabel.textContent = kind === "home" ? "Homeowner" : "Business owner";
+      nameInput.placeholder = kind === "home" ? "e.g. Lake house" : "e.g. Corner Bakery";
+    }
+    function radio(name, value, label, checked, onchange) {
+      return h("label", {}, [h("input", { type: "radio", name: name, value: value, checked: checked, onchange: onchange, "data-testid": "np-" + value }), typeof label === "string" ? h("span", { text: label }) : label]);
+    }
+    var saveBtn = h("button", { type: "submit", "data-testid": "newprofile-save", text: "Add" });
+    var form = h("form", { novalidate: true, "data-testid": "add-profile-form" }, [
+      h("div", { class: "field" }, [h("span", { text: "This is a…" }), h("div", { class: "seg", role: "radiogroup" }, [
+        radio("npkind", "home", "Home", true, function () { kind = "home"; sync(); }),
+        radio("npkind", "business", "Business", false, function () { kind = "business"; sync(); })
+      ])]),
+      h("div", { class: "field" }, [h("span", { text: "I’m the…" }), h("div", { class: "seg", role: "radiogroup" }, [
+        radio("nptenure", "owner", ownerLabel, true, function () { tenure = "owner"; }),
+        radio("nptenure", "renter", "Renter", false, function () { tenure = "renter"; })
+      ])]),
+      h("label", { class: "field" }, [nameLabel, nameInput]),
+      h("div", { class: "actions" }, [saveBtn, h("button", { type: "button", class: "quiet", text: "Back", onclick: function () { showHome(); } })]), msg
+    ]);
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var nm = nameInput.value.trim();
+      if (!nm) { msg.className = "result bad"; msg.textContent = kind === "home" ? "Give your home a name." : "Give your business a name."; return; }
+      saveBtn.disabled = true; msg.className = "result"; msg.textContent = "Adding…";
+      var me = state.person || {};
+      rest("profiles", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ kind: kind, tenure: tenure, name: nm, country: (state.profile && state.profile.country) || "US", contact_phone: me.phone || null, contact_email: me.email || null }) })
+        .then(function (rows) { state.profiles.push(rows[0]); state.notice = "Added " + nm + ". Add rooms and items whenever you’re ready."; return switchProfile(rows[0]); })
+        .catch(function (err) { saveBtn.disabled = false; msg.className = "result bad"; msg.textContent = "Not saved. " + err.message; });
+    });
+    view(h("section", { class: "card", "data-testid": "add-profile-card" }, [h("h2", { text: "Add another home or business" }), h("p", { class: "hint", text: "It gets its own rooms, items and reminders. Switch between them any time from the top of Home." }), form]));
+  }
+  function moveRow(item) {
+    var others = state.profiles.filter(function (pr) { return pr.id !== state.profile.id; });
+    if (!others.length) return { button: null, panel: null };
+    var sel = h("select", { "aria-label": "Move " + item.name + " to", "data-testid": "move-target" }, others.map(function (pr) { return h("option", { value: pr.id, text: pr.name }); }));
+    var go = h("button", { type: "button", class: "small", "data-testid": "move-go", text: "Move" });
+    var msg = h("div", { class: "result", role: "status" });
+    var panel = h("div", { class: "snooze", style: "display:none;margin-top:8px", "data-testid": "move-panel" }, [
+      h("p", { class: "hint", text: "Everything goes with it: photos, reminders and history. It lands in a room with the same name there, made for you if it isn’t there yet." }),
+      h("div", { class: "actions", style: "flex-wrap:nowrap" }, [sel, go]), msg
+    ]);
+    var button = h("button", { type: "button", class: "quiet small", "data-testid": "move-open", text: "Move to another home or business", onclick: function () { panel.style.display = panel.style.display === "none" ? "" : "none"; } });
+    go.addEventListener("click", function () {
+      var target = others.filter(function (pr) { return pr.id === sel.value; })[0], from = state.profile;
+      go.disabled = true; msg.className = "result"; msg.textContent = "Moving…";
+      rest("rpc/move_item", { method: "POST", body: JSON.stringify({ p_item: item.id, p_to: target.id }) }).then(function (newId) {
+        return loadHome().then(function () {
+          showHome();
+          showToast("Moved " + item.name + " to " + target.name, function () {
+            return rest("rpc/move_item", { method: "POST", body: JSON.stringify({ p_item: newId, p_to: from.id }) }).then(function () { return loadHome(); });
+          });
+        });
+      }).catch(function (err) { go.disabled = false; msg.className = "result bad"; msg.textContent = "Not moved. " + err.message; });
+    });
+    return { button: button, panel: panel };
+  }
+
   function itemCard(item) {
     var tasks = tasksFor(item.id);
     var active = tasks.filter(function (t) { return t.status === "active"; }).length;
@@ -1648,11 +1736,14 @@
     else body.appendChild(h("div", { class: "detail", text: "No tasks yet." }));
     var pl = partsLog(item); if (pl) body.appendChild(pl);
     body.appendChild(helpRow(item));
+    var mv = moveRow(item);
     body.appendChild(h("div", { class: "actions" }, [
       h("button", { type: "button", class: "quiet small", "data-testid": "add-another", text: "Add another in a different room", onclick: function () {
         showAddItem({ name: item.name, brand: item.brand || "", model: item.model || "", year: item.year || "" });
-      } })
+      } }),
+      mv.button
     ]));
+    if (mv.panel) body.appendChild(mv.panel);
     details.appendChild(summary); details.appendChild(body);
     var loaded = false;
     details.addEventListener("toggle", function () {
@@ -1697,6 +1788,7 @@
       h("header", {}, [
         h("h1", { text: state.profile.name, "data-testid": "profile-name" }),
       ]),
+      profileBar(),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
       attentionCard(),
       h("section", { class: "card" }, [
