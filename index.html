@@ -270,6 +270,8 @@
   body.cozy button { border-radius: 999px; }
   body.cozy .chip { border-radius: 999px; }
   body.cozy .attn-item { background: var(--tint); border-color: transparent; border-radius: 18px; }
+  body.cozy .punchy, body.cozy .pocketlink, body.cozy .pocketpill { display: none !important; }
+  .signin-link { font-weight: 400; font-size: .8rem; min-height: 0; padding: 2px 6px; }
   .cozy-row { display: flex; justify-content: center; gap: 4px; margin: 0 auto 6px; }
   .cozy-row > div { width: 84px; height: 84px; }
   .cozy-row > div:nth-child(2) { width: 104px; height: 104px; margin-top: -10px; }
@@ -743,26 +745,23 @@
 
   function showIntro() {
     state.rerender = showIntro; state.pendingTab = null; state.cozyNext = true;
-    var row = h("div", { class: "cozy-row" }, ["sleepy", "duckling", "pinky"].map(function (k) { var d = h("div"); d.innerHTML = plushSvg(k, "A friendly plush"); return d; }));
     function go(mode) { lsSet("oneplace.welcomed", "1"); showAuth(mode); }
     view(h("section", { class: "card", "data-testid": "intro", style: "text-align:center" }, [
-      row,
-      h("p", { class: "cozy-tag", text: "Come on in, make yourself at home." }),
-      h("h1", { text: "Welcome to One Place" }),
+      h("h1", { text: "Welcome to One Place!" }),
       h("p", { class: "hint", text: "A cozy spot for everything about your home or business: what you have, when it needs some love, and how to fix it." }),
-      h("ul", { style: "list-style:none;padding:0;margin:14px 0;display:grid;gap:8px;text-align:left" }, [
-        "Snap a photo of what\u2019s broken and get a fix-it plan",
-        "Set reminders for filters, upkeep and repairs",
-        "Keep every room and item in one place"
-      ].map(function (x) { return h("li", { class: "attn-item", text: x }); })),
+      h("ul", { style: "list-style:none;padding:0;margin:16px 0;display:grid;gap:8px" }, [
+        "Photo fix-it plans for what\u2019s broken",
+        "Reminders for upkeep and repairs",
+        "Every room and item in one place"
+      ].map(function (x) { return h("li", { class: "attn-item", style: "text-align:center;padding:10px 14px", text: x }); })),
       h("div", { class: "actions", style: "justify-content:center" }, [
-        h("button", { type: "button", "data-testid": "intro-start", text: "Get started", onclick: function () { go("signup"); } }),
-        h("button", { type: "button", class: "ghost", "data-testid": "intro-guest", text: guestHas() ? "Back to my guest visit" : "Just look around", onclick: function () { startGuest(); } })
+        h("button", { type: "button", class: "small", "data-testid": "intro-start", text: "Get started", onclick: function () { go("signup"); } }),
+        h("button", { type: "button", class: "ghost small", "data-testid": "intro-guest", text: guestHas() ? "Back to my visit" : "Just looking", onclick: function () { startGuest(); } })
       ]),
-      h("div", { class: "actions", style: "justify-content:center;margin-top:4px" }, [
-        h("button", { type: "button", class: "link", "data-testid": "intro-signin", text: "I already have an account", onclick: function () { go("signin"); } })
+      h("div", { class: "actions", style: "justify-content:center;margin:18px 0 0" }, [
+        h("button", { type: "button", class: "link signin-link", "data-testid": "intro-signin", text: "I already have an account", onclick: function () { go("signin"); } })
       ]),
-      h("p", { class: "privacy-line", text: "Your info is yours. Other people using One Place can\u2019t see it." })
+      h("p", { class: "privacy-line", style: "margin-top:6px", text: "Your info is yours. Other people using One Place can\u2019t see it." })
     ]));
   }
 
