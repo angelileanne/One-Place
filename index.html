@@ -343,7 +343,7 @@
         {
           date: "Nov 6",
           title: "Everyday reminders",
-          detail: "New \u201cAdd a reminder\u201d on Home for things like a CPAP mask filter, air filters in each room or a humidifier. Say what it is, pick a room (or Around the house), how often (weekly up to yearly, or your own), and the first due date. It shows up in Needs attention this month and the calendar, and comes back around each time you mark it done."
+          detail: "New \u201cAdd a reminder\u201d on Home for things like medical device supplies, pet supplies, air filters in each room or a humidifier. Say what it is, pick a room (or Around the house), how often (weekly up to yearly, or your own), and the first due date. It shows up in Needs attention this month and the calendar, and comes back around each time you mark it done."
         },
         {
           date: "Nov 6",
@@ -2245,7 +2245,7 @@
       ]),
       h("section", { class: "card" }, [
         h("h2", { text: "Need a regular reminder?" }),
-        h("p", { class: "hint", text: "Filters, humidifiers, CPAP supplies, anything that repeats. Pick a room and how often." }),
+        h("p", { class: "hint", text: "Filters, humidifiers, medical device supplies, pet supplies, anything that repeats. Pick a room and how often." }),
         h("button", { type: "button", class: "quiet", "data-testid": "add-reminder", text: "Add a reminder", onclick: function () { showQuickReminder(); } })
       ]),
       h("section", { class: "card", "aria-labelledby": "roomsTitle" }, [
@@ -2538,7 +2538,7 @@
   // ---- Quick reminder: everyday things (filters, supplies) in a room, no photo needed ----
   function showQuickReminder() {
     var st = { rep: 30, touched: false };
-    var name = h("input", { type: "text", maxlength: "120", placeholder: "e.g. CPAP mask filter, living room air filter", "data-testid": "qr-name" });
+    var name = h("input", { type: "text", maxlength: "120", placeholder: "e.g. Medical device filter, pet food, living room air filter", "data-testid": "qr-name" });
     var doing = h("input", { type: "text", maxlength: "120", placeholder: "What to do, like Change the filter", "data-testid": "qr-doing" });
     var roomSel = h("select", { "data-testid": "qr-room" },
       [h("option", { value: "", text: "Choose a room" })]
@@ -2570,7 +2570,7 @@
     function fail(m) { status.className = "result bad"; status.textContent = m; }
     saveBtn.addEventListener("click", function () {
       var nm = name.value.trim(), what = doing.value.trim() || "Change or replace it";
-      if (!nm) return fail("What is it? Type a name, like CPAP mask filter.");
+      if (!nm) return fail("What is it? Type a name, like Air filter.");
       if (!roomSel.value) return fail("Choose a room, or Around the house.");
       if (roomSel.value === "__new" && !newRoom.value.trim()) return fail("Type a name for the new room.");
       if (!due.value) return fail("Pick the first due date.");
