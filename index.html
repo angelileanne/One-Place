@@ -537,8 +537,7 @@
     return h("details", { class: "card noprint", "data-testid": "make-it-yours" }, [
       h("summary", { text: "Make it yours", style: "cursor:pointer;font-weight:700" }),
       h("p", { class: "hint", style: "margin-top:8px", text: "Pick a look. This only changes colors and size, never what the app does. It’s saved on this device." }),
-      sub("Theme", "sub-theme", tiles),
-      sub("Lighting", "sub-lighting", seg("Lighting", "mode", [["Auto", "auto"], ["Light", "light"], ["Dark", "dark"]], function () { return prefs.mode; }, function (v) { prefs.mode = v; savePrefs(); applyPrefs(); })),
+      sub("Theme", "sub-theme", h("div", {}, [tiles, h("p", { class: "hint", style: "margin:14px 0 6px;font-weight:700", text: "Lighting" }), seg("Lighting", "mode", [["Auto", "auto"], ["Light", "light"], ["Dark", "dark"]], function () { return prefs.mode; }, function (v) { prefs.mode = v; savePrefs(); applyPrefs(); })])),
       sub("Language", "sub-language", langChips()),
       sub("Text size", "sub-size", seg("Text size", "size", SIZES, function () { return prefs.size; }, function (v) { prefs.size = v; savePrefs(); applyPrefs(); }))
     ]);
