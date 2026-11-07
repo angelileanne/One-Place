@@ -325,8 +325,8 @@
       entries: [
         {
           date: "Nov 6",
-          title: "Look around as a guest, a cozier welcome, and Home Screen steps",
-          detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
+          title: "Look around as a guest, a cozier welcome, Home Screen steps and easy reordering",
+          detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. Reminders can now remember the make, model or size (like the exact air filter) and where you buy it, with a Reorder button that opens that store or your pasted product link. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
           isNew: true
         },
         {
@@ -902,7 +902,7 @@
       .then(function (rows) { Object.assign(state.profile, (rows && rows[0]) || patch); })
       .then(function () { return post("rooms", T.rooms, function (r) { return { name: r.name, sort_order: r.sort_order || 0 }; }); })
       .then(function () { return post("entries", T.entries, function (r) { return { section: r.section, name: r.name, details: r.details || {} }; }); })
-      .then(function () { return post("items", T.items, function (r) { return { room_id: map[r.room_id], name: r.name, brand: r.brand, model: r.model, year: r.year, problem: r.problem, notes: r.notes, photos: [] }; }); })
+      .then(function () { return post("items", T.items, function (r) { return { room_id: map[r.room_id], name: r.name, brand: r.brand, model: r.model, year: r.year, problem: r.problem, notes: r.notes, photos: [], buy_store: r.buy_store || null, buy_url: r.buy_url || null }; }); })
       .then(function () { return post("maintenance_tasks", T.maintenance_tasks, function (r) { return { item_id: r.item_id ? map[r.item_id] : null, entry_id: r.entry_id ? map[r.entry_id] : null, title: r.title, detail: r.detail, kind: r.kind, repeat_days: r.repeat_days, status: r.status, due_on: r.due_on, snoozed_until: r.snoozed_until, last_done_on: r.last_done_on }; }); })
       .then(function () { return post("parts", T.parts, function (r) { return { item_id: map[r.item_id], name: r.name, part_number: r.part_number, replaced_on: r.replaced_on, next_due_on: r.next_due_on }; }); })
       .then(function () { return post("maintenance_logs", T.maintenance_logs, function (r) { return { item_id: r.item_id ? map[r.item_id] : null, task_id: r.task_id ? map[r.task_id] : null, done_on: r.done_on, note: r.note }; }); })
@@ -1484,6 +1484,8 @@
       pick.addEventListener("change", function () { if (pick.value) acceptTask(t, btn, pick.value); });
       li.appendChild(h("div", { class: "duewrap" }, [btn, h("label", { class: "duelabel" }, [h("span", { text: "or pick a due date" }), pick])]));
     } else if (t.status === "active") {
+      var rl = reorderLink(itemOf(t));
+      if (rl) li.appendChild(h("a", { class: "chip", style: "margin-top:6px;display:inline-block", href: rl.url, target: "_blank", rel: "noopener noreferrer", "data-testid": "task-reorder", text: rl.label + " \u2197" }));
       li.appendChild(actionButtons(t));
       if (state.snoozing === t.id) li.appendChild(snoozePanel(t, "snooze-panel-item"));
     }
@@ -2174,12 +2176,15 @@
     var body = h("div", { class: "body" });
     var bits = [item.brand, item.model, item.year].filter(Boolean).join(" · ");
     if (bits) body.appendChild(h("div", { class: "detail", text: bits }));
+    var ro = reorderLink(item);
+    if (ro) body.appendChild(h("div", { class: "chips", style: "margin:6px 0" }, [h("a", { class: "chip", href: ro.url, target: "_blank", rel: "noopener noreferrer", "data-testid": "reorder-link", text: ro.label + " \u2197" })]));
     if (item.problem) body.appendChild(h("div", { class: "detail", text: "Problem: " + item.problem }));
     var thumbs = h("div", { class: "thumbs" });
     body.appendChild(thumbs);
     if (tasks.length) body.appendChild(h("ul", { class: "tasks" }, tasks.map(taskRow)));
     else body.appendChild(h("div", { class: "detail", text: "No tasks yet." }));
     var pl = partsLog(item); if (pl) body.appendChild(pl);
+    body.appendChild(buyPanel(item));
     body.appendChild(helpRow(item));
     var mv = moveRow(item);
     body.appendChild(h("div", { class: "actions" }, [
@@ -2535,11 +2540,64 @@
   }
 
 
+  // ---- Reordering: where I buy it, and a one-tap link ----
+  var STORES = ["Amazon", "Walmart", "Home Depot", "Lowe\u2019s", "Target", "Costco", "Other"];
+  function storeSearchUrl(store, q) {
+    var e = encodeURIComponent(q);
+    if (store === "Amazon") { var l = storeLinks(q).filter(function (x) { return x.name === "Amazon"; })[0]; if (l) return l.url; return "https://www.amazon.com/s?k=" + e; }
+    if (store === "Walmart") return "https://www.walmart.com/search?q=" + e;
+    if (store === "Home Depot") return "https://www.homedepot.com/s/" + e;
+    if (store === "Lowe\u2019s") return "https://www.lowes.com/search?searchTerm=" + e;
+    if (store === "Target") return "https://www.target.com/s?searchTerm=" + e;
+    if (store === "Costco") return "https://www.costco.com/CatalogSearch?keyword=" + e;
+    return google(q + (store && store !== "Other" ? " " + store : " buy"));
+  }
+  function safeUrl(u) { u = (u || "").trim(); if (!u) return ""; if (!/^https?:\/\//i.test(u)) u = "https://" + u; try { var x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : ""; } catch (e) { return ""; } }
+  function reorderLink(item) {
+    if (!item || !(item.buy_url || item.buy_store)) return null;
+    var url = safeUrl(item.buy_url), label;
+    if (url) label = "Reorder" + (item.buy_store && item.buy_store !== "Other" ? " on " + item.buy_store : "");
+    else { url = storeSearchUrl(item.buy_store, [item.brand, item.model, item.name].filter(Boolean).join(" ")); label = "Find it on " + item.buy_store; }
+    return { label: label, url: url };
+  }
+  // Store chips + optional exact-product link (shared by the reminder form and the item card).
+  function buyFields(init) {
+    var st = { store: (init && init.buy_store) || "" };
+    var chips = h("div", { class: "chips", role: "group", "aria-label": "Where do you usually buy it?", "data-testid": "buy-store" });
+    var url = h("input", { type: "text", inputmode: "url", autocapitalize: "none", maxlength: "500", placeholder: "Paste the product link (optional)", "aria-label": "Link to the exact product", "data-testid": "buy-url", value: (init && init.buy_url) || "" });
+    function draw() { chips.textContent = ""; STORES.forEach(function (n) { chips.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(st.store === n), text: n, onclick: function () { st.store = st.store === n ? "" : n; draw(); } })); }); }
+    draw();
+    var node = h("div", { class: "field" }, [h("span", { text: "Where do you usually buy it? (optional)" }), chips, url,
+      h("small", { text: "Paste a link to the exact one you buy and reordering is one tap. Otherwise I\u2019ll search that store for you." })]);
+    return { node: node, get: function () { return { buy_store: st.store || null, buy_url: safeUrl(url.value) || null, bad: !!url.value.trim() && !safeUrl(url.value) }; } };
+  }
+  function buyPanel(item) {
+    var bf = buyFields(item), brand = h("input", { type: "text", maxlength: "80", value: item.brand || "", "aria-label": "Make or brand" }), model = h("input", { type: "text", maxlength: "120", value: item.model || "", "aria-label": "Model, size or type" });
+    var msg = h("div", { class: "result", role: "status" }), save = h("button", { type: "button", class: "small", "data-testid": "buy-save", text: "Save" });
+    save.addEventListener("click", function () {
+      var v = bf.get(); if (v.bad) { msg.className = "result bad"; msg.textContent = "That link doesn\u2019t look right."; return; }
+      save.disabled = true; msg.className = "result"; msg.textContent = "Saving\u2026";
+      var patch = { brand: brand.value.trim() || null, model: model.value.trim() || null, buy_store: v.buy_store, buy_url: v.buy_url };
+      rest("items?id=eq." + encodeURIComponent(item.id), { method: "PATCH", headers: JSON_ONE, body: JSON.stringify(patch) })
+        .then(function (rows) { Object.assign(item, (rows && rows[0]) || patch); state.notice = "Saved how to reorder " + item.name + "."; state.rerender && state.rerender(); })
+        .catch(function (err) { save.disabled = false; msg.className = "result bad"; msg.textContent = "Not saved. " + err.message; });
+    });
+    return h("details", { class: "card noprint", style: "margin-top:10px;padding:10px 12px", "data-testid": "buy-panel" }, [
+      h("summary", { text: "Make, model and where I buy it" }),
+      h("div", { class: "field", style: "margin-top:10px" }, [h("span", { text: "Make / brand" }), brand]),
+      h("div", { class: "field" }, [h("span", { text: "Model, size or type (like 20x25x1 MERV 11)" }), model]),
+      bf.node, h("div", { class: "actions" }, [save]), msg
+    ]);
+  }
+
   // ---- Quick reminder: everyday things (filters, supplies) in a room, no photo needed ----
   function showQuickReminder() {
     var st = { rep: 30, touched: false };
     var name = h("input", { type: "text", maxlength: "120", placeholder: "e.g. Medical device filter, pet food, living room air filter", "data-testid": "qr-name" });
     var doing = h("input", { type: "text", maxlength: "120", placeholder: "What to do, like Change the filter", "data-testid": "qr-doing" });
+    var qbrand = h("input", { type: "text", maxlength: "80", placeholder: "e.g. Filtrete, Honeywell", "data-testid": "qr-brand" });
+    var qmodel = h("input", { type: "text", maxlength: "120", placeholder: "e.g. 20x25x1 MERV 11, model #", "data-testid": "qr-model" });
+    var qbuy = buyFields(null);
     var roomSel = h("select", { "data-testid": "qr-room" },
       [h("option", { value: "", text: "Choose a room" })]
         .concat(state.rooms.map(function (r) { return h("option", { value: r.id, text: r.name }); }))
@@ -2574,11 +2632,12 @@
       if (!roomSel.value) return fail("Choose a room, or Around the house.");
       if (roomSel.value === "__new" && !newRoom.value.trim()) return fail("Type a name for the new room.");
       if (!due.value) return fail("Pick the first due date.");
+      var bv = qbuy.get(); if (bv.bad) return fail("That product link doesn\u2019t look right.");
       var d = days();
       var f = { files: [], problem: "", roomId: roomSel.value, newRoom: newRoom.value.trim() };
       if (f.roomId === "__house") { f.roomId = ""; f.newRoom = "Around the house"; }
       saveBtn.disabled = backBtn.disabled = true; status.className = "result"; status.textContent = "Saving…";
-      saveItem(f, { name: nm, brand: "", model: "", year: "" }, [{ title: what, detail: null, kind: "maintenance", repeat_days: d || null, accept: true, due_pick: due.value }])
+      saveItem(f, { name: nm, brand: qbrand.value.trim(), model: qmodel.value.trim(), year: "", buy_store: bv.buy_store, buy_url: bv.buy_url }, [{ title: what, detail: null, kind: "maintenance", repeat_days: d || null, accept: true, due_pick: due.value }])
         .catch(function (err) { saveBtn.disabled = backBtn.disabled = false; fail("Not saved. " + err.message); });
     });
     view(h("section", { class: "card", "data-testid": "quick-reminder" }, [
@@ -2586,6 +2645,8 @@
       h("p", { class: "hint", text: "For everyday things that need doing on a schedule, like filters and supplies. No photo needed." }),
       h("label", { class: "field" }, [h("span", { text: "What is it?" }), name]),
       h("label", { class: "field" }, [h("span", { text: "What needs doing? (optional)" }), doing]),
+      h("div", { class: "two" }, [h("label", { class: "field" }, [h("span", { text: "Make / brand (optional)" }), qbrand]), h("label", { class: "field" }, [h("span", { text: "Model, size or type (optional)" }), qmodel])]),
+      qbuy.node,
       h("label", { class: "field" }, [h("span", { text: "Which room?" }), roomSel, newRoom]),
       h("div", { class: "field" }, [h("span", { text: "How often?" }), chips, custom]),
       h("label", { class: "field" }, [h("span", { text: "First due" }), due]),
@@ -2670,7 +2731,7 @@
       return rest("items", { method: "POST", headers: JSON_ONE, body: JSON.stringify({
         profile_id: state.profile.id, room_id: roomId, name: fl.name,
         brand: fl.brand || null, model: fl.model || null, year: y >= 1900 && y <= 2100 ? Math.round(y) : null,
-        problem: f.problem || null, photos: paths
+        problem: f.problem || null, photos: paths, buy_store: fl.buy_store || null, buy_url: fl.buy_url || null
       }) });
     }).then(function (rows) {
       itemRow = rows[0];
