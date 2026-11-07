@@ -259,13 +259,44 @@
   .chip[aria-pressed="true"], .secchip[aria-pressed="true"], .seg input:checked + span { background: var(--tint); color: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
   .tile[aria-checked="true"] { background: var(--tint); color: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
   .cal-cell { border-radius: 10px; }
+  /* ---- Cozy first-run look (welcome, sign-in) ---- */
+  body.cozy { min-height: 100vh; background-attachment: fixed; --bg: #fbf0e1; --surface: #fffaf2; --line: #efd9c0; --ink: #4a3022; --soft: #7d5f4b; --accent: #b4532f; --accent-ink: #fffaf2; --tint: #f9dfc9; --shadow: 0 2px 4px rgba(120,70,40,.08), 0 14px 30px rgba(180,100,60,.12);
+    background: radial-gradient(circle at 12% 0%, #ffe3c7 0, transparent 46%), radial-gradient(circle at 100% 18%, #fbd7d0 0, transparent 40%), var(--bg); }
+  html[data-mode="dark"] body.cozy { --bg: #2a1d16; --surface: #382820; --line: #553d30; --ink: #f8e8d6; --soft: #d9bba3; --accent: #f1a07a; --accent-ink: #3a1608; --tint: #4a3226; --shadow: 0 2px 4px rgba(0,0,0,.4), 0 14px 30px rgba(0,0,0,.3);
+    background: radial-gradient(circle at 12% 0%, #4a2f20 0, transparent 46%), radial-gradient(circle at 100% 18%, #4a2a2a 0, transparent 40%), var(--bg); }
+  body.cozy h1, body.cozy h2 { font-family: "Fraunces", Georgia, "Times New Roman", serif; font-weight: 700; letter-spacing: -.01em; }
+  body.cozy h1 { font-size: 2rem; line-height: 1.15; }
+  body.cozy .card { border-radius: 28px; border-color: var(--line); }
+  body.cozy button { border-radius: 999px; }
+  body.cozy .chip { border-radius: 999px; }
+  body.cozy .attn-item { background: var(--tint); border-color: transparent; border-radius: 18px; }
+  .cozy-row { display: flex; justify-content: center; gap: 4px; margin: 0 auto 6px; }
+  .cozy-row > div { width: 84px; height: 84px; }
+  .cozy-row > div:nth-child(2) { width: 104px; height: 104px; margin-top: -10px; }
+  .cozy-tag { font-family: "Fraunces", Georgia, serif; font-style: italic; color: var(--soft); margin: 0 0 6px; }
+  .privacy-line { font-size: .85rem; color: var(--soft); margin: 14px 0 0; }
+  button.ghost { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+  /* ---- Guest bits ---- */
+  .guestbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: var(--tint); color: var(--ink); border-radius: 16px; padding: 8px 12px; font-size: .9rem; }
+  .guestbar button { min-height: 36px; padding: 4px 14px; }
+  .sheet-back { position: fixed; inset: 0; z-index: 40; background: rgba(40,25,15,.45); display: flex; align-items: flex-end; justify-content: center; }
+  .sheet { width: 100%; max-width: 36rem; background: var(--surface); color: var(--ink); border-radius: 26px 26px 0 0; padding: 20px 18px max(22px, env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(0,0,0,.25); text-align: center; }
+  .sheet h2 { margin: 6px 0; font-family: "Fraunces", Georgia, serif; }
+  /* ---- Home Screen slideshow ---- */
+  .slides { overflow: hidden; touch-action: pan-y; }
+  .slide-art { background: var(--tint); border-radius: 22px; padding: 10px; display: flex; justify-content: center; margin: 10px 0; }
+  .slide-art svg { width: 100%; max-width: 280px; height: auto; color: var(--accent); }
+  .dots { display: flex; gap: 8px; justify-content: center; margin: 10px 0; }
+  .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); display: block; }
+  .dots i.on { background: var(--accent); width: 24px; border-radius: 6px; }
+  .slide-step { font-size: .8rem; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; }
   .duepick { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); min-height: 40px; padding: 6px 10px; border-radius: var(--r); max-width: 100%; }
   .duelabel { display: grid; gap: 4px; font-size: .85rem; color: var(--soft); }
   .tasks li > label + .duelabel { margin-top: 2px; }
   .duewrap { display: grid; gap: 8px; justify-items: start; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Fraunces:ital,wght@0,600;0,700;1,500&display=swap">
 </head>
 <body>
 <div class="wrap">
@@ -287,16 +318,22 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.12", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.13", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
           date: "Nov 6",
+          title: "Look around as a guest, a cozier welcome, and Home Screen steps",
+          detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
+          isNew: true
+        },
+        {
+          date: "Nov 6",
           title: "Welcome, notifications and calendar",
           detail: "First-time visitors get a welcome and a nudge to sign in. After you save your first reminder, One Place offers a morning notification when something is due (on iPhone, add it to your Home Screen first, and it shows you how). Turn it on or off any time in More. Every active reminder also has \u201cAdd to my calendar\u201d, which saves it to your phone calendar with its repeat and a 9am alert.",
-          isNew: true
+          isNew: false
         },
         {
           date: "Nov 6",
@@ -403,6 +440,7 @@
   }
   function view(nodes) {
     var app = $("app");
+    document.body.classList.toggle("cozy", !!state.cozyNext); state.cozyNext = false;
     app.textContent = "";
     [].concat(nodes).forEach(function (n) { if (n) app.appendChild(n); });
     var tab = state.pendingTab; state.pendingTab = null;
@@ -630,6 +668,7 @@
     var kids = [h("h2", { text: "Keep One Place on your Home Screen" }), h("p", { class: "hint", text: isIOS() ? "It opens like an app, one tap away, and it\u2019s how reminders reach your iPhone. " + IOS_STEPS : "It opens like an app, one tap away, and reminders can reach you in the morning." })];
     var acts = [];
     if (state.installEvt) acts.push(h("button", { type: "button", "data-testid": "install-app", text: "Add to Home Screen", onclick: function () { var ev = state.installEvt; state.installEvt = null; ev.prompt(); if (ev.userChoice) ev.userChoice.then(function () { showHome(); }); } }));
+    acts.push(h("button", { type: "button", class: state.installEvt ? "quiet" : "", "data-testid": "install-howto", text: "Show me how", onclick: function () { showInstallGuide(showHome); } }));
     acts.push(h("button", { type: "button", class: "quiet", "data-testid": "install-later", text: "Not now", onclick: function () { lsSet("oneplace.installHide", String(Date.now())); showHome(); } }));
     kids.push(h("div", { class: "actions" }, acts));
     return h("section", { class: "card noprint", "data-testid": "install-card" }, kids);
@@ -637,23 +676,23 @@
 
   // Shown once, right after the first reminder is saved (the moment it matters).
   function showNudge(next) {
-    if (lsGet("oneplace.nudged")) return next();
+    if (state.guest || lsGet("oneplace.nudged")) return next();
     var ios = isIOS() && !isStandalone();
     if (!ios && !(pushSupported() && Notification.permission === "default")) return next();
     lsSet("oneplace.nudged", "1");
     state.rerender = next; state.pendingTab = "home";
     var msg = h("div", { class: "result", role: "status" });
-    var yes = h("button", { type: "button", "data-testid": "nudge-yes", text: ios ? "Got it" : "Yes, remind me" });
+    var yes = h("button", { type: "button", "data-testid": "nudge-yes", text: ios ? "Show me how" : "Yes, remind me" });
     var no = h("button", { type: "button", class: "quiet", "data-testid": "nudge-no", text: ios ? "Later" : "Not now", onclick: function () { next(); } });
     yes.addEventListener("click", function () {
-      if (ios) return next();
+      if (ios) return showInstallGuide(next);
       yes.disabled = no.disabled = true; msg.className = "result"; msg.textContent = "One moment\u2026";
       enablePush().then(function () { state.notice = "Reminders are on. I\u2019ll nudge you in the morning when something is due."; next(); })
         .catch(function (err) { yes.disabled = no.disabled = false; msg.className = "result bad"; msg.textContent = err.message; if (/turn them on later/.test(err.message)) { setTimeout(next, 1200); } });
     });
     view(h("section", { class: "card", "data-testid": "nudge" }, [
       h("h2", { text: ios ? "Put One Place on your Home Screen" : "Want a morning nudge?" }),
-      h("p", { class: "hint", text: ios ? "Your reminder is saved. " + IOS_STEPS + " Then turn on notifications in More." : "Your reminder is saved. I can send one friendly notification in the morning when something is due, so nothing slips. You can turn it off any time in More." }),
+      h("p", { class: "hint", text: ios ? "Your reminder is saved. On iPhone, reminders reach you once One Place is on your Home Screen. It takes about 20 seconds, and I\u2019ll show you how." : "Your reminder is saved. I can send one friendly notification in the morning when something is due, so nothing slips. You can turn it off any time in More." }),
       h("div", { class: "actions" }, [yes, no]), msg
     ]));
   }
@@ -667,7 +706,7 @@
         if (st === "on") { line.textContent = "On. You\u2019ll get one nudge in the morning when something is due."; btn.textContent = "Turn off"; btn.className = "quiet small"; btn.hidden = false; btn.onclick = function () { btn.disabled = true; disablePush().then(paint).catch(function (e) { msg.className = "result bad"; msg.textContent = e.message; btn.disabled = false; }); }; }
         else if (st === "off") { line.textContent = "Off. Turn on a morning nudge for reminders that are due."; btn.textContent = "Turn on"; btn.className = "small"; btn.hidden = false; btn.onclick = function () { btn.disabled = true; msg.textContent = ""; enablePush().then(paint).catch(function (e) { msg.className = "result bad"; msg.textContent = e.message; btn.disabled = false; }); }; }
         else if (st === "blocked") line.textContent = "Blocked. Allow notifications for One Place in your phone or browser settings, then come back here.";
-        else if (st === "needs-install") line.textContent = IOS_STEPS;
+        else if (st === "needs-install") { line.textContent = "On iPhone, add One Place to your Home Screen first. Then notifications work from there."; btn.textContent = "Show me how"; btn.className = "small"; btn.hidden = false; btn.onclick = function () { showInstallGuide(showMore); }; }
         else line.textContent = "This browser can\u2019t show notifications. Reminders still appear in the app, and you can add each one to your calendar.";
       });
     }
@@ -703,13 +742,14 @@
   }
 
   function showIntro() {
-    state.rerender = showIntro; state.pendingTab = null;
-    var duck = h("div", { style: "width:104px;height:104px;margin:0 auto 4px" }); duck.innerHTML = plushSvg("duckling", "A friendly duck");
+    state.rerender = showIntro; state.pendingTab = null; state.cozyNext = true;
+    var row = h("div", { class: "cozy-row" }, ["sleepy", "duckling", "pinky"].map(function (k) { var d = h("div"); d.innerHTML = plushSvg(k, "A friendly plush"); return d; }));
     function go(mode) { lsSet("oneplace.welcomed", "1"); showAuth(mode); }
     view(h("section", { class: "card", "data-testid": "intro", style: "text-align:center" }, [
-      duck,
-      h("h1", { text: "Welcome to One Place!" }),
-      h("p", { class: "hint", text: "Everything about your home or business in one spot: what you have, when it needs care, and how to fix it." }),
+      row,
+      h("p", { class: "cozy-tag", text: "Come on in, make yourself at home." }),
+      h("h1", { text: "Welcome to One Place" }),
+      h("p", { class: "hint", text: "A cozy spot for everything about your home or business: what you have, when it needs some love, and how to fix it." }),
       h("ul", { style: "list-style:none;padding:0;margin:14px 0;display:grid;gap:8px;text-align:left" }, [
         "Snap a photo of what\u2019s broken and get a fix-it plan",
         "Set reminders for filters, upkeep and repairs",
@@ -717,9 +757,259 @@
       ].map(function (x) { return h("li", { class: "attn-item", text: x }); })),
       h("div", { class: "actions", style: "justify-content:center" }, [
         h("button", { type: "button", "data-testid": "intro-start", text: "Get started", onclick: function () { go("signup"); } }),
-        h("button", { type: "button", class: "quiet", "data-testid": "intro-signin", text: "I already have an account", onclick: function () { go("signin"); } })
+        h("button", { type: "button", class: "ghost", "data-testid": "intro-guest", text: guestHas() ? "Back to my guest visit" : "Just look around", onclick: function () { startGuest(); } })
+      ]),
+      h("div", { class: "actions", style: "justify-content:center;margin-top:4px" }, [
+        h("button", { type: "button", class: "link", "data-testid": "intro-signin", text: "I already have an account", onclick: function () { go("signin"); } })
+      ]),
+      h("p", { class: "privacy-line", text: "Your info is yours. Other people using One Place can\u2019t see it." })
+    ]));
+  }
+
+  // ---- Guest mode: a private, in-browser practice copy of the app (nothing leaves this device) ----
+  var GUEST_KEY = "oneplace.guest";
+  var GUEST_TABLES = ["rooms", "items", "maintenance_tasks", "maintenance_logs", "parts", "entries"];
+  function guestLoad() {
+    try { var s = JSON.parse(localStorage.getItem(GUEST_KEY)); if (s && s.profile && s.tables) { GUEST_TABLES.forEach(function (t) { s.tables[t] = s.tables[t] || []; }); return s; } } catch (e) {}
+    return null;
+  }
+  function guestHas() { return !!guestLoad(); }
+  function guestSave() { try { localStorage.setItem(GUEST_KEY, JSON.stringify(state.gstore)); } catch (e) {} }
+  function guestFresh() {
+    var t = {}; GUEST_TABLES.forEach(function (n) { t[n] = []; });
+    return { profile: { id: "guest-" + uid(), kind: "home", tenure: "owner", name: "My place", country: "US", city: null, postal_code: null, created_at: new Date().toISOString() }, tables: t, actions: 0, nextAsk: 2 };
+  }
+  function clone(x) { return JSON.parse(JSON.stringify(x)); }
+  function guestRest(path, opts) {
+    opts = opts || {};
+    var m = (opts.method || "GET").toUpperCase(), q = path.split("?"), table = q[0], params = {};
+    (q[1] || "").split("&").forEach(function (p) { if (!p) return; var i = p.indexOf("="); if (i > 0) params[decodeURIComponent(p.slice(0, i))] = decodeURIComponent(p.slice(i + 1)); });
+    var gs = state.gstore, T = gs.tables, body = null;
+    try { body = opts.body ? JSON.parse(opts.body) : null; } catch (e) {}
+    var isTable = table === "profiles" || T[table];
+    if (!isTable) {
+      if (m === "GET") return Promise.resolve([]);
+      return Promise.reject(new Error("That part needs a free account. Tap More, then Create account, and everything you’ve added comes with you."));
+    }
+    if (table === "profiles" && m === "POST") return Promise.reject(new Error("Extra homes and businesses come with a free account."));
+    var rows = table === "profiles" ? [gs.profile] : T[table];
+    function match(r) {
+      return Object.keys(params).every(function (k) {
+        if (k === "select" || k === "order" || k === "limit" || k === "on_conflict") return true;
+        var v = params[k]; return v.indexOf("eq.") === 0 ? String(r[k]) === v.slice(3) : true;
+      });
+    }
+    var out = [], counted = false;
+    if (m === "GET") {
+      out = rows.filter(match);
+      if (params.order) {
+        var keys = params.order.split(",").map(function (s) { var p = s.split("."); return { k: p[0], d: p[1] === "desc" ? -1 : 1 }; });
+        out = out.map(function (r, i) { return { r: r, i: i }; }).sort(function (a, b) {
+          for (var i = 0; i < keys.length; i++) { var x = a.r[keys[i].k], y = b.r[keys[i].k]; if (x === y) continue; if (x == null) return 1; if (y == null) return -1; return (x < y ? -1 : 1) * keys[i].d; }
+          return a.i - b.i;
+        }).map(function (o) { return o.r; });
+      }
+    } else if (m === "POST") {
+      var now = new Date().toISOString();
+      [].concat(body || []).forEach(function (r) {
+        r = Object.assign({ id: uid(), created_at: now }, r);
+        if (table === "rooms" && r.sort_order == null) r.sort_order = 0;
+        if (table === "items" && !r.photos) r.photos = [];
+        if (table === "maintenance_tasks") { r.kind = r.kind || "maintenance"; r.status = r.status || "suggested"; }
+        if (table === "maintenance_logs" && !r.done_on) r.done_on = todayIso();
+        if (table === "entries" && !r.details) r.details = {};
+        rows.push(r); out.push(r);
+        if (table === "items" || table === "entries") counted = true;
+      });
+    } else if (m === "PATCH") {
+      rows.forEach(function (r) {
+        if (!match(r)) return;
+        if (table === "maintenance_tasks" && body && body.last_done_on && body.last_done_on !== r.last_done_on) counted = true;
+        Object.assign(r, body || {}); out.push(r);
+      });
+    } else if (m === "DELETE") {
+      var gone = rows.filter(match);
+      gone.forEach(function (r) { var i = rows.indexOf(r); if (i > -1) rows.splice(i, 1); });
+      if (table === "entries") gone.forEach(function (e) { T.maintenance_tasks = T.maintenance_tasks.filter(function (t) { return t.entry_id !== e.id; }); });
+    }
+    if (m !== "GET") {
+      if (m !== "DELETE" && typeof punchyClap === "function") punchyClap();
+      if (counted) { gs.actions = (gs.actions || 0) + 1; if (gs.actions >= (gs.nextAsk || 2)) setTimeout(showCommitSheet, 2800); }
+      guestSave();
+    }
+    return Promise.resolve(clone(out));
+  }
+  function startGuest() {
+    state.gstore = guestLoad() || guestFresh();
+    state.guest = true; state.session = null;
+    state.person = { first_name: "Guest" };
+    state.profile = state.gstore.profile; state.profiles = [state.profile];
+    guestSave(); lsSet("oneplace.welcomed", "1");
+    return loadHome().then(showHome);
+  }
+  function leaveGuest() {
+    state.guest = false; state.gstore = null; state.profile = null; state.profiles = [];
+    state.rooms = []; state.items = []; state.tasks = []; state.parts = []; state.entries = []; state.help = {};
+    var sheet = document.querySelector(".sheet-back"); if (sheet) sheet.remove();
+  }
+  function goCreateAccount() { var s = document.querySelector(".sheet-back"); if (s) s.remove(); leaveGuest(); lsSet("oneplace.welcomed", "1"); showAuth("signup", "Nice! Make your account and everything you’ve added comes with you."); }
+  function showCommitSheet() {
+    if (!state.guest || document.querySelector(".sheet-back")) return;
+    var gs = state.gstore; if (!gs) return;
+    gs.nextAsk = (gs.actions || 0) + 3; guestSave();
+    var back = h("div", { class: "sheet-back", "data-testid": "commit-sheet" });
+    function close() { back.remove(); }
+    var duck = h("div", { style: "width:84px;height:84px;margin:0 auto" }); duck.innerHTML = plushSvg("duckling", "A happy duck");
+    back.appendChild(h("div", { class: "sheet", role: "dialog", "aria-label": "Ready to commit?" }, [
+      duck,
+      h("h2", { text: "Looks like you’re liking it!" }),
+      h("p", { class: "hint", text: "Ready to make it official? A free account keeps everything safe and ready on any device. All your rooms, items, reminders and settings come with you." }),
+      h("div", { class: "actions", style: "justify-content:center" }, [
+        h("button", { type: "button", "data-testid": "commit-yes", text: "Yes, create my account", onclick: goCreateAccount }),
+        h("button", { type: "button", class: "quiet", "data-testid": "commit-later", text: "Keep looking around", onclick: close })
       ])
     ]));
+    back.addEventListener("click", function (e) { if (e.target === back) close(); });
+    document.body.appendChild(back);
+  }
+  function guestBar() {
+    if (!state.guest) return null;
+    return h("div", { class: "guestbar", "data-testid": "guest-bar" }, [
+      h("span", { text: "Looking around as a guest. Saved on this device only." }),
+      h("button", { type: "button", class: "small", "data-testid": "guest-create", text: "Create account", onclick: goCreateAccount })
+    ]);
+  }
+  function guestCard() {
+    return h("section", { class: "card noprint", "data-testid": "guest-card" }, [
+      h("h2", { text: "You’re a guest" }),
+      h("p", { class: "hint", text: "What you add stays on this device. Create a free account to keep it safe, use it on your phone and computer, get the photo helper, and get morning reminders. Everything you’ve added comes along." }),
+      h("div", { class: "actions" }, [
+        h("button", { type: "button", text: "Create my account", onclick: goCreateAccount }),
+        h("button", { type: "button", class: "quiet", text: "I already have an account", onclick: function () { leaveGuest(); showAuth("signin"); } })
+      ])
+    ]);
+  }
+  // Bring everything a guest made into the brand-new account, then clear the guest copy.
+  function importGuest() {
+    var gs = guestLoad();
+    if (!gs) return Promise.resolve(false);
+    var T = gs.tables, pid = state.profile.id, map = {};
+    var count = GUEST_TABLES.reduce(function (n, t) { return n + T[t].length; }, 0);
+    function post(table, list, fix) {
+      if (!list.length) return Promise.resolve([]);
+      return rest(table, { method: "POST", headers: JSON_ONE, body: JSON.stringify(list.map(function (r) { var o = fix(r); o.profile_id = pid; return o; })) })
+        .then(function (made) { list.forEach(function (r, i) { if (made[i]) map[r.id] = made[i].id; }); return made; });
+    }
+    var P = gs.profile, patch = { country: P.country || "US", city: P.city || null, postal_code: P.postal_code || null };
+    return rest("profiles?id=eq." + encodeURIComponent(pid), { method: "PATCH", headers: JSON_ONE, body: JSON.stringify(patch) })
+      .then(function (rows) { Object.assign(state.profile, (rows && rows[0]) || patch); })
+      .then(function () { return post("rooms", T.rooms, function (r) { return { name: r.name, sort_order: r.sort_order || 0 }; }); })
+      .then(function () { return post("entries", T.entries, function (r) { return { section: r.section, name: r.name, details: r.details || {} }; }); })
+      .then(function () { return post("items", T.items, function (r) { return { room_id: map[r.room_id], name: r.name, brand: r.brand, model: r.model, year: r.year, problem: r.problem, notes: r.notes, photos: [] }; }); })
+      .then(function () { return post("maintenance_tasks", T.maintenance_tasks, function (r) { return { item_id: r.item_id ? map[r.item_id] : null, entry_id: r.entry_id ? map[r.entry_id] : null, title: r.title, detail: r.detail, kind: r.kind, repeat_days: r.repeat_days, status: r.status, due_on: r.due_on, snoozed_until: r.snoozed_until, last_done_on: r.last_done_on }; }); })
+      .then(function () { return post("parts", T.parts, function (r) { return { item_id: map[r.item_id], name: r.name, part_number: r.part_number, replaced_on: r.replaced_on, next_due_on: r.next_due_on }; }); })
+      .then(function () { return post("maintenance_logs", T.maintenance_logs, function (r) { return { item_id: r.item_id ? map[r.item_id] : null, task_id: r.task_id ? map[r.task_id] : null, done_on: r.done_on, note: r.note }; }); })
+      .then(function () { try { localStorage.removeItem(GUEST_KEY); } catch (e) {} return count; });
+  }
+
+  // ---- Home Screen slideshow, matched to the device ----
+  function guideKey() {
+    var ua = navigator.userAgent;
+    if (isIOS()) return "ios";
+    if (/Android/i.test(ua)) return "android";
+    if (/Macintosh/.test(ua) && /Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua)) return "mac";
+    return "desktop";
+  }
+  function slideArt(kind) {
+    var s = '<svg viewBox="0 0 280 170" role="img" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">';
+    var phone = '<rect x="92" y="8" width="96" height="154" rx="16" stroke-width="3.5" opacity=".55"/>';
+    var art = {
+      safari: phone + '<rect x="104" y="128" width="72" height="22" rx="11" stroke-width="3" opacity=".5"/><text x="140" y="143" font-size="10" text-anchor="middle" fill="currentColor" stroke="none">one-place</text><path d="M108 60h64M108 78h44M108 96h56" stroke-width="3" opacity=".35"/>',
+      share: phone + '<rect x="120" y="58" width="40" height="38" rx="7"/><path d="M140 74V36M128 48l12-12 12 12"/><circle cx="140" cy="140" r="0"/><path d="M110 150h60" stroke-width="3" opacity=".4"/>',
+      addhome: phone + '<rect x="106" y="40" width="68" height="26" rx="8" stroke-width="3" opacity=".4"/><rect x="106" y="76" width="68" height="30" rx="8" stroke-width="4"/><rect x="112" y="82" width="18" height="18" rx="4"/><path d="M121 86v10M116 91h10"/><path d="M136 91h32" stroke-width="3"/><rect x="106" y="114" width="68" height="26" rx="8" stroke-width="3" opacity=".4"/>',
+      confirm: phone + '<rect x="108" y="46" width="64" height="70" rx="10" stroke-width="3" opacity=".5"/><rect x="118" y="56" width="22" height="22" rx="6"/><path d="M148 62h16M148 72h12" stroke-width="3"/><rect x="146" y="92" width="36" height="20" rx="10" stroke-width="4"/><path d="M164 102h0" stroke-width="7"/>',
+      open: phone + '<rect x="108" y="34" width="26" height="26" rx="7" stroke-width="3" opacity=".4"/><rect x="146" y="34" width="26" height="26" rx="7" stroke-width="3" opacity=".4"/><rect x="108" y="76" width="26" height="26" rx="7" stroke-width="3" opacity=".4"/><rect x="146" y="76" width="26" height="26" rx="7" stroke-width="4"/><path d="M153 92l7-7 7 7M155 91v7h10v-7" stroke-width="2.5"/><path d="M168 60l8-8" stroke-width="0"/>',
+      menu: phone + '<path d="M108 24h42" stroke-width="3" opacity=".4"/><circle cx="170" cy="24" r="2.6" fill="currentColor"/><circle cx="170" cy="32" r="2.6" fill="currentColor"/><circle cx="170" cy="40" r="2.6" fill="currentColor"/><rect x="118" y="52" width="60" height="68" rx="8" stroke-width="3" opacity=".45"/><path d="M128 70h40M128 86h30M128 102h36" stroke-width="3" opacity=".4"/>',
+      installA: phone + '<rect x="110" y="56" width="62" height="24" rx="7" stroke-width="4"/><path d="M118 68h26" stroke-width="3"/><rect x="152" y="62" width="12" height="12" rx="3" stroke-width="3"/><path d="M118 100h50M118 114h40" stroke-width="3" opacity=".35"/>',
+      desk: '<rect x="30" y="14" width="220" height="130" rx="12" stroke-width="3.5" opacity=".55"/><path d="M30 38h220" stroke-width="3" opacity=".4"/><rect x="62" y="21" width="140" height="11" rx="5.5" stroke-width="2.5" opacity=".5"/><rect x="212" y="19" width="22" height="15" rx="4" stroke-width="3.5"/><path d="M223 22v6M220 26l3 3 3-3" stroke-width="2.5"/><path d="M60 70h120M60 88h90M60 106h104" stroke-width="3" opacity=".3"/>',
+      deskwin: '<rect x="30" y="14" width="220" height="130" rx="12" stroke-width="3.5" opacity=".55"/><rect x="80" y="40" width="120" height="76" rx="10" stroke-width="4"/><rect x="92" y="52" width="26" height="26" rx="7"/><path d="M128 58h56M128 70h40" stroke-width="3"/><rect x="152" y="90" width="38" height="18" rx="9"/>',
+      dock: '<rect x="30" y="14" width="220" height="130" rx="12" stroke-width="3.5" opacity=".55"/><rect x="70" y="124" width="140" height="18" rx="8" stroke-width="3" opacity=".6"/><rect x="144" y="127" width="14" height="12" rx="3" stroke-width="3"/><path d="M60 50h120M60 68h80" stroke-width="3" opacity=".3"/><rect x="214" y="20" width="22" height="18" rx="4"/><path d="M225 31V23M221 26l4-4 4 4" stroke-width="2.5"/>'
+    };
+    return s + (art[kind] || "") + "</svg>";
+  }
+  function installSlides(key) {
+    var app = "One Place";
+    var G = {
+      ios: [
+        ["safari", "Open One Place in Safari", "It has to be Safari for this to work. If you opened the link from a message or another app, tap the link and choose Open in Safari."],
+        ["share", "Tap the Share button", "It’s the square with an arrow pointing up, at the bottom of the screen (top right on iPad)."],
+        ["addhome", "Choose Add to Home Screen", "Scroll down the list a little if you don’t see it right away. If it’s missing, tap View More first."],
+        ["confirm", "Tap Add", "You can rename it if you like. Then tap Add in the top right corner."],
+        ["open", "Open it from your Home Screen", "Look for the One Place icon and tap it. When it asks about notifications, tap Allow so your reminders can reach you."]
+      ],
+      android: [
+        ["menu", "Tap the ⋮ menu", "It’s the three dots at the top right of Chrome."],
+        ["installA", "Tap Install app or Add to Home screen", "Whichever one you see. They do the same thing."],
+        ["confirm", "Tap Install", "Chrome may ask you to confirm. Tap Install or Add."],
+        ["open", "Open it from your Home Screen", "Find the One Place icon with your other apps. Allow notifications when asked so your reminders can reach you."]
+      ],
+      desktop: [
+        ["desk", "Look at the address bar", "In Chrome or Edge, find the little install icon (a screen with a down arrow) at the right end of the address bar."],
+        ["deskwin", "Click Install", "A small box pops up. Click Install."],
+        ["open", "Open it like any app", "One Place now has its own window and shows up in your apps, so it’s one click away."]
+      ],
+      mac: [
+        ["desk", "Click the Share button", "It’s the square with an arrow in Safari’s toolbar."],
+        ["dock", "Choose Add to Dock", "Then click Add. One Place appears in your Dock like any other app."],
+        ["open", "Open it from your Dock", "It opens in its own window, one click away."]
+      ]
+    };
+    return G[key];
+  }
+  function showInstallGuide(back, startKey) {
+    var key = startKey || guideKey();
+    var slides = installSlides(key).slice(), idx = 0;
+    if (key === "android" && state.installEvt) slides.unshift(["installA", "Tap the button below", "Your phone can add One Place in one tap. Or follow the steps after this one if you’d rather do it by hand.", true]);
+    state.rerender = function () { showInstallGuide(back, key); }; state.pendingTab = "more";
+    var art = h("div", { class: "slide-art", "aria-hidden": "true" }), step = h("div", { class: "slide-step" }), title = h("h2", { style: "margin:4px 0" }), body = h("p", { class: "hint", style: "min-height:4.5em" });
+    var dots = h("div", { class: "dots" }), extra = h("div", { class: "actions", style: "justify-content:center" });
+    var prev = h("button", { type: "button", class: "quiet", "data-testid": "guide-back", text: "Back" });
+    var next = h("button", { type: "button", "data-testid": "guide-next", text: "Next" });
+    function paint() {
+      var s = slides[idx];
+      art.innerHTML = slideArt(s[0]); step.textContent = "Step " + (idx + 1) + " of " + slides.length; title.textContent = s[1]; body.textContent = s[2];
+      dots.textContent = ""; slides.forEach(function (_, i) { dots.appendChild(h("i", { class: i === idx ? "on" : "" })); });
+      prev.style.visibility = idx === 0 ? "hidden" : "visible";
+      next.textContent = idx === slides.length - 1 ? "Done" : "Next";
+      extra.textContent = "";
+      if (s[3] && state.installEvt) extra.appendChild(h("button", { type: "button", "data-testid": "install-app", text: "Add to Home Screen", onclick: function () { var ev = state.installEvt; state.installEvt = null; ev.prompt(); if (ev.userChoice) ev.userChoice.then(function (c) { if (c && c.outcome === "accepted") { state.notice = "Added! Open One Place from your Home Screen."; } back(); }); } }));
+    }
+    function go(d) { var n = idx + d; if (n < 0) return; if (n >= slides.length) { back(); return; } idx = n; paint(); }
+    prev.onclick = function () { go(-1); }; next.onclick = function () { go(1); };
+    var box = h("div", { class: "slides", "data-testid": "install-guide" }, [step, art, title, body, extra, dots, h("div", { class: "actions", style: "justify-content:space-between" }, [prev, next])]);
+    var x0 = null;
+    box.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    box.addEventListener("touchend", function (e) { if (x0 == null) return; var dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); });
+    var labels = [["ios", "iPhone / iPad"], ["android", "Android"], ["desktop", "Windows / Chrome"], ["mac", "Mac Safari"]];
+    var switcher = h("div", { class: "chips", role: "group", "aria-label": "Show steps for another device", style: "margin-top:12px" }, labels.map(function (l) {
+      return h("button", { type: "button", class: "chip", "aria-pressed": String(l[0] === key), text: l[1], onclick: function () { showInstallGuide(back, l[0]); } });
+    }));
+    paint();
+    view(h("section", { class: "card", style: "text-align:center" }, [
+      h("h1", { text: "Add One Place to your Home Screen" }),
+      h("p", { class: "hint", text: "It opens like an app, one tap away, and it’s how morning reminders reach you." }),
+      box,
+      h("p", { class: "hint", style: "margin:14px 0 0;font-size:.85rem", text: "On a different device?" }), switcher,
+      h("div", { class: "actions", style: "justify-content:center" }, [h("button", { type: "button", class: "quiet", "data-testid": "guide-close", text: "Not now", onclick: back })])
+    ]));
+  }
+  function installHelpCard() {
+    if (isStandalone()) return null;
+    return h("section", { class: "card noprint", "data-testid": "install-help-card" }, [
+      h("h2", { text: "Put One Place on your Home Screen" }),
+      h("p", { class: "hint", text: "One tap to open, like any app. Quick steps for your device." }),
+      h("div", { class: "actions" }, [h("button", { type: "button", class: "small", "data-testid": "install-help", text: "Show me how", onclick: function () { showInstallGuide(showMore); } })])
+    ]);
   }
 
   // ---- Dates (all local, as YYYY-MM-DD text) ----
@@ -829,6 +1119,7 @@
   }
   // Returns the parsed rows/row, or throws an Error with a plain-language message.
   function rest(path, opts) {
+    if (state.guest) return guestRest(path, opts);
     return api("/rest/v1/", path, opts).then(function (res) {
       return readJson(res).then(function (body) {
         if (!res.ok) { var e = new Error(dbMessage(res, body)); e.code = body && body.code; throw e; }
@@ -866,6 +1157,7 @@
   }
 
   function showAuth(mode, note) {
+    state.cozyNext = true;
     var isNew = mode === "signup";
     var msg = h("div", { class: "result", role: "status", "data-testid": "auth-message" }, note || "");
     var email = h("input", { type: "email", id: "authEmail", autocomplete: "email", required: true, "data-testid": "auth-email" });
@@ -926,7 +1218,8 @@
         h("button", { type: "button", class: "chip", "aria-pressed": String(isNew), text: "Create account", onclick: function () { showAuth("signup"); } })
       ]),
       form,
-      isNew ? null : forgot
+      isNew ? null : forgot,
+      h("p", { class: "privacy-line", text: "Your info is yours. Other people using One Place can\u2019t see it." })
     ]));
   }
 
@@ -1001,6 +1294,7 @@
 
   // ---- Welcome (first sign-in) ----
   function showWelcome() {
+    state.cozyNext = true;
     var user = state.session.user || {};
     var p = state.person || {};
     var kind = "home", tenure = "owner";
@@ -1023,6 +1317,7 @@
     var phone = h("input", { type: "tel", maxlength: "40", autocomplete: "tel", value: p.phone || "" });
     var email = h("input", { type: "email", maxlength: "254", autocomplete: "email", value: p.email || user.email || "" });
     var nameInput = h("input", { type: "text", maxlength: "80", "data-testid": "welcome-name" });
+    var gsv = guestLoad(); if (gsv && gsv.profile && gsv.profile.name && gsv.profile.name !== "My place") nameInput.value = gsv.profile.name;
 
     var form = h("form", { novalidate: true, "data-testid": "welcome" }, [
       h("div", { class: "field" }, [h("span", { text: "This is a…" }), h("div", { class: "seg", role: "radiogroup" }, [
@@ -1057,14 +1352,14 @@
         if (state.profile) return null;
         return rest("profiles", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ kind: kind, tenure: tenure, name: hn, contact_phone: me.phone, contact_email: me.email }) })
           .then(function (rows) { state.profile = rows[0]; state.profiles = [rows[0]]; });
-      }).then(function () { state.person = me; return loadHome(); }).then(showHome).catch(function (err) {
+      }).then(function () { state.person = me; return importGuest().then(function (n) { if (n) state.notice = "You\u2019re in! Everything you added as a guest came along."; }, function (e) { state.notice = "Your account is ready, but I couldn\u2019t bring your guest items over (" + e.message + "). They\u2019re still saved on this device."; }); }).then(function () { return loadHome(); }).then(showHome).catch(function (err) {
         msg.className = "result bad"; msg.textContent = "Not saved. " + err.message; btn.disabled = false;
       });
     });
 
     view(h("section", { class: "card" }, [
       h("h1", { text: "Welcome to One Place" }),
-      h("p", { class: "hint", text: "A few quick details and you’re in." }),
+      h("p", { class: "hint", text: guestLoad() && guestLoad().tables.items.length + guestLoad().tables.maintenance_tasks.length ? "A few quick details and you\u2019re in. Everything you added as a guest comes with you." : "A few quick details and you’re in." }),
       form
     ]));
   }
@@ -1786,6 +2081,7 @@
   }
 
   function signedUrl(path) {
+    if (state.guest) return Promise.resolve(null);
     return api("/storage/v1/", "object/sign/item-photos/" + path.split("/").map(encodeURIComponent).join("/"), { method: "POST", body: JSON.stringify({ expiresIn: 3600 }) })
       .then(readJson).then(function (b) { return b && b.signedURL ? SUPABASE_URL + "/storage/v1" + b.signedURL : null; });
   }
@@ -1798,6 +2094,7 @@
     return loadHome().then(function () { showHome(); }).catch(function (err) { state.notice = "Couldn’t open that. " + err.message; showHome(); });
   }
   function profileBar() {
+    if (state.guest) return null;
     var kids = [];
     if (state.profiles.length > 1) state.profiles.forEach(function (pr) {
       kids.push(h("button", { type: "button", class: "chip", "aria-pressed": String(pr.id === state.profile.id), text: pr.name, "data-testid": "profile-" + pr.id, onclick: function () { if (pr.id !== state.profile.id) switchProfile(pr); } }));
@@ -1939,6 +2236,7 @@
       h("header", {}, [
         h("h1", { text: state.profile.name, "data-testid": "profile-name" }),
       ]),
+      guestBar(),
       profileBar(),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
       installCard(),
@@ -1973,8 +2271,8 @@
     view([
       h("header", {}, [h("h1", { text: "More" })]),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
-      h("div", { class: "morelist" }, [notifyCard(), styleCard(), countryCard(), whyCard(), feedbackCard(), inviteCard(), connectionsCard()]),
-      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Sign out", "data-testid": "sign-out", onclick: signOut })])
+      h("div", { class: "morelist" }, state.guest ? [guestCard(), installHelpCard(), styleCard(), countryCard(), whyCard()] : [notifyCard(), installHelpCard(), styleCard(), countryCard(), whyCard(), feedbackCard(), inviteCard(), connectionsCard()]),
+      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: state.guest ? "Leave guest mode" : "Sign out", "data-testid": "sign-out", onclick: state.guest ? function () { leaveGuest(); showIntro(); } : signOut })])
     ]);
     $("newTitle").closest("section").hidden = false;
   }
@@ -2003,6 +2301,7 @@
 
   // ---- Photo AI (through our own server function; sign-in required) ----
   function callAIWith(model, parts, opts) {
+    if (state.guest) return Promise.reject(Object.assign(new Error("The photo helper comes with a free account. Tap More, then Create account, and everything you\u2019ve added comes with you."), { fatal: true }));
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, opts.timeoutMs);
     return ensureFresh().then(function (s) {
@@ -2112,6 +2411,7 @@
     return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
   }
   function uploadPhoto(blob) {
+    if (state.guest) return Promise.reject(new Error("Photos come with a free account."));
     var path = state.profile.id + "/" + uid() + ".jpg";
     return api("/storage/v1/", "object/item-photos/" + path, { method: "POST", headers: { "Content-Type": "image/jpeg", "x-upsert": "false" }, body: blob })
       .then(function (res) {
@@ -2197,6 +2497,7 @@
 
     planBtn.addEventListener("click", function () {
       collect(); status.className = "result";
+      if (state.guest) { status.className = "result"; status.innerHTML = ""; status.appendChild(document.createTextNode("Fix-it plans use the photo helper, which comes with a free account. Everything you add now comes along. ")); status.appendChild(h("button", { type: "button", class: "link", text: "Create my account", onclick: goCreateAccount })); return; }
       if (!f.name && !f.files.length) return fail("Add a photo or type what the item is.");
       if (!roomOk()) return;
       f.roomName = f.roomId === "__new" ? f.newRoom : roomName(f.roomId);
@@ -2225,10 +2526,10 @@
     drawThumbs();
     view(h("section", { class: "card", "data-testid": "add-item-flow" }, [
       h("h2", { text: f.another ? "Add another " + (f.name || "item").toLowerCase() : "Plan my fix" }),
-      h("p", { class: "hint", text: "Tell me what it is and add a photo or two. I’ll suggest a plan, and you choose what to keep." }),
+      h("p", { class: "hint", text: state.guest ? "Tell me what it is and where it lives. Photos and fix-it plans unlock with a free account." : "Tell me what it is and add a photo or two. I’ll suggest a plan, and you choose what to keep." }),
       h("label", { class: "field" }, [h("span", { text: "What is it?" }), name]),
       h("label", { class: "field" }, [h("span", { text: "Which room?" }), roomSel, newRoom]),
-      h("div", { class: "field" }, [h("span", { text: "Photos (up to 6)" }), h("div", { class: "actions" }, [addLabel, fileInput]), thumbs, count, photoMsg,
+      state.guest ? null : h("div", { class: "field" }, [h("span", { text: "Photos (up to 6)" }), h("div", { class: "actions" }, [addLabel, fileInput]), thumbs, count, photoMsg,
         h("small", { text: "Include the model plate or label if you can see one." })]),
       h("label", { class: "field" }, [h("span", { text: "What’s wrong? (optional)" }), problem]),
       h("div", { class: "actions" }, [planBtn, skipBtn, backBtn]),
@@ -2728,6 +3029,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
   takeLinkTokens().then(function (type) {
     if (type === "recovery") return showNewPassword();
     if (state.session) return loadAll();
+    if (guestHas() && lsGet("oneplace.welcomed")) return startGuest();
     if (!lsGet("oneplace.welcomed")) return showIntro();
     showAuth("signin");
   });
