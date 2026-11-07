@@ -243,6 +243,20 @@
   .morelist > details.card { padding: 6px 14px; }
   .morelist > details.card > summary { min-height: 48px; display: flex; align-items: center; }
   @media (prefers-reduced-motion: reduce) { button, .filebtn { transition: none; } }
+
+  /* Shape trial: everything uses the soft tab-highlight shape (14px) and selected = tint + accent text */
+  :root { --r: 14px; }
+  .card, .pscene { border-radius: 16px; }
+  button, input:not([type=checkbox]):not([type=radio]), select, textarea, .banner, .attn-item, .tasks li, .seg span, .snooze input[type="date"], input[data-testid=whats-new-search] { border-radius: var(--r); }
+  .chip, .secchip, .tile { border-radius: var(--r); }
+  .chip, .secchip { background: var(--bg); }
+  .chip[aria-pressed="true"], .secchip[aria-pressed="true"], .seg input:checked + span { background: var(--tint); color: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .tile[aria-checked="true"] { background: var(--tint); color: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .cal-cell { border-radius: 10px; }
+  .duepick { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); min-height: 40px; padding: 6px 10px; border-radius: var(--r); max-width: 100%; }
+  .duelabel { display: grid; gap: 4px; font-size: .85rem; color: var(--soft); }
+  .tasks li > label + .duelabel { margin-top: 2px; }
+  .duewrap { display: grid; gap: 8px; justify-items: start; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
@@ -267,16 +281,26 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.9", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.10", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
           date: "Nov 6",
-          title: "Punchy the helper",
-          detail: "Punchy lives in the corner of your screen. Tap him to wave, tap again for a backflip, and drag him wherever you like (he remembers his spot). He works on his laptop with orange headphones whenever you\u2019re adding things or tapping around, so you\u2019re both busy together, and he claps when something saves. After you\u2019ve seen both tricks, a tiny \u201ctuck me in\u201d link lets him nap.",
+          title: "Everyday reminders",
+          detail: "New \u201cAdd a reminder\u201d on Home for things like a CPAP mask filter, air filters in each room or a humidifier. Say what it is, pick a room (or Around the house), how often (weekly up to yearly, or your own), and the first due date. It shows up in Needs attention this month and the calendar, and comes back around each time you mark it done.",
           isNew: true
+        },
+        {
+          date: "Nov 6",
+          title: "Pick your own due date",
+          detail: "Not ready for a suggested task? Pick a due date for it instead of skipping. It still gets added, and shows up in Needs attention this month and the calendar when it\u2019s due. Suggestions you saved earlier have a \u201cpick a due date\u201d box too."
+        },
+        {
+          date: "Nov 6",
+          title: "Punchy the helper",
+          detail: "Punchy lives in the corner of your screen. Tap him to wave, tap again for a backflip, and drag him wherever you like (he remembers his spot). He works on his laptop with orange headphones whenever you\u2019re adding things or tapping around, so you\u2019re both busy together, and he claps when something saves. After you\u2019ve seen both tricks, a tiny \u201ctuck me in\u201d link lets him nap."
         },
         {
           date: "Nov 6",
@@ -903,9 +927,9 @@
   function isSnoozed(t) { return !!t.snoozed_until && t.snoozed_until > todayIso(); }
   function effDate(t) { return isSnoozed(t) ? t.snoozed_until : t.due_on; }
 
-  function acceptTask(task, btn) {
+  function acceptTask(task, btn, pickedDate) {
     btn.disabled = true;
-    var patch = { status: "active", due_on: task.due_on || isoIn(Math.min(task.repeat_days || 30, 365)) };
+    var patch = { status: "active", due_on: pickedDate || task.due_on || isoIn(Math.min(task.repeat_days || 30, 365)) };
     rest("maintenance_tasks?id=eq." + encodeURIComponent(task.id), { method: "PATCH", headers: JSON_ONE, body: JSON.stringify(patch) })
       .then(function (rows) { Object.assign(task, rows[0] || patch); showHome(); })
       .catch(function (err) { btn.disabled = false; state.notice = "Couldn’t add that task. " + err.message; showHome(); });
@@ -1006,7 +1030,9 @@
     if (t.status === "suggested") {
       var btn = h("button", { type: "button", class: "small", text: "Add", "aria-label": "Add " + t.title });
       btn.addEventListener("click", function () { acceptTask(t, btn); });
-      li.appendChild(btn);
+      var pick = h("input", { type: "date", class: "duepick", min: todayIso(), "aria-label": "Add " + t.title + " with my own due date", "data-testid": "suggested-due" });
+      pick.addEventListener("change", function () { if (pick.value) acceptTask(t, btn, pick.value); });
+      li.appendChild(h("div", { class: "duewrap" }, [btn, h("label", { class: "duelabel" }, [h("span", { text: "or pick a due date" }), pick])]));
     } else if (t.status === "active") {
       li.appendChild(actionButtons(t));
       if (state.snoozing === t.id) li.appendChild(snoozePanel(t, "snooze-panel-item"));
@@ -1678,6 +1704,11 @@
         h("p", { class: "hint", text: "Snap a photo, say what’s wrong, and get a plan you can accept or skip." }),
         h("button", { type: "button", "data-testid": "plan-my-fix", text: "Plan my fix", onclick: function () { showAddItem({}); } })
       ]),
+      h("section", { class: "card" }, [
+        h("h2", { text: "Need a regular reminder?" }),
+        h("p", { class: "hint", text: "Filters, humidifiers, CPAP supplies, anything that repeats. Pick a room and how often." }),
+        h("button", { type: "button", class: "quiet", "data-testid": "add-reminder", text: "Add a reminder", onclick: function () { showQuickReminder(); } })
+      ]),
       h("section", { class: "card", "aria-labelledby": "roomsTitle" }, [
         h("h2", { id: "roomsTitle", text: "Rooms and items" }),
         filterChips,
@@ -1961,6 +1992,66 @@
     ]));
   }
 
+
+  // ---- Quick reminder: everyday things (filters, supplies) in a room, no photo needed ----
+  function showQuickReminder() {
+    var st = { rep: 30, touched: false };
+    var name = h("input", { type: "text", maxlength: "120", placeholder: "e.g. CPAP mask filter, living room air filter", "data-testid": "qr-name" });
+    var doing = h("input", { type: "text", maxlength: "120", placeholder: "What to do, like Change the filter", "data-testid": "qr-doing" });
+    var roomSel = h("select", { "data-testid": "qr-room" },
+      [h("option", { value: "", text: "Choose a room" })]
+        .concat(state.rooms.map(function (r) { return h("option", { value: r.id, text: r.name }); }))
+        .concat([h("option", { value: "__house", text: "Around the house" }), h("option", { value: "__new", text: "+ New room…" })]));
+    var newRoom = h("input", { type: "text", maxlength: "60", placeholder: "Room name, like Primary bedroom", "aria-label": "New room name", style: "margin-top:8px;display:none", "data-testid": "qr-new-room" });
+    roomSel.addEventListener("change", function () { newRoom.style.display = roomSel.value === "__new" ? "" : "none"; });
+    var num = h("input", { type: "number", min: "1", max: "999", inputmode: "numeric", value: "2", "aria-label": "Repeat every how many", "data-testid": "qr-num", style: "max-width:5rem" });
+    var unit = h("select", { "aria-label": "Repeat unit", "data-testid": "qr-unit" }, [h("option", { value: "1", text: "days" }), h("option", { value: "7", text: "weeks" }), h("option", { value: "30", text: "months" })]);
+    unit.value = "7";
+    var custom = h("div", { class: "actions", style: "display:none;margin-top:8px;align-items:center" }, [h("span", { class: "m", text: "Every" }), num, unit]);
+    var due = h("input", { type: "date", class: "duepick", min: todayIso(), "data-testid": "qr-due" });
+    due.addEventListener("change", function () { st.touched = true; });
+    function days() { if (st.rep === -1) return Math.max(1, Math.round(Number(num.value) || 1)) * Number(unit.value); return st.rep; }
+    function syncDue() { if (!st.touched) due.value = isoIn(days() || 7); }
+    num.addEventListener("input", syncDue); unit.addEventListener("change", syncDue);
+    var OPTS = [["Every week", 7], ["Every 2 weeks", 14], ["Monthly", 30], ["Every 3 months", 90], ["Every 6 months", 180], ["Yearly", 365], ["Just once", 0], ["Custom", -1]];
+    var chips = h("div", { class: "chips", role: "group", "aria-label": "Repeat", "data-testid": "qr-repeat" });
+    function drawChips() {
+      chips.textContent = "";
+      OPTS.forEach(function (o) {
+        chips.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(st.rep === o[1]), text: o[0], "data-testid": "qr-rep-" + o[1], onclick: function () { st.rep = o[1]; custom.style.display = o[1] === -1 ? "flex" : "none"; drawChips(); syncDue(); } }));
+      });
+    }
+    drawChips(); syncDue();
+    var status = h("div", { class: "result", role: "status" });
+    var saveBtn = h("button", { type: "button", "data-testid": "qr-save", text: "Save reminder" });
+    var backBtn = h("button", { type: "button", class: "quiet", text: "Back", onclick: function () { showHome(); } });
+    function fail(m) { status.className = "result bad"; status.textContent = m; }
+    saveBtn.addEventListener("click", function () {
+      var nm = name.value.trim(), what = doing.value.trim() || "Change or replace it";
+      if (!nm) return fail("What is it? Type a name, like CPAP mask filter.");
+      if (!roomSel.value) return fail("Choose a room, or Around the house.");
+      if (roomSel.value === "__new" && !newRoom.value.trim()) return fail("Type a name for the new room.");
+      if (!due.value) return fail("Pick the first due date.");
+      var d = days();
+      var f = { files: [], problem: "", roomId: roomSel.value, newRoom: newRoom.value.trim() };
+      if (f.roomId === "__house") { f.roomId = ""; f.newRoom = "Around the house"; }
+      saveBtn.disabled = backBtn.disabled = true; status.className = "result"; status.textContent = "Saving…";
+      saveItem(f, { name: nm, brand: "", model: "", year: "" }, [{ title: what, detail: null, kind: "maintenance", repeat_days: d || null, accept: true, due_pick: due.value }])
+        .catch(function (err) { saveBtn.disabled = backBtn.disabled = false; fail("Not saved. " + err.message); });
+    });
+    view(h("section", { class: "card", "data-testid": "quick-reminder" }, [
+      h("h2", { text: "Add a reminder" }),
+      h("p", { class: "hint", text: "For everyday things that need doing on a schedule, like filters and supplies. No photo needed." }),
+      h("label", { class: "field" }, [h("span", { text: "What is it?" }), name]),
+      h("label", { class: "field" }, [h("span", { text: "What needs doing? (optional)" }), doing]),
+      h("label", { class: "field" }, [h("span", { text: "Which room?" }), roomSel, newRoom]),
+      h("div", { class: "field" }, [h("span", { text: "How often?" }), chips, custom]),
+      h("label", { class: "field" }, [h("span", { text: "First due" }), due]),
+      h("div", { class: "actions" }, [saveBtn, backBtn]),
+      status
+    ]));
+  }
+
   // ---- Add an item: step 2 (review the plan) ----
   function renderReview(f) {
     var plan = f.plan;
@@ -1970,12 +2061,14 @@
     var year = h("input", { type: "number", min: "1900", max: "2100", inputmode: "numeric", value: f.year || plan.year || "" });
     var boxes = plan.tasks.map(function (t) {
       var cb = h("input", { type: "checkbox", "data-testid": "task-accept", "aria-label": "Add " + t.title });
+      var due = h("input", { type: "date", class: "duepick", min: todayIso(), "aria-label": "Due date for " + t.title, "data-testid": "task-due" });
+      due.addEventListener("change", function () { if (due.value) cb.checked = true; });
       var li = h("li", {}, [h("label", {}, [cb, h("div", {}, [
         h("div", { class: "t", text: t.title }),
         h("div", { class: "m", text: (t.kind === "repair" ? "Repair" : "Upkeep") + " · " + repeatText(t.repeat_days) + (t.kind === "repair" || t.repeat_days === null ? "" : " · first due " + niceDate(isoIn(t.first_due_in_days))) }),
         t.detail ? h("div", { class: "m", text: t.detail }) : null
-      ])])]);
-      return { cb: cb, li: li };
+      ])]), h("label", { class: "duelabel", style: "flex-basis:100%" }, [h("span", { text: "Can\u2019t do it now? Pick a due date and it\u2019ll still be added." }), due])]);
+      return { cb: cb, li: li, due: due };
     });
 
     var status = h("div", { class: "result", role: "status" });
@@ -1993,7 +2086,7 @@
       if (!fl.name) { status.className = "result bad"; status.textContent = "Give the item a name."; return; }
       [saveBtn, allBtn, skipAll, backBtn].forEach(function (b) { b.disabled = true; });
       status.className = "result"; status.textContent = "Saving…";
-      var items = plan.tasks.map(function (t, i) { return Object.assign({}, t, { accept: acceptAll === false ? false : boxes[i].cb.checked }); });
+      var items = plan.tasks.map(function (t, i) { return Object.assign({}, t, { due_pick: boxes[i].due.value || "", accept: acceptAll === false ? !!boxes[i].due.value : (boxes[i].cb.checked || !!boxes[i].due.value) }); });
       saveItem(f, fl, items).catch(function (err) {
         [saveBtn, allBtn, skipAll, backBtn].forEach(function (b) { b.disabled = false; });
         status.className = "result bad"; status.textContent = "Not saved. " + err.message;
@@ -2017,7 +2110,7 @@
       ]),
       h("label", { class: "field" }, [h("span", { text: "Year" }), year]),
       boxes.length
-        ? h("div", {}, [h("h2", { text: "Suggested tasks" }), h("p", { class: "hint", text: "Tick the ones you want as reminders. The rest stay here as suggestions." }), h("ul", { class: "tasks", "data-testid": "suggestions" }, boxes.map(function (b) { return b.li; }))])
+        ? h("div", {}, [h("h2", { text: "Suggested tasks" }), h("p", { class: "hint", text: "Tick the ones you want as reminders, or pick your own due date. The rest stay here as suggestions." }), h("ul", { class: "tasks", "data-testid": "suggestions" }, boxes.map(function (b) { return b.li; }))])
         : h("p", { class: "hint", text: "No tasks were suggested. You can still save the item." }),
       h("div", { class: "actions" }, boxes.length ? [saveBtn, allBtn, skipAll, backBtn] : [saveBtn, backBtn]),
       status
@@ -2044,7 +2137,7 @@
         return {
           profile_id: state.profile.id, item_id: itemRow.id, title: t.title, detail: t.detail, kind: t.kind,
           repeat_days: t.repeat_days, status: t.accept ? "active" : "suggested",
-          due_on: t.accept ? isoIn(t.first_due_in_days) : null
+          due_on: t.accept ? (t.due_pick || isoIn(t.first_due_in_days)) : null
         };
       })) }).catch(function (err) { throw new Error("The item saved, but its tasks didn’t: " + err.message); });
     }).then(function () {
