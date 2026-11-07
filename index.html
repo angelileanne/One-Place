@@ -14,16 +14,16 @@
 <title>One Place</title>
 <style>
   :root {
-    --bg: #f1f5ee; --surface: #ffffff; --line: #d9e3d6; --ink: #1d3a2c; --soft: #4d6a5a;
-    --accent: #1f5c43; --accent-ink: #ffffff; --ok: #1f7a4d; --bad: #b3261e; --wait: #8a6a12;
-    --tint: #e6efe3;
-    --shadow: 0 1px 2px rgba(29,58,44,.08), 0 6px 18px rgba(29,58,44,.06);
+    --bg: #efe4d5; --surface: #f8f1e6; --line: #dccbb4; --ink: #3a2a22; --soft: #7a6354;
+    --accent: #4e2e22; --accent-ink: #fbf3e8; --ok: #1f7a4d; --bad: #b3261e; --wait: #8a6a12;
+    --tint: #e9d8c3;
+    --shadow: 0 1px 2px rgba(70,40,25,.08), 0 8px 22px rgba(70,40,25,.08);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #13201a; --surface: #1b2c24; --line: #2c4237; --ink: #e6f1e8; --soft: #a9c2b1;
-      --accent: #7fd1a5; --accent-ink: #0f1f17; --ok: #7fd1a5; --bad: #ff8a80; --wait: #e6c66b;
-      --tint: #22372d;
+      --bg: #1f1814; --surface: #2a211b; --line: #43362c; --ink: #f3e8dc; --soft: #c4ae9a;
+      --accent: #e2b79a; --accent-ink: #2a160b; --ok: #7fd1a5; --bad: #ff8a80; --wait: #e6c66b;
+      --tint: #352a22;
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.25);
     }
   }
@@ -259,15 +259,14 @@
   .chip[aria-pressed="true"], .secchip[aria-pressed="true"], .seg input:checked + span { background: var(--tint); color: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
   .tile[aria-checked="true"] { background: var(--tint); color: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
   .cal-cell { border-radius: 10px; }
-  /* ---- Sleek first-run look (welcome, sign-in): light, crisp, sharp corners ---- */
-  body.cozy, html[data-mode="dark"] body.cozy { min-height: 100vh; color-scheme: light; --bg: #efe4d5; --surface: #f8f1e6; --line: #dccbb4; --ink: #3a2a22; --soft: #7a6354; --accent: #4e2e22; --accent-ink: #fbf3e8; --tint: #e9d8c3; --shadow: 0 1px 0 rgba(70,40,25,.05), 0 18px 40px -18px rgba(70,40,25,.28);
-    background: linear-gradient(180deg, #f5ebdc 0, #e7d6bf 100%); background-attachment: fixed; }
-  body.cozy h1, body.cozy h2 { font-family: "Plus Jakarta Sans", system-ui, sans-serif; font-weight: 800; letter-spacing: -.03em; }
-  body.cozy h1 { font-size: 1.6rem; white-space: nowrap; line-height: 1.12; }
-  body.cozy .card { border-radius: 6px; border: 1px solid var(--line); border-top: 3px solid var(--accent); padding: 26px 22px; }
-  body.cozy button, body.cozy .chip, body.cozy input:not([type=checkbox]):not([type=radio]), body.cozy select { border-radius: 4px; }
-  body.cozy button { letter-spacing: .01em; }
+  /* First-run screens use the app's own theme, so everything matches. Only Punchy is tucked away here. */
+  body.cozy h1 { font-size: 1.6rem; white-space: nowrap; }
   body.cozy .attn-item { background: transparent; border: none; border-top: 1px solid var(--line); border-radius: 0; font-size: .95rem; }
+  .morerow { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; text-align: left; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; min-height: 58px; font-weight: 700; box-shadow: none; }
+  .morerow small { display: block; font-weight: 400; color: var(--soft); font-size: .82rem; margin-top: 2px; }
+  .morerow .chev { color: var(--soft); font-size: 1.3rem; flex: none; }
+  .morerow[disabled] { opacity: .5; filter: grayscale(1); cursor: not-allowed; }
+  .rowlist { display: grid; gap: 10px; }
   body.cozy .punchy, body.cozy .pocketlink, body.cozy .pocketpill { display: none !important; }
   .signin-link { font-weight: 400; font-size: .8rem; min-height: 0; padding: 2px 6px; }
   .cozy-row { display: flex; justify-content: center; gap: 4px; margin: 0 auto 6px; }
@@ -326,7 +325,7 @@
         {
           date: "Nov 6",
           title: "Look around as a guest, a cozier welcome, Home Screen steps and easy reordering",
-          detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. Reminders can now remember the make, model or size (like the exact air filter) and where you buy it, with a Reorder button that opens that store or your pasted product link. Local pros: see recommended pros near you and add your own. Add your own recommended pros (handymen, landscapers, mechanics) under My pros and track when you use them. Peek in More for Punchy\u2019s Closet, coming soon: earn coins for finishing tasks and dress Punchy up. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
+          detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. Reminders can now remember the make, model or size (like the exact air filter) and where you buy it, with a Reorder button that opens that store or your pasted product link. One look everywhere (warm latte theme from the welcome screen to the last page), a calmer More tab, a quieter first Home, a This week summary, Snooze to Saturday, and Download or Delete my data. Local pros: see recommended pros near you and add your own. Add your own recommended pros (handymen, landscapers, mechanics) under My pros and track when you use them. Peek in More for Punchy\u2019s Closet, coming soon: earn coins for finishing tasks and dress Punchy up. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
           isNew: true
         },
         {
@@ -452,6 +451,7 @@
   // ---- Make it yours: themes, lighting, text size (look only; never changes what the app does) ----
   var PREFS_KEY = "oneplace.prefs";
   var THEMES = [
+    { id: "latte", name: "Latte", l: ["#efe4d5", "#f8f1e6", "#dccbb4", "#3a2a22", "#7a6354", "#4e2e22", "#fbf3e8", "#e9d8c3"], d: ["#1f1814", "#2a211b", "#43362c", "#f3e8dc", "#c4ae9a", "#e2b79a", "#2a160b", "#352a22"], shadow: "0 1px 2px rgba(70,40,25,.08), 0 8px 22px rgba(70,40,25,.08)" },
     { id: "pine", name: "Pine", l: ["#f1f5ee", "#ffffff", "#d9e3d6", "#1d3a2c", "#4d6a5a", "#1f5c43", "#ffffff", "#e6efe3"], d: ["#13201a", "#1b2c24", "#2c4237", "#e6f1e8", "#a9c2b1", "#7fd1a5", "#0f1f17", "#22372d"] },
     { id: "organic", name: "Organic", l: ["#f6f0e6", "#fffaf1", "#e3d6bf", "#3b2f20", "#6b5a43", "#7a5a2b", "#ffffff", "#eadfc8"], d: ["#211a12", "#2c2318", "#45372a", "#f1e6d3", "#c9b79a", "#e0a96a", "#2a1a08", "#3a2d1f"] },
     { id: "botanical", name: "Botanical", l: ["#eef3e6", "#fbfdf7", "#d3dfc2", "#26361a", "#53663f", "#4d741a", "#ffffff", "#e0ebcf"], d: ["#171d12", "#212a19", "#37432b", "#e9f1dc", "#b6c6a0", "#b4dc6a", "#1a2a05", "#2b3820"] },
@@ -465,8 +465,9 @@
   ];
   var SIZES = [["Smaller", 0.9], ["Normal", 1], ["Bigger", 1.15], ["Biggest", 1.3]];
   function loadPrefs() {
-    var p = { theme: "pine", mode: "auto", size: 1, lang: "en" };
+    var p = { theme: "latte", mode: "auto", size: 1, lang: "en" };
     try { var s = JSON.parse(localStorage.getItem(PREFS_KEY)); if (s) { if (THEMES.some(function (t) { return t.id === s.theme; })) p.theme = s.theme; if (["auto", "light", "dark"].indexOf(s.mode) >= 0) p.mode = s.mode; if (typeof s.lang === "string" && /^(en|es|tl|zh|ja|ko|de|fr|tr|th|lo)$/.test(s.lang)) p.lang = s.lang; if (SIZES.some(function (z) { return z[1] === s.size; })) p.size = s.size; } } catch (e) {}
+    try { if (!localStorage.getItem("oneplace.themeFix")) { localStorage.setItem("oneplace.themeFix", "1"); if (p.theme === "pine") p.theme = "latte"; } } catch (e) {}
     return p;
   }
   var prefs = loadPrefs();
@@ -1614,7 +1615,8 @@
 
   function snoozePanel(t, tid) {
     var today = todayIso();
-    var opts = [["1 week", addDaysIso(today, 7)], ["2 weeks", addDaysIso(today, 14)], ["1 month", addMonthsIso(today, 1)], ["3 months", addMonthsIso(today, 3)]];
+    var dow = new Date(today + "T12:00:00").getDay(), toSat = ((6 - dow) + 7) % 7 || 7;
+    var opts = [["This Saturday", addDaysIso(today, toSat)], ["1 week", addDaysIso(today, 7)], ["2 weeks", addDaysIso(today, 14)], ["1 month", addMonthsIso(today, 1)], ["3 months", addMonthsIso(today, 3)]];
     var date = h("input", { type: "date", min: addDaysIso(today, 1), "aria-label": "Snooze until", "data-testid": "snooze-date" });
     var go = h("button", { type: "button", class: "small", text: "Snooze", "data-testid": "snooze-custom-go" });
     go.addEventListener("click", function () { if (date.value && date.value > today) snoozeTo(t, date.value); });
@@ -1661,6 +1663,16 @@
       if (state.snoozing === t.id) li.appendChild(snoozePanel(t, "snooze-panel-item"));
     }
     return li;
+  }
+
+  function weekCard() {
+    var today = todayIso(), back = addDaysIso(today, -6), ahead = addDaysIso(today, 7);
+    var done = state.tasks.filter(function (t) { return t.last_done_on && t.last_done_on >= back; }).length;
+    var soon = state.tasks.filter(function (t) { return t.status === "active" && t.due_on && t.due_on > today && t.due_on <= ahead && !isSnoozed(t); }).length;
+    if (!done && !soon) return null;
+    return h("section", { class: "card", "data-testid": "week-card", style: "padding:12px 16px" }, [
+      h("div", { style: "display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap" }, [
+        h("strong", { text: "This week" }), h("span", { class: "m", text: done + " done \u00b7 " + soon + " coming up" })])]);
   }
 
   // ---- Needs attention this month ----
@@ -2405,6 +2417,24 @@
     roomForm.addEventListener("submit", function (e) { e.preventDefault(); submitRoom(roomInput.value); });
     var ideas = ROOM_IDEAS.filter(function (n) { return !state.rooms.some(function (r) { return r.name.toLowerCase() === n.toLowerCase(); }); });
 
+    if (!state.items.length && !state.tasks.length) {
+      view([
+        h("header", {}, [h("h1", { text: state.profile.name, "data-testid": "profile-name" })]),
+        guestBar(), profileBar(),
+        notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
+        h("section", { class: "card", "data-testid": "first-card", style: "text-align:center" }, [
+          h("h2", { text: "Let\u2019s start with one thing" }),
+          h("p", { class: "hint", text: "Pick whichever is easiest. You can add the rest any time." }),
+          h("div", { class: "actions", style: "justify-content:center" }, [
+            h("button", { type: "button", "data-testid": "plan-my-fix", text: "Something to fix", onclick: function () { showAddItem({}); } }),
+            h("button", { type: "button", class: "quiet", "data-testid": "add-reminder", text: "A regular reminder", onclick: function () { showQuickReminder(); } })
+          ])
+        ]),
+        installCard(),
+        sectionsCard()
+      ]);
+      return;
+    }
     view([
       h("header", {}, [
         h("h1", { text: state.profile.name, "data-testid": "profile-name" }),
@@ -2414,6 +2444,7 @@
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
       installCard(),
       attentionCard(),
+      weekCard(),
       h("section", { class: "card" }, [
         h("h2", { text: "Something to fix? Start with a photo." }),
         h("p", { class: "hint", text: "Snap a photo, say what’s wrong, and get a plan you can accept or skip." }),
@@ -2438,13 +2469,75 @@
   }
 
   // ---- More: settings, feedback and everything that isn't an everyday action ----
+  function moreRow(title, sub, onclick, off) {
+    var b = h("button", { type: "button", class: "morerow", "data-testid": "row-" + title.toLowerCase().replace(/[^a-z]+/g, "-"), onclick: onclick }, [
+      h("span", {}, [title, h("small", { text: sub })]), h("span", { class: "chev", "aria-hidden": "true", text: off ? "" : "\u203a" })]);
+    if (off) b.disabled = true;
+    return b;
+  }
+  function moreSub(title, build) {
+    var go = function () {
+      state.rerender = go; state.pendingTab = "more";
+      var notice = state.notice; state.notice = "";
+      view([
+        h("header", {}, [h("h1", { text: title })]),
+        notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
+        h("div", { class: "morelist" }, build()),
+        h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", "data-testid": "more-back", text: "Back", onclick: showMore })])
+      ]);
+    };
+    go();
+  }
+  function dataCard() {
+    var msg = h("div", { class: "result", role: "status" });
+    var exp = h("button", { type: "button", class: "small", "data-testid": "export-data", text: "Download my data" });
+    exp.addEventListener("click", function () {
+      exp.disabled = true; msg.className = "result"; msg.textContent = "Gathering everything\u2026";
+      var T = ["profiles", "rooms", "items", "maintenance_tasks", "maintenance_logs", "parts", "entries", "pros", "pro_uses"];
+      Promise.all(T.map(function (t) { return rest(t + "?select=*"); })).then(function (rows) {
+        var out = { exported_at: new Date().toISOString() }; T.forEach(function (t, i) { out[t] = rows[i]; });
+        var blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" }), a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = "one-place-my-data.json"; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+        exp.disabled = false; msg.className = "result"; msg.textContent = "Downloaded. Photos aren\u2019t included in the file.";
+      }).catch(function (err) { exp.disabled = false; msg.className = "result bad"; msg.textContent = "Couldn\u2019t download. " + err.message; });
+    });
+    var confirm = h("input", { type: "text", autocapitalize: "characters", placeholder: "Type DELETE to confirm", "aria-label": "Type DELETE to confirm", "data-testid": "delete-confirm" });
+    var del = h("button", { type: "button", class: "quiet small", "data-testid": "delete-account", text: "Delete my account" });
+    var dmsg = h("div", { class: "result", role: "status" });
+    del.addEventListener("click", function () {
+      if (confirm.value.trim() !== "DELETE") { dmsg.className = "result bad"; dmsg.textContent = "Type DELETE first so we know it\u2019s really you."; return; }
+      del.disabled = true; dmsg.className = "result"; dmsg.textContent = "Deleting\u2026";
+      rest("rpc/delete_my_account", { method: "POST", body: "{}" }).then(function () {
+        signOutLocal(); try { localStorage.removeItem("oneplace.welcomed"); } catch (e) {} showIntro();
+      }).catch(function (err) { del.disabled = false; dmsg.className = "result bad"; dmsg.textContent = "Couldn\u2019t delete. " + err.message; });
+    });
+    return [
+      h("section", { class: "card", "data-testid": "data-card" }, [h("h2", { text: "Download my data" }), h("p", { class: "hint", text: "Get a copy of your homes, rooms, items, reminders, history and pros as a file." }), h("div", { class: "actions" }, [exp]), msg]),
+      h("section", { class: "card" }, [h("h2", { text: "Delete my account" }), h("p", { class: "hint", text: "This permanently removes your account and everything in it. It can\u2019t be undone, so download your data first if you want a copy." }), confirm, h("div", { class: "actions" }, [del]), dmsg])
+    ];
+  }
   function showMore() {
     state.rerender = showMore; state.pendingTab = "more";
     var notice = state.notice; state.notice = "";
+    var rows = [];
+    if (state.guest) rows.push(guestCard());
+    if (!state.guest) rows.push(moreRow("Notifications", "Morning reminders on this phone", function () { moreSub("Notifications", function () { return [notifyCard()]; }); }));
+    if (!isStandalone()) rows.push(moreRow("Add to Home Screen", "Open One Place like an app", function () { showInstallGuide(showMore); }));
+    if (!state.guest) rows.push(moreRow("My pros", "Trusted handymen, mechanics and more", function () { showPros(); }));
+    rows.push(moreRow("Look and feel", "Theme, lighting, text size, language", function () { moreSub("Look and feel", function () { return [styleCard()]; }); }));
+    rows.push(moreRow("Country and area", "Used for local stores and prices", function () { moreSub("Country and area", function () { return [countryCard()]; }); }));
+    rows.push(moreRow("Punchy\u2019s Closet \ud83d\udc40", "Coming soon", function () {}, true));
+    rows.push(moreRow("Help", "How One Place thinks, and a quick check-up", function () { moreSub("Help", function () { return state.guest ? [whyCard()] : [whyCard(), connectionsCard()]; }); }));
+    if (!state.guest) {
+      rows.push(moreRow("Feedback and invites", "Tell us what you think, bring a friend", function () { moreSub("Feedback and invites", function () { return [feedbackCard(), inviteCard()]; }); }));
+      rows.push(moreRow("Your data", "Download a copy or delete your account", function () { moreSub("Your data", dataCard); }));
+      if (state.isAdmin) { rows.push(moreRow("Pro leads", "Owner only", showLeads)); rows.push(moreRow("Analytics", "Owner only", showAnalytics)); }
+    }
     view([
       h("header", {}, [h("h1", { text: "More" })]),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
-      h("div", { class: "morelist" }, state.guest ? [guestCard(), installHelpCard(), closetCard(), styleCard(), countryCard(), whyCard()] : [notifyCard(), installHelpCard(), prosCard(), closetCard(), styleCard(), countryCard(), whyCard(), feedbackCard(), inviteCard(), connectionsCard()]),
+      h("div", { class: "rowlist" }, rows),
       state.guest ? null : h("p", { class: "hint", style: "font-size:.8rem;text-align:center", text: "To make One Place better, we count how often it\u2019s opened and note the language and country you use. Your items and notes stay private." }),
       h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: state.guest ? "Leave guest mode" : "Sign out", "data-testid": "sign-out", onclick: state.guest ? function () { leaveGuest(); showIntro(); } : signOut })])
     ]);
@@ -3051,6 +3144,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     return idx;
   }
   function celebrate() {
+    var nowT = Date.now(); if (nowT - (celebrate._t || 0) < 4000) return; celebrate._t = nowT;
     var old = document.querySelector("[data-testid=celebration]"); if (old) old.remove();
     var pl = PLUSHIES[nextPlush("oneplace.celebrate")];
     var reduced = false; try { reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
