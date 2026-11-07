@@ -1004,6 +1004,7 @@
     var card = h("section", { class: "card noprint", "aria-disabled": "true", "data-testid": "closet-card", style: "opacity:.55;filter:grayscale(1);cursor:not-allowed" }, [
       h("h2", { text: "Punchy\u2019s Closet \ud83d\udc40" }),
       h("p", { class: "hint", text: "Coming soon! Finish tasks, earn coins, and dress Punchy up with clothes, shoes and accessories." }),
+      h("p", { class: "hint", style: "font-size:.85rem", text: "How coins will work: finishing tasks earns coins (bigger jobs earn more), setting reminders earns a few, and adding One Place to your Home Screen earns a bonus. Coins live in your account, so guests start earning once they sign up." }),
       h("div", { class: "actions" }, [h("button", { type: "button", disabled: "true", "data-testid": "closet-soon", text: "Coming soon" })])
     ]);
     return card;
