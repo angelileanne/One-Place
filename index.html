@@ -317,16 +317,22 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.13", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.14", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
+          date: "Nov 7",
+          title: "Holidays: rest days built in",
+          detail: "Public holidays for your country now show on the calendar with a \ud83c\udf89. By default, reminders that land on a holiday move to the next day, and your morning notification skips holidays so you can relax. Turn it off any time in More, then Holidays. Covers major national holidays for 2026 to 2028; regional ones may be missing.",
+          isNew: true
+        },
+        {
           date: "Nov 6",
           title: "Look around as a guest, a cozier welcome, Home Screen steps and easy reordering",
           detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. Reminders can now remember the make, model or size (like the exact air filter) and where you buy it, with a Reorder button that opens that store or your pasted product link. One look everywhere (warm latte theme from the welcome screen to the last page), a calmer More tab, a quieter first Home, a This week summary, Snooze to Saturday, and Download or Delete my data. Local pros: see recommended pros near you and add your own. Add your own recommended pros (handymen, landscapers, mechanics) under My pros and track when you use them. Peek in More for Punchy\u2019s Closet, coming soon: earn coins for finishing tasks and dress Punchy up. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
-          isNew: true
+          isNew: false
         },
         {
           date: "Nov 6",
@@ -1450,6 +1456,33 @@
       ]));
     });
   }
+  function loadHolidays() {
+    state.holidays = null;
+    var c = countryInfo().code;
+    if (state.guest || c === "ZZ") return Promise.resolve();
+    return rest("holidays?select=day,name&country=eq." + encodeURIComponent(c) + "&order=day.asc").then(function (rows) {
+      var m = {}; rows.forEach(function (r) { m[r.day] = r.name; });
+      state.holidays = rows.length ? m : null;
+    }, function () { state.holidays = null; });
+  }
+  function holidaysCard() {
+    var c = countryInfo(), msg = h("div", { class: "result", role: "status" });
+    var on = !(state.person && state.person.rest_on_holidays === false);
+    var cb = h("input", { type: "checkbox", id: "restHol", checked: on, "data-testid": "rest-toggle", onchange: function () {
+      var v = cb.checked; msg.textContent = "Saving\u2026";
+      rest("people?id=eq." + encodeURIComponent(state.session.user.id), { method: "PATCH", headers: JSON_ONE, body: JSON.stringify({ rest_on_holidays: v }) }).then(function (r) {
+        state.person = Object.assign({}, state.person, { rest_on_holidays: v }); msg.textContent = v ? "Got it. Holidays are rest days." : "Okay. Reminders will keep their dates on holidays.";
+      }, function (e) { cb.checked = !v; msg.textContent = "Not saved: " + e.message; });
+    } });
+    var today = todayIso(), up = Object.keys(state.holidays || {}).filter(function (k) { return k >= today; }).slice(0, 6);
+    return h("section", { class: "card" }, [
+      h("label", { class: "row", for: "restHol" }, [cb, h("span", { text: " Rest on holidays" })]),
+      h("p", { class: "hint", text: "Reminders that land on a public holiday move to the next day, and your morning notification stays quiet. Shown for " + c.name + "." }),
+      state.holidays ? h("div", { "data-testid": "hol-upcoming" }, [h("h3", { text: "Coming up" })].concat(up.map(function (k) { return h("div", { text: niceDate(k) + " \u2014 " + state.holidays[k] }); }))) : h("p", { class: "hint", text: "No holiday list for this country yet. Set your country under Country and area." }),
+      h("p", { class: "hint", style: "font-size:.8rem", text: "Major national holidays, 2026 to 2028. Regional holidays and some lunar dates may be missing or a day off. Tell us in Feedback and we\u2019ll fix it." }),
+      msg
+    ]);
+  }
   function loadHome() {
     var pid = encodeURIComponent(state.profile.id);
     return Promise.all([
@@ -1458,7 +1491,7 @@
       rest("maintenance_tasks?select=*&profile_id=eq." + pid + "&order=created_at.asc"),
       rest("parts?select=*&profile_id=eq." + pid + "&order=created_at.desc"),
       rest("entries?select=*&profile_id=eq." + pid + "&order=created_at.asc")
-    ]).then(function (r) { state.rooms = r[0]; state.items = r[1]; state.tasks = r[2]; state.parts = r[3]; state.entries = r[4]; });
+    ]).then(function (r) { state.rooms = r[0]; state.items = r[1]; state.tasks = r[2]; state.parts = r[3]; state.entries = r[4]; return loadHolidays(); });
   }
 
   // ---- Welcome (first sign-in) ----
@@ -1546,7 +1579,11 @@
   function tasksFor(itemId) { return state.tasks.filter(function (t) { return t.item_id === itemId; }); }
   function itemOf(t) { for (var i = 0; i < state.items.length; i++) if (state.items[i].id === t.item_id) return state.items[i]; return null; }
   function isSnoozed(t) { return !!t.snoozed_until && t.snoozed_until > todayIso(); }
-  function effDate(t) { return isSnoozed(t) ? t.snoozed_until : t.due_on; }
+  function restOn() { return !state.guest && !(state.person && state.person.rest_on_holidays === false) && !!state.holidays; }
+  function holidayName(iso) { return (state.holidays && state.holidays[iso]) || ""; }
+  function restShift(iso) { if (!restOn()) return iso; for (var n = 0; n < 10 && holidayName(iso); n++) iso = addDaysIso(iso, 1); return iso; }
+  function rawDate(t) { return isSnoozed(t) ? t.snoozed_until : t.due_on; }
+  function effDate(t) { return restShift(rawDate(t)); }
 
   function acceptTask(task, btn, pickedDate) {
     btn.disabled = true;
@@ -1632,7 +1669,8 @@
     var d = diffDays(todayIso(), effDate(t));
     if (d < 0) return { text: "Overdue by " + (-d) + (d === -1 ? " day" : " days"), over: true };
     if (d === 0) return { text: "Due today", over: false };
-    return { text: "Due " + niceDate(effDate(t)) + " · in " + d + (d === 1 ? " day" : " days"), over: false };
+    var moved = effDate(t) !== rawDate(t) ? " \u00b7 moved for " + holidayName(rawDate(t)) : "";
+    return { text: "Due " + niceDate(effDate(t)) + " · in " + d + (d === 1 ? " day" : " days") + moved, over: false };
   }
 
   function actionButtons(t) {
@@ -1707,17 +1745,19 @@
     var out = [];
     state.tasks.forEach(function (t) {
       if (t.status !== "active" || !t.due_on) return;
-      var d = effDate(t), r = t.repeat_days;
+      var d = rawDate(t), r = t.repeat_days;
       if (r && d < fromIso) d = addDaysIso(d, Math.ceil(diffDays(d, fromIso) / r) * r);
       for (var n = 0; n < 400 && d <= toIso; n++) {
-        if (d >= fromIso) out.push({ date: d, task: t });
+        var sd = restShift(d);
+        if (sd >= fromIso && sd <= toIso) out.push({ date: sd, task: t });
         if (!r) break;
         d = addDaysIso(d, r);
       }
     });
-    return out.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    if (state.holidays) Object.keys(state.holidays).forEach(function (k) { if (k >= fromIso && k <= toIso) out.push({ date: k, holiday: state.holidays[k] }); });
+    return out.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (a.holiday ? -1 : 0); });
   }
-  function evLabel(e) { var it = itemOf(e.task); return (it ? it.name + ": " : "") + e.task.title; }
+  function evLabel(e) { if (e.holiday) return "\ud83c\udf89 " + e.holiday; var it = itemOf(e.task); return (it ? it.name + ": " : "") + e.task.title; }
   function longDate(iso) { return parseIso(iso).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }); }
 
   function showCalendar() {
@@ -2526,6 +2566,7 @@
     if (!isStandalone()) rows.push(moreRow("Add to Home Screen", "Open One Place like an app", function () { showInstallGuide(showMore); }));
     if (!state.guest) rows.push(moreRow("My pros", "Trusted handymen, mechanics and more", function () { showPros(); }));
     rows.push(moreRow("Look and feel", "Theme, lighting, text size, language", function () { moreSub("Look and feel", function () { return [styleCard()]; }); }));
+    if (!state.guest) rows.push(moreRow("Holidays", "Rest days: no reminders on holidays", function () { moreSub("Holidays", function () { return [holidaysCard()]; }); }));
     rows.push(moreRow("Country and area", "Used for local stores and prices", function () { moreSub("Country and area", function () { return [countryCard()]; }); }));
     rows.push(moreRow("Punchy\u2019s Closet \ud83d\udc40", "Coming soon", function () {}, true));
     rows.push(moreRow("Help", "How One Place thinks, and a quick check-up", function () { moreSub("Help", function () { return state.guest ? [whyCard()] : [whyCard(), connectionsCard()]; }); }));
