@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
+<link rel="manifest" href="/assets/manifest.json">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta name="theme-color" content="#17453A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="One Place">
 <meta name="color-scheme" content="light dark">
 <title>One Place</title>
 <style>
@@ -281,16 +287,21 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.11", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.12", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
           date: "Nov 6",
-          title: "More than one home or business",
-          detail: "The top of Home now has a bar to switch between your homes and businesses, and \u201c+ Add another home or business\u201d. Each one keeps its own rooms, items and reminders, and the app opens on the one you used last. Open an item and tap \u201cMove to another home or business\u201d if you added it in the wrong place: photos, reminders and history all come along, and there\u2019s an Undo.",
+          title: "Welcome, notifications and calendar",
+          detail: "First-time visitors get a welcome and a nudge to sign in. After you save your first reminder, One Place offers a morning notification when something is due (on iPhone, add it to your Home Screen first, and it shows you how). Turn it on or off any time in More. Every active reminder also has \u201cAdd to my calendar\u201d, which saves it to your phone calendar with its repeat and a 9am alert.",
           isNew: true
+        },
+        {
+          date: "Nov 6",
+          title: "More than one home or business",
+          detail: "The top of Home now has a bar to switch between your homes and businesses, and \u201c+ Add another home or business\u201d. Each one keeps its own rooms, items and reminders, and the app opens on the one you used last. Open an item and tap \u201cMove to another home or business\u201d if you added it in the wrong place: photos, reminders and history all come along, and there\u2019s an Undo."
         },
         {
           date: "Nov 6",
@@ -570,6 +581,145 @@
       sub("Language", "sub-language", langChips()),
       sub("Text size", "sub-size", seg("Text size", "size", SIZES, function () { return prefs.size; }, function (v) { prefs.size = v; savePrefs(); applyPrefs(); }))
     ]);
+  }
+
+
+  // ---- Welcome, notifications, Home Screen, and "Add to my calendar" ----
+  var VAPID_PUBLIC = "BBGDNdTooNuX8rfW6unyzDrDrtbOzCakIHVso2XTbbB9MaYZ1n1TfdQ20-Ae7byKIQ42bSmbwK8pHLyq70gXcEY";
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function isStandalone() { try { return window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches; } catch (e) { return false; } }
+  function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); }
+  function pushSupported() { return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
+  function b64ToBytes(b) { b = b.replace(/-/g, "+").replace(/_/g, "/"); while (b.length % 4) b += "="; var raw = atob(b), out = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; }
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); state.installEvt = e; });
+
+  function enablePush() {
+    if (!pushSupported()) return Promise.reject(new Error("This browser can\u2019t get notifications."));
+    return navigator.serviceWorker.register("/sw.js").then(function () { return navigator.serviceWorker.ready; }).then(function (reg) {
+      return Notification.requestPermission().then(function (perm) {
+        if (perm !== "granted") throw new Error(perm === "denied" ? "Notifications are blocked for this site in your settings." : "No problem. You can turn them on later in More.");
+        return reg.pushManager.getSubscription().then(function (sub) { return sub || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(VAPID_PUBLIC) }); });
+      });
+    }).then(function (sub) {
+      var j = sub.toJSON(), tz = "UTC"; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; } catch (e) {}
+      return rest("push_subscriptions?on_conflict=endpoint", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify({ user_id: state.session.user.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, tz: tz }) });
+    });
+  }
+  function disablePush() {
+    if (!pushSupported()) return Promise.resolve();
+    return navigator.serviceWorker.getRegistration("/sw.js").then(function (reg) { return reg && reg.pushManager.getSubscription(); }).then(function (sub) {
+      if (!sub) return null;
+      var ep = sub.endpoint;
+      return sub.unsubscribe().then(function () { return rest("push_subscriptions?endpoint=eq." + encodeURIComponent(ep), { method: "DELETE" }); });
+    });
+  }
+  function pushState() {
+    if (isIOS() && !isStandalone()) return Promise.resolve("needs-install");
+    if (!pushSupported()) return Promise.resolve("unsupported");
+    if (Notification.permission === "denied") return Promise.resolve("blocked");
+    if (Notification.permission !== "granted") return Promise.resolve("off");
+    return navigator.serviceWorker.getRegistration("/sw.js").then(function (reg) { return reg ? reg.pushManager.getSubscription() : null; }).then(function (sub) { return sub ? "on" : "off"; }).catch(function () { return "off"; });
+  }
+  var IOS_STEPS = "On iPhone: tap the Share button (the square with an arrow), choose Add to Home Screen, then open One Place from your Home Screen. Notifications work from there.";
+
+  function installCard() {
+    if (isStandalone() || lsGet("oneplace.installHide") && Date.now() - Number(lsGet("oneplace.installHide")) < 7 * 864e5) return null;
+    if (Number(lsGet("oneplace.visits") || 0) < 2) return null;
+    if (!isIOS() && !state.installEvt) return null;
+    var kids = [h("h2", { text: "Keep One Place on your Home Screen" }), h("p", { class: "hint", text: isIOS() ? "It opens like an app, one tap away, and it\u2019s how reminders reach your iPhone. " + IOS_STEPS : "It opens like an app, one tap away, and reminders can reach you in the morning." })];
+    var acts = [];
+    if (state.installEvt) acts.push(h("button", { type: "button", "data-testid": "install-app", text: "Add to Home Screen", onclick: function () { var ev = state.installEvt; state.installEvt = null; ev.prompt(); if (ev.userChoice) ev.userChoice.then(function () { showHome(); }); } }));
+    acts.push(h("button", { type: "button", class: "quiet", "data-testid": "install-later", text: "Not now", onclick: function () { lsSet("oneplace.installHide", String(Date.now())); showHome(); } }));
+    kids.push(h("div", { class: "actions" }, acts));
+    return h("section", { class: "card noprint", "data-testid": "install-card" }, kids);
+  }
+
+  // Shown once, right after the first reminder is saved (the moment it matters).
+  function showNudge(next) {
+    if (lsGet("oneplace.nudged")) return next();
+    var ios = isIOS() && !isStandalone();
+    if (!ios && !(pushSupported() && Notification.permission === "default")) return next();
+    lsSet("oneplace.nudged", "1");
+    state.rerender = next; state.pendingTab = "home";
+    var msg = h("div", { class: "result", role: "status" });
+    var yes = h("button", { type: "button", "data-testid": "nudge-yes", text: ios ? "Got it" : "Yes, remind me" });
+    var no = h("button", { type: "button", class: "quiet", "data-testid": "nudge-no", text: ios ? "Later" : "Not now", onclick: function () { next(); } });
+    yes.addEventListener("click", function () {
+      if (ios) return next();
+      yes.disabled = no.disabled = true; msg.className = "result"; msg.textContent = "One moment\u2026";
+      enablePush().then(function () { state.notice = "Reminders are on. I\u2019ll nudge you in the morning when something is due."; next(); })
+        .catch(function (err) { yes.disabled = no.disabled = false; msg.className = "result bad"; msg.textContent = err.message; if (/turn them on later/.test(err.message)) { setTimeout(next, 1200); } });
+    });
+    view(h("section", { class: "card", "data-testid": "nudge" }, [
+      h("h2", { text: ios ? "Put One Place on your Home Screen" : "Want a morning nudge?" }),
+      h("p", { class: "hint", text: ios ? "Your reminder is saved. " + IOS_STEPS + " Then turn on notifications in More." : "Your reminder is saved. I can send one friendly notification in the morning when something is due, so nothing slips. You can turn it off any time in More." }),
+      h("div", { class: "actions" }, [yes, no]), msg
+    ]));
+  }
+
+  function notifyCard() {
+    var line = h("p", { class: "hint", text: "Checking\u2026" }), btn = h("button", { type: "button", class: "small", "data-testid": "notify-toggle", hidden: true }), msg = h("div", { class: "result", role: "status" });
+    var card = h("section", { class: "card noprint", "data-testid": "notify-card" }, [h("h2", { text: "Reminder notifications" }), line, h("div", { class: "actions" }, [btn]), msg]);
+    function paint() {
+      pushState().then(function (st) {
+        btn.hidden = true; btn.disabled = false;
+        if (st === "on") { line.textContent = "On. You\u2019ll get one nudge in the morning when something is due."; btn.textContent = "Turn off"; btn.className = "quiet small"; btn.hidden = false; btn.onclick = function () { btn.disabled = true; disablePush().then(paint).catch(function (e) { msg.className = "result bad"; msg.textContent = e.message; btn.disabled = false; }); }; }
+        else if (st === "off") { line.textContent = "Off. Turn on a morning nudge for reminders that are due."; btn.textContent = "Turn on"; btn.className = "small"; btn.hidden = false; btn.onclick = function () { btn.disabled = true; msg.textContent = ""; enablePush().then(paint).catch(function (e) { msg.className = "result bad"; msg.textContent = e.message; btn.disabled = false; }); }; }
+        else if (st === "blocked") line.textContent = "Blocked. Allow notifications for One Place in your phone or browser settings, then come back here.";
+        else if (st === "needs-install") line.textContent = IOS_STEPS;
+        else line.textContent = "This browser can\u2019t show notifications. Reminders still appear in the app, and you can add each one to your calendar.";
+      });
+    }
+    paint(); return card;
+  }
+
+  function icsEsc(s) { return String(s || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n"); }
+  function icsFold(line) { var out = []; while (line.length > 73) { out.push(line.slice(0, 73)); line = " " + line.slice(73); } out.push(line); return out.join("\r\n"); }
+  function icsRule(d) {
+    if (!d) return "";
+    if (d % 365 === 0) return "FREQ=YEARLY" + (d > 365 ? ";INTERVAL=" + d / 365 : "");
+    if (d % 30 === 0 && d <= 360) return "FREQ=MONTHLY" + (d > 30 ? ";INTERVAL=" + d / 30 : "");
+    if (d % 7 === 0) return "FREQ=WEEKLY" + (d > 7 ? ";INTERVAL=" + d / 7 : "");
+    return "FREQ=DAILY;INTERVAL=" + d;
+  }
+  function icsFor(t) {
+    var item = itemOf(t), date = effDate(t) || t.due_on || todayIso();
+    var summary = t.title + (item ? " \u2014 " + item.name : "");
+    var desc = [t.detail, item ? "Where: " + roomName(item.room_id) : "", "From One Place"].filter(Boolean).join("\n");
+    var lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//One Place//Reminders//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "BEGIN:VEVENT",
+      "UID:task-" + t.id + "@oneplace", "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, ""),
+      "DTSTART;VALUE=DATE:" + date.replace(/-/g, ""), "DTEND;VALUE=DATE:" + addDaysIso(date, 1).replace(/-/g, ""),
+      "SUMMARY:" + icsEsc(summary), "DESCRIPTION:" + icsEsc(desc)];
+    var rule = icsRule(t.repeat_days); if (rule) lines.push("RRULE:" + rule);
+    lines.push("TRANSP:TRANSPARENT", "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + icsEsc(summary), "TRIGGER:PT9H", "END:VALARM", "END:VEVENT", "END:VCALENDAR");
+    return lines.map(icsFold).join("\r\n") + "\r\n";
+  }
+  function addToCalendar(t) {
+    var blob = new Blob([icsFor(t)], { type: "text/calendar;charset=utf-8" }), url = URL.createObjectURL(blob);
+    var a = h("a", { href: url, download: (t.title || "reminder").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase().slice(0, 40) + ".ics", style: "display:none" });
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { a.remove(); URL.revokeObjectURL(url); }, 4000);
+  }
+
+  function showIntro() {
+    state.rerender = showIntro; state.pendingTab = null;
+    var duck = h("div", { style: "width:104px;height:104px;margin:0 auto 4px" }); duck.innerHTML = plushSvg("duckling", "A friendly duck");
+    function go(mode) { lsSet("oneplace.welcomed", "1"); showAuth(mode); }
+    view(h("section", { class: "card", "data-testid": "intro", style: "text-align:center" }, [
+      duck,
+      h("h1", { text: "Welcome to One Place!" }),
+      h("p", { class: "hint", text: "Everything about your home or business in one spot: what you have, when it needs care, and how to fix it." }),
+      h("ul", { style: "list-style:none;padding:0;margin:14px 0;display:grid;gap:8px;text-align:left" }, [
+        "Snap a photo of what\u2019s broken and get a fix-it plan",
+        "Set reminders for filters, upkeep and repairs",
+        "Keep every room and item in one place"
+      ].map(function (x) { return h("li", { class: "attn-item", text: x }); })),
+      h("div", { class: "actions", style: "justify-content:center" }, [
+        h("button", { type: "button", "data-testid": "intro-start", text: "Get started", onclick: function () { go("signup"); } }),
+        h("button", { type: "button", class: "quiet", "data-testid": "intro-signin", text: "I already have an account", onclick: function () { go("signin"); } })
+      ])
+    ]));
   }
 
   // ---- Dates (all local, as YYYY-MM-DD text) ----
@@ -1023,7 +1173,8 @@
   function actionButtons(t) {
     return h("div", { class: "actions", style: "margin-top:0" }, [
       h("button", { type: "button", class: "small", text: "Done!", "data-testid": "done-button", "aria-label": "Done: " + t.title, onclick: function () { markDone(t); } }),
-      h("button", { type: "button", class: "quiet small", text: "Snooze", "data-testid": "snooze-button", "aria-label": "Snooze: " + t.title, onclick: function () { state.snoozing = state.snoozing === t.id ? null : t.id; showHome(); } })
+      h("button", { type: "button", class: "quiet small", text: "Snooze", "data-testid": "snooze-button", "aria-label": "Snooze: " + t.title, onclick: function () { state.snoozing = state.snoozing === t.id ? null : t.id; showHome(); } }),
+      h("button", { type: "button", class: "quiet small", text: "Add to my calendar", "data-testid": "add-to-calendar", "aria-label": "Add to my calendar: " + t.title, onclick: function () { addToCalendar(t); } })
     ]);
   }
 
@@ -1790,6 +1941,7 @@
       ]),
       profileBar(),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
+      installCard(),
       attentionCard(),
       h("section", { class: "card" }, [
         h("h2", { text: "Something to fix? Start with a photo." }),
@@ -1821,7 +1973,7 @@
     view([
       h("header", {}, [h("h1", { text: "More" })]),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
-      h("div", { class: "morelist" }, [styleCard(), countryCard(), whyCard(), feedbackCard(), inviteCard(), connectionsCard()]),
+      h("div", { class: "morelist" }, [notifyCard(), styleCard(), countryCard(), whyCard(), feedbackCard(), inviteCard(), connectionsCard()]),
       h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Sign out", "data-testid": "sign-out", onclick: signOut })])
     ]);
     $("newTitle").closest("section").hidden = false;
@@ -2236,7 +2388,7 @@
       var kept = tasks.filter(function (t) { return t.accept; }).length;
       state.notice = "Saved! " + fl.name + " is in " + roomName(roomId) + (kept ? ", with " + kept + (kept === 1 ? " reminder." : " reminders.") : ".");
       state.filter = "all";
-      return loadHome().then(showHome);
+      return loadHome().then(function () { if (kept) showNudge(showHome); else showHome(); });
     });
   }
 
@@ -2571,10 +2723,12 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
   renderChangelog();
   startPunchy();
   startTranslator();
+  lsSet("oneplace.visits", String(Number(lsGet("oneplace.visits") || 0) + 1));
   state.session = loadSessionAny();
   takeLinkTokens().then(function (type) {
     if (type === "recovery") return showNewPassword();
     if (state.session) return loadAll();
+    if (!lsGet("oneplace.welcomed")) return showIntro();
     showAuth("signin");
   });
 })();
