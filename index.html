@@ -243,6 +243,17 @@
   .morelist > details.card { padding: 6px 14px; }
   .morelist > details.card > summary { min-height: 48px; display: flex; align-items: center; }
   @media (prefers-reduced-motion: reduce) { button, .filebtn { transition: none; } }
+
+  /* Shape trial: everything uses the soft tab-highlight shape (14px) and selected = tint + accent text */
+  :root { --r: 14px; }
+  .card, .pscene { border-radius: 16px; }
+  button, input:not([type=checkbox]):not([type=radio]), select, textarea, .banner, .attn-item, .tasks li, .seg span, .snooze input[type="date"], input[data-testid=whats-new-search] { border-radius: var(--r); }
+  .chip, .secchip, .tile { border-radius: var(--r); }
+  .chip, .secchip { background: var(--bg); }
+  .chip[aria-pressed="true"], .secchip[aria-pressed="true"], .seg input:checked + span { background: var(--tint); color: var(--accent); border-color: var(--accent); }
+  .tile[aria-checked="true"] { background: var(--tint); color: var(--accent); border-color: var(--accent); }
+  .cal-cell { border-radius: 10px; }
+  .badge, .pdone, .pocketpill, .tabbar button { }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
@@ -267,7 +278,7 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.9", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.10.0-shape", phase: "Phase 8 · Shape trial" };
   var CHANGELOG = [
     {
       month: "November 2026",
