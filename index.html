@@ -326,7 +326,7 @@
         {
           date: "Nov 6",
           title: "Look around as a guest, a cozier welcome, Home Screen steps and easy reordering",
-          detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. Reminders can now remember the make, model or size (like the exact air filter) and where you buy it, with a Reorder button that opens that store or your pasted product link. Peek in More for Punchy\u2019s Closet, coming soon: earn coins for finishing tasks and dress Punchy up. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
+          detail: "New visitors can tap Just look around to try One Place without signing up. After two things are saved or done, it asks if you\u2019re ready to make an account, and everything you added comes with you. The welcome screen has a warmer, cozier look. Reminders can now remember the make, model or size (like the exact air filter) and where you buy it, with a Reorder button that opens that store or your pasted product link. Add your own recommended pros (handymen, landscapers, mechanics) under My pros and track when you use them. Peek in More for Punchy\u2019s Closet, coming soon: earn coins for finishing tasks and dress Punchy up. And Show me how walks you through adding One Place to your Home Screen with steps for your exact device (iPhone, Android, Windows or Mac).",
           isNew: true
         },
         {
@@ -1018,6 +1018,113 @@
     ]);
   }
 
+  // ---- My pros: people's own recommendations (handyman, landscaper, car shop...) ----
+  var PRO_CATS = ["Handyman", "Plumber", "Electrician", "HVAC", "Landscaper", "Pool cleaner", "House cleaner", "Pest control", "Roofer", "Appliance repair", "Car mechanic", "Car dealer / retailer", "Other"];
+  function dtl(iso) { return iso ? niceDate(String(iso).slice(0, 10)) : ""; }
+  function proContactChips(p) {
+    var out = [];
+    if (p.phone) { var tel = String(p.phone).replace(/[^\d+]/g, ""); out.push(h("a", { class: "chip", href: "tel:" + tel, text: "Call" }), h("a", { class: "chip", href: "sms:" + tel, text: "Text" })); }
+    if (p.email) out.push(h("a", { class: "chip", href: "mailto:" + p.email, text: "Email" }));
+    var w = safeUrl(p.website); if (w) out.push(h("a", { class: "chip", href: w, target: "_blank", rel: "noopener noreferrer", text: "Website ↗" }));
+    return out;
+  }
+  function showPros(note) {
+    state.rerender = showPros; state.pendingTab = "more";
+    var list = h("div", { "data-testid": "pros-list" }, [h("p", { class: "hint", text: "Loading…" })]);
+    var form = null;
+    function load() {
+      return Promise.all([rest("pros?select=*&order=created_at.desc"), rest("pro_uses?select=pro_id,used_on&order=used_on.desc")]).then(function (res) {
+        var pros = res[0], uses = res[1];
+        list.textContent = "";
+        if (!pros.length) { list.appendChild(h("p", { class: "hint", text: "No pros yet. Add the handyman, mechanic or pool cleaner you swear by." })); return; }
+        pros.forEach(function (p) {
+          var mine = uses.filter(function (u) { return u.pro_id === p.id; });
+          var used = h("button", { type: "button", class: "small", "data-testid": "pro-used", text: "I used them again", onclick: function (e) {
+            e.target.disabled = true;
+            rest("pro_uses", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ pro_id: p.id }) }).then(load).catch(function (err) { e.target.disabled = false; state.notice = "Couldn’t save that. " + err.message; });
+          } });
+          var del = h("button", { type: "button", class: "quiet small", text: "Remove", onclick: function () {
+            if (!window.confirm("Remove " + p.name + " from your pros?")) return;
+            rest("pros?id=eq." + encodeURIComponent(p.id), { method: "DELETE" }).then(load);
+          } });
+          list.appendChild(h("div", { class: "card", style: "margin:10px 0;padding:12px 14px", "data-testid": "pro-card" }, [
+            h("div", { class: "m", text: p.category }), h("div", { class: "t", style: "font-weight:700", text: p.name }),
+            p.notes ? h("div", { class: "m", text: p.notes }) : null,
+            h("div", { class: "m", text: mine.length ? "Used " + mine.length + (mine.length === 1 ? " time" : " times") + " · last " + dtl(mine[0].used_on) : "Not used through One Place yet" }),
+            h("div", { class: "chips", style: "margin:8px 0" }, proContactChips(p)),
+            h("div", { class: "actions" }, [used, del])
+          ]));
+        });
+      }).catch(function (err) { list.textContent = ""; list.appendChild(h("p", { class: "hint", text: "Couldn’t load your pros. " + err.message })); });
+    }
+    var st = { cat: "" };
+    var catChips = h("div", { class: "chips", role: "group", "aria-label": "What kind of pro", "data-testid": "pro-cats" });
+    var customCat = h("input", { type: "text", maxlength: "60", placeholder: "What kind of pro?", style: "display:none;margin-top:8px", "aria-label": "Custom kind of pro", "data-testid": "pro-cat-custom" });
+    function drawCats() { catChips.textContent = ""; PRO_CATS.forEach(function (c) { catChips.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(st.cat === c), text: c, onclick: function () { st.cat = c; customCat.style.display = c === "Other" ? "" : "none"; drawCats(); } })); }); }
+    drawCats();
+    var name = h("input", { type: "text", maxlength: "120", placeholder: "Business or person’s name", "data-testid": "pro-name" });
+    var phone = h("input", { type: "tel", inputmode: "tel", maxlength: "40", placeholder: "Phone", "data-testid": "pro-phone" });
+    var email = h("input", { type: "text", inputmode: "email", autocapitalize: "none", maxlength: "120", placeholder: "Email (optional)", "data-testid": "pro-email" });
+    var web = h("input", { type: "text", inputmode: "url", autocapitalize: "none", maxlength: "300", placeholder: "Website (optional)", "data-testid": "pro-web" });
+    var notes = h("input", { type: "text", maxlength: "500", placeholder: "Why you like them (optional)", "data-testid": "pro-notes" });
+    var msg = h("div", { class: "result", role: "status" });
+    var save = h("button", { type: "button", "data-testid": "pro-save", text: "Add to my pros" });
+    save.addEventListener("click", function () {
+      var cat = st.cat === "Other" ? customCat.value.trim() : st.cat;
+      if (!cat) { msg.className = "result bad"; msg.textContent = "Pick what kind of pro they are."; return; }
+      if (!name.value.trim()) { msg.className = "result bad"; msg.textContent = "Type their name."; return; }
+      if (!phone.value.trim() && !email.value.trim() && !web.value.trim()) { msg.className = "result bad"; msg.textContent = "Add a phone, email or website so you can reach them."; return; }
+      if (web.value.trim() && !safeUrl(web.value)) { msg.className = "result bad"; msg.textContent = "That website doesn’t look right."; return; }
+      save.disabled = true; msg.className = "result"; msg.textContent = "Saving…";
+      rest("pros", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ category: cat, name: name.value.trim(), phone: phone.value.trim() || null, email: email.value.trim() || null, website: safeUrl(web.value) || null, notes: notes.value.trim() || null }) })
+        .then(function () { showPros("Added " + name.value.trim() + ". Thank you!"); })
+        .catch(function (err) { save.disabled = false; msg.className = "result bad"; msg.textContent = "Not saved. " + err.message; });
+    });
+    form = h("details", { class: "card", style: "margin:10px 0", "data-testid": "pro-form" }, [
+      h("summary", { text: "+ Add a pro you recommend" }),
+      h("div", { class: "field", style: "margin-top:10px" }, [h("span", { text: "What kind of pro?" }), catChips, customCat]),
+      h("label", { class: "field" }, [h("span", { text: "Name" }), name]), h("label", { class: "field" }, [h("span", { text: "Phone" }), phone]),
+      h("label", { class: "field" }, [h("span", { text: "Email" }), email]), h("label", { class: "field" }, [h("span", { text: "Website" }), web]),
+      h("label", { class: "field" }, [h("span", { text: "Notes" }), notes]),
+      h("p", { class: "hint", style: "font-size:.82rem", text: "Heads up: One Place may reach out to the pros you add to invite them to be listed. Your name and details are never shared with them." }),
+      h("div", { class: "actions" }, [save]), msg
+    ]);
+    if (note) form.open = false;
+    view([
+      h("header", {}, [h("h1", { text: "My pros" })]),
+      note ? h("div", { class: "banner", role: "status", "data-testid": "notice", text: note }) : null,
+      h("p", { class: "hint", text: "Your go-to handymen, landscapers, mechanics and more, all in one place. Tap “I used them again” to keep track." }),
+      form, list,
+      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Back", onclick: showMore })])
+    ]);
+    load();
+  }
+  function showLeads() {
+    state.rerender = showLeads; state.pendingTab = "more";
+    var box = h("div", { "data-testid": "leads-list" }, [h("p", { class: "hint", text: "Loading…" })]);
+    rest("rpc/pro_leads", { method: "POST", body: "{}" }).then(function (rows) {
+      box.textContent = "";
+      if (!rows.length) { box.appendChild(h("p", { class: "hint", text: "No recommendations yet." })); return; }
+      rows.forEach(function (p) {
+        box.appendChild(h("div", { class: "card", style: "margin:10px 0;padding:12px 14px", "data-testid": "lead" }, [
+          h("div", { class: "m", text: p.category + " · added " + dtl(p.first_added) }), h("div", { style: "font-weight:700", text: p.name }),
+          h("div", { class: "m", text: "Recommended by " + p.recommended_by + (Number(p.recommended_by) === 1 ? " person" : " people") + " · used " + p.times_used + (Number(p.times_used) === 1 ? " time" : " times") + (p.last_used ? " (last " + dtl(p.last_used) + ")" : "") }),
+          p.notes ? h("div", { class: "m", text: p.notes }) : null,
+          h("div", { class: "m", text: [p.phone, p.email, p.website].filter(Boolean).join(" · ") }),
+          h("div", { class: "chips", style: "margin-top:8px" }, proContactChips(p))
+        ]));
+      });
+    }).catch(function (err) { box.textContent = ""; box.appendChild(h("p", { class: "hint", text: "Couldn’t load. " + err.message })); });
+    view([h("header", {}, [h("h1", { text: "Pro leads" })]), h("p", { class: "hint", text: "Only you can see this. People who recommended them stay anonymous." }), box,
+      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Back", onclick: showMore })])]);
+  }
+  function prosCard() {
+    var kids = [h("h2", { text: "My pros" }), h("p", { class: "hint", text: "Save the handymen, landscapers, mechanics and pool cleaners you trust, and keep track of when you use them." }),
+      h("div", { class: "actions" }, [h("button", { type: "button", class: "small", "data-testid": "open-pros", text: "Open my pros", onclick: function () { showPros(); } })])];
+    if (state.isAdmin) kids.push(h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet small", "data-testid": "open-leads", text: "Pro leads (owner only)", onclick: showLeads })]));
+    return h("section", { class: "card noprint", "data-testid": "pros-card" }, kids);
+  }
+
   // ---- Dates (all local, as YYYY-MM-DD text) ----
   function isoOf(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
   function parseIso(iso) { var p = iso.split("-"); return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])); }
@@ -1274,7 +1381,8 @@
       return rest("profiles?select=*&order=created_at.asc");
     }).then(function (profiles) {
       if (!state.person || !profiles.length) { showWelcome(); return null; }
-      state.profiles = profiles;
+      state.profiles = profiles; state.isAdmin = false;
+      rest("rpc/am_admin", { method: "POST", body: "{}" }).then(function (v) { state.isAdmin = v === true; }).catch(function () {});
       var savedPid = null; try { savedPid = localStorage.getItem("oneplace.profile"); } catch (e) {}
       state.profile = profiles.filter(function (pr) { return pr.id === savedPid; })[0] || profiles[0];
       return loadHome().then(showHome);
@@ -2282,7 +2390,7 @@
     view([
       h("header", {}, [h("h1", { text: "More" })]),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
-      h("div", { class: "morelist" }, state.guest ? [guestCard(), installHelpCard(), closetCard(), styleCard(), countryCard(), whyCard()] : [notifyCard(), installHelpCard(), closetCard(), styleCard(), countryCard(), whyCard(), feedbackCard(), inviteCard(), connectionsCard()]),
+      h("div", { class: "morelist" }, state.guest ? [guestCard(), installHelpCard(), closetCard(), styleCard(), countryCard(), whyCard()] : [notifyCard(), installHelpCard(), prosCard(), closetCard(), styleCard(), countryCard(), whyCard(), feedbackCard(), inviteCard(), connectionsCard()]),
       h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: state.guest ? "Leave guest mode" : "Sign out", "data-testid": "sign-out", onclick: state.guest ? function () { leaveGuest(); showIntro(); } : signOut })])
     ]);
     $("newTitle").closest("section").hidden = false;
