@@ -420,7 +420,7 @@
   var SESSION_KEY = "oneplace.session";
   var ROOM_IDEAS = ["Kitchen", "Bathroom", "Bedroom", "Living room", "Garage", "Yard"];
 
-  var state = { pendingTab: null, rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, profiles: [], rooms: [], items: [], tasks: [], parts: [], entries: [], help: {}, filter: "all", notice: "" };
+  var state = { pendingTab: null, rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, profiles: [], rooms: [], items: [], tasks: [], parts: [], entries: [], logs: [], help: {}, filter: "all", notice: "" };
 
   // ---- Tiny helpers ----
   function $(id) { return document.getElementById(id); }
@@ -1508,8 +1508,9 @@
       rest("items?select=*&profile_id=eq." + pid + "&order=created_at.desc"),
       rest("maintenance_tasks?select=*&profile_id=eq." + pid + "&order=created_at.asc"),
       rest("parts?select=*&profile_id=eq." + pid + "&order=created_at.desc"),
-      rest("entries?select=*&profile_id=eq." + pid + "&order=created_at.asc")
-    ]).then(function (r) { state.rooms = r[0]; state.items = r[1]; state.tasks = r[2]; state.parts = r[3]; state.entries = r[4]; return loadHolidays(); });
+      rest("entries?select=*&profile_id=eq." + pid + "&order=created_at.asc"),
+      rest("maintenance_logs?select=*&profile_id=eq." + pid + "&order=done_on.desc,created_at.desc&limit=1000").catch(function () { return []; })
+    ]).then(function (r) { state.rooms = r[0]; state.items = r[1]; state.tasks = r[2]; state.parts = r[3]; state.entries = r[4]; state.logs = r[5] || []; return loadHolidays(); });
   }
 
   // ---- Welcome (first sign-in) ----
@@ -1594,6 +1595,7 @@
       .then(function (rows) { state.rooms.push(rows[0]); return rows[0]; });
   }
 
+  function openTasks(list) { return (list || []).filter(function (t) { return t.status !== "done"; }); }
   function tasksFor(itemId) { return state.tasks.filter(function (t) { return t.item_id === itemId; }); }
   function itemOf(t) { for (var i = 0; i < state.items.length; i++) if (state.items[i].id === t.item_id) return state.items[i]; return null; }
   function isSnoozed(t) { return !!t.snoozed_until && t.snoozed_until > todayIso(); }
@@ -1660,7 +1662,7 @@
     patchTask(t, patch)
       .then(function () {
         return rest("maintenance_logs", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ profile_id: state.profile.id, item_id: t.item_id, task_id: t.id, done_on: today }) })
-          .then(function (rows) { logId = rows && rows[0] && rows[0].id; }, function () {});
+          .then(function (rows) { logId = rows && rows[0] && rows[0].id; if (rows && rows[0]) { state.logs = state.logs || []; state.logs.unshift(rows[0]); } }, function () {});
       })
       .then(function () { return coinRpc("award_task_done", { p_task: t.id, p_due: dueKey }); })
       .then(function (n) {
@@ -1671,7 +1673,7 @@
           return patchTask(t, prev).then(function () {
             if (earned) return coinRpc("undo_task_done", { p_task: t.id, p_due: dueKey }).then(function (n2) { bumpCoins(-n2); });
           }).then(function () {
-            if (logId) return rest("maintenance_logs?id=eq." + encodeURIComponent(logId), { method: "DELETE" });
+            if (logId) { state.logs = (state.logs || []).filter(function (l) { return l.id !== logId; }); return rest("maintenance_logs?id=eq." + encodeURIComponent(logId), { method: "DELETE" }); }
           });
         });
       })
@@ -2276,7 +2278,7 @@
       h("summary", {}, [en.name]),
       h("div", { class: "body" }, [
         bits ? h("div", { class: "detail", text: bits }) : null,
-        tasks.length ? h("ul", { class: "tasks" }, tasks.map(taskRow)) : h("div", { class: "detail", text: "No reminders yet." }),
+        openTasks(tasks).length ? h("ul", { class: "tasks" }, openTasks(tasks).map(taskRow)) : h("div", { class: "detail", text: tasks.length ? "All done! Finished ones are in More, then Done! history." : "No reminders yet." }),
         h("div", { class: "actions" }, [rm])
       ])
     ]);
@@ -2443,8 +2445,8 @@
     if (item.problem) body.appendChild(h("div", { class: "detail", text: "Problem: " + item.problem }));
     var thumbs = h("div", { class: "thumbs" });
     body.appendChild(thumbs);
-    if (tasks.length) body.appendChild(h("ul", { class: "tasks" }, tasks.map(taskRow)));
-    else body.appendChild(h("div", { class: "detail", text: "No tasks yet." }));
+    if (openTasks(tasks).length) body.appendChild(h("ul", { class: "tasks" }, openTasks(tasks).map(taskRow)));
+    else body.appendChild(h("div", { class: "detail", text: tasks.length ? "All done! Finished ones are in More, then Done! history." : "No tasks yet." }));
     var pl = partsLog(item); if (pl) body.appendChild(pl);
     body.appendChild(buyPanel(item));
     body.appendChild(helpRow(item));
@@ -2547,6 +2549,50 @@
     ]);
   }
 
+
+  // ---- Done! history: everything finished, grouped by month (newest first) ----
+  function historyCard() {
+    var logs = (state.logs || []).slice().sort(function (a, b) { return a.done_on < b.done_on ? 1 : a.done_on > b.done_on ? -1 : (a.created_at < b.created_at ? 1 : -1); });
+    if (!logs.length) return h("section", { class: "card", "data-testid": "history-empty" }, [
+      h("h2", { text: "Done!" }),
+      h("p", { class: "hint", text: "Nothing finished yet. When you tap Done! on a reminder, it moves here so your main page stays tidy." })
+    ]);
+    var months = [], byKey = {};
+    logs.forEach(function (l) {
+      var k = String(l.done_on).slice(0, 7);
+      if (!byKey[k]) { byKey[k] = { key: k, rows: [] }; months.push(byKey[k]); }
+      byKey[k].rows.push(l);
+    });
+    var thisMonth = todayIso().slice(0, 7);
+    function titleOf(l) {
+      for (var i = 0; i < state.tasks.length; i++) if (state.tasks[i].id === l.task_id) return state.tasks[i].title;
+      return l.note || "A finished task";
+    }
+    function whereOf(l) {
+      for (var i = 0; i < state.items.length; i++) if (state.items[i].id === l.item_id) return state.items[i].name + " \u00b7 " + roomName(state.items[i].room_id);
+      return "";
+    }
+    var wrap = h("div", { "data-testid": "history" }, [
+      h("p", { class: "hint", text: logs.length + (logs.length === 1 ? " thing" : " things") + " finished so far. Nice work!" })
+    ]);
+    months.forEach(function (mo, idx) {
+      var label = new Date(mo.key + "-15T12:00:00").toLocaleDateString(undefined, { month: "long", year: "numeric" });
+      var d = h("details", { class: "item", "data-testid": "history-month" }, [
+        h("summary", {}, [label, h("span", { class: "badge", text: mo.rows.length + " done" })]),
+        h("div", { class: "body" }, [h("ul", { class: "tasks" }, mo.rows.map(function (l) {
+          var where = whereOf(l);
+          return h("li", { "data-testid": "history-row" }, [h("div", {}, [
+            h("div", { class: "t", text: titleOf(l) }),
+            h("div", { class: "m", text: niceDate(l.done_on) + (where ? " \u00b7 " + where : "") })
+          ])]);
+        }))])
+      ]);
+      if (mo.key === thisMonth || idx === 0) d.open = true;
+      wrap.appendChild(d);
+    });
+    return h("section", { class: "card" }, [h("h2", { text: "Done!" }), wrap]);
+  }
+
   // ---- More: settings, feedback and everything that isn't an everyday action ----
   function moreRow(title, sub, onclick, off) {
     var b = h("button", { type: "button", class: "morerow", "data-testid": "row-" + title.toLowerCase().replace(/[^a-z]+/g, "-"), onclick: onclick }, [
@@ -2604,6 +2650,7 @@
     if (!state.guest) rows.push(moreRow("Notifications", "Morning reminders on this phone", function () { moreSub("Notifications", function () { return [notifyCard()]; }); }));
     if (!isStandalone()) rows.push(moreRow("Add to Home Screen", "Open One Place like an app", function () { showInstallGuide(showMore); }));
     if (!state.guest) rows.push(moreRow("My pros", "Trusted handymen, mechanics and more", function () { showPros(); }));
+    rows.push(moreRow("Done! history", "Everything you\u2019ve finished, by month", function () { moreSub("Done! history", function () { return [historyCard()]; }); }));
     rows.push(moreRow("Look and feel", "Theme, lighting, text size, language", function () { moreSub("Look and feel", function () { return [styleCard()]; }); }));
     if (!state.guest) rows.push(moreRow("Holidays", "Rest days: no reminders on holidays", function () { moreSub("Holidays", function () { return [holidaysCard()]; }); }));
     rows.push(moreRow("Country and area", "Used for local stores and prices", function () { moreSub("Country and area", function () { return [countryCard()]; }); }));
