@@ -317,16 +317,22 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.14", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.15", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
       entries: [
         {
           date: "Nov 7",
+          title: "Earn coins for Punchy\u2019s Closet",
+          detail: "Finishing tasks now earns coins for Punchy\u2019s Closet (opening soon). Quick tasks earn 2, big jobs like deep cleaning or yard work earn 50, vehicle tasks 50, and pet tasks 20 when they\u2019re weekly or rarer. Setting a reminder earns 1 (up to 7 a day), and adding One Place to your Home Screen earns 50. Undo takes the coins back. Pick Quick or Big job when you add a reminder. Your coins show in More.",
+          isNew: true
+        },
+        {
+          date: "Nov 7",
           title: "Holidays: rest days built in",
           detail: "Public holidays for your country now show on the calendar with a \ud83c\udf89. By default, reminders that land on a holiday move to the next day, and your morning notification skips holidays so you can relax. Turn it off any time in More, then Holidays. Covers major national holidays for 2026 to 2028; regional ones may be missing.",
-          isNew: true
+          isNew: false
         },
         {
           date: "Nov 6",
@@ -910,7 +916,7 @@
       .then(function () { return post("rooms", T.rooms, function (r) { return { name: r.name, sort_order: r.sort_order || 0 }; }); })
       .then(function () { return post("entries", T.entries, function (r) { return { section: r.section, name: r.name, details: r.details || {} }; }); })
       .then(function () { return post("items", T.items, function (r) { return { room_id: map[r.room_id], name: r.name, brand: r.brand, model: r.model, year: r.year, problem: r.problem, notes: r.notes, photos: [], buy_store: r.buy_store || null, buy_url: r.buy_url || null }; }); })
-      .then(function () { return post("maintenance_tasks", T.maintenance_tasks, function (r) { return { item_id: r.item_id ? map[r.item_id] : null, entry_id: r.entry_id ? map[r.entry_id] : null, title: r.title, detail: r.detail, kind: r.kind, repeat_days: r.repeat_days, status: r.status, due_on: r.due_on, snoozed_until: r.snoozed_until, last_done_on: r.last_done_on }; }); })
+      .then(function () { return post("maintenance_tasks", T.maintenance_tasks, function (r) { return { item_id: r.item_id ? map[r.item_id] : null, entry_id: r.entry_id ? map[r.entry_id] : null, title: r.title, detail: r.detail, kind: r.kind, repeat_days: r.repeat_days, status: r.status, due_on: r.due_on, snoozed_until: r.snoozed_until, last_done_on: r.last_done_on, size: r.size === "large" ? "large" : "quick", outdoor: !!r.outdoor }; }); })
       .then(function () { return post("parts", T.parts, function (r) { return { item_id: map[r.item_id], name: r.name, part_number: r.part_number, replaced_on: r.replaced_on, next_due_on: r.next_due_on }; }); })
       .then(function () { return post("maintenance_logs", T.maintenance_logs, function (r) { return { item_id: r.item_id ? map[r.item_id] : null, task_id: r.task_id ? map[r.task_id] : null, done_on: r.done_on, note: r.note }; }); })
       .then(function () { try { localStorage.removeItem(GUEST_KEY); } catch (e) {} return count; });
@@ -1443,6 +1449,7 @@
     }).then(function (profiles) {
       if (!state.person || !profiles.length) { showWelcome(); return null; }
       state.profiles = profiles; state.isAdmin = false; logVisit();
+      loadCoins().then(function () { if (isStandalone()) return coinRpc("award_home_screen").then(function (n) { if (n) { bumpCoins(n); state.notice = "Added to your Home Screen! " + coinText(n); } }); });
       rest("rpc/am_admin", { method: "POST", body: "{}" }).then(function (v) { state.isAdmin = v === true; }).catch(function () {});
       var savedPid = null; try { savedPid = localStorage.getItem("oneplace.profile"); } catch (e) {}
       state.profile = profiles.filter(function (pr) { return pr.id === savedPid; })[0] || profiles[0];
@@ -1593,6 +1600,23 @@
       .catch(function (err) { btn.disabled = false; state.notice = "Couldn’t add that task. " + err.message; showHome(); });
   }
 
+  // ---- Coins (earned for Punchy\u2019s Closet; the database decides the amounts) ----
+  state.coins = null;
+  function coinRpc(fn, args) {
+    if (state.guest || !state.session) return Promise.resolve(0);
+    return rest("rpc/" + fn, { method: "POST", body: JSON.stringify(args || {}) }).then(function (n) { return typeof n === "number" ? n : 0; }, function () { return 0; });
+  }
+  function bumpCoins(n) { if (n && typeof state.coins === "number") state.coins += n; }
+  function loadCoins() {
+    if (state.guest || !state.session) { state.coins = null; return Promise.resolve(); }
+    return rest("rpc/coin_balance", { method: "POST", body: "{}" }).then(function (n) { state.coins = typeof n === "number" ? n : null; }, function () {});
+  }
+  function coinText(n) { return "+" + n + (n === 1 ? " coin" : " coins") + " \ud83e\ude99"; }
+  function awardNew(made) {
+    var list = (made || []).filter(function (t) { return t && t.status === "active"; }), total = 0;
+    return list.reduce(function (p, t) { return p.then(function () { return coinRpc("award_reminder_set", { p_task: t.id }).then(function (n) { total += n; }); }); }, Promise.resolve()).then(function () { bumpCoins(total); return total; });
+  }
+
   // ---- Toast with Undo (lives outside #app so it survives re-renders) ----
   var toastTimer = null;
   function clearToast() { clearTimeout(toastTimer); $("toast").textContent = ""; }
@@ -1618,7 +1642,7 @@
   }
 
   function markDone(t) {
-    var today = todayIso(), prev = snapshot(t), logId = null;
+    var today = todayIso(), prev = snapshot(t), logId = null, earned = 0, dueKey = t.due_on || today;
     var patch = { last_done_on: today, snoozed_until: null };
     if (t.repeat_days) patch.due_on = addDaysIso(today, Math.min(t.repeat_days, 3650)); else patch.status = "done";
     state.snoozing = null;
@@ -1627,11 +1651,15 @@
         return rest("maintenance_logs", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ profile_id: state.profile.id, item_id: t.item_id, task_id: t.id, done_on: today }) })
           .then(function (rows) { logId = rows && rows[0] && rows[0].id; }, function () {});
       })
-      .then(function () {
+      .then(function () { return coinRpc("award_task_done", { p_task: t.id, p_due: dueKey }); })
+      .then(function (n) {
+        earned = n; bumpCoins(n);
         state.rerender && state.rerender();
         celebrate();
-        showToast("Marked done", function () {
+        showToast("Marked done" + (earned ? " \u00b7 " + coinText(earned) : ""), function () {
           return patchTask(t, prev).then(function () {
+            if (earned) return coinRpc("undo_task_done", { p_task: t.id, p_due: dueKey }).then(function (n2) { bumpCoins(-n2); });
+          }).then(function () {
             if (logId) return rest("maintenance_logs?id=eq." + encodeURIComponent(logId), { method: "DELETE" });
           });
         });
@@ -2568,7 +2596,7 @@
     rows.push(moreRow("Look and feel", "Theme, lighting, text size, language", function () { moreSub("Look and feel", function () { return [styleCard()]; }); }));
     if (!state.guest) rows.push(moreRow("Holidays", "Rest days: no reminders on holidays", function () { moreSub("Holidays", function () { return [holidaysCard()]; }); }));
     rows.push(moreRow("Country and area", "Used for local stores and prices", function () { moreSub("Country and area", function () { return [countryCard()]; }); }));
-    rows.push(moreRow("Punchy\u2019s Closet \ud83d\udc40", "Coming soon", function () {}, true));
+    rows.push(moreRow("Punchy\u2019s Closet \ud83d\udc40", state.guest || typeof state.coins !== "number" ? "Coming soon" : "Coming soon \u00b7 you have " + state.coins + (state.coins === 1 ? " coin" : " coins") + " \ud83e\ude99", function () {}, true));
     rows.push(moreRow("Help", "How One Place thinks, and a quick check-up", function () { moreSub("Help", function () { return state.guest ? [whyCard()] : [whyCard(), connectionsCard()]; }); }));
     if (!state.guest) {
       rows.push(moreRow("Feedback and invites", "Tell us what you think, bring a friend", function () { moreSub("Feedback and invites", function () { return [feedbackCard(), inviteCard()]; }); }));
@@ -2928,6 +2956,17 @@
       });
     }
     drawChips(); syncDue();
+    var sz = { size: "quick", outdoor: false };
+    var szChips = h("div", { class: "chips", role: "group", "aria-label": "Size of the job", "data-testid": "qr-size" });
+    var outBox = h("input", { type: "checkbox", id: "qrOut", "data-testid": "qr-outdoor", onchange: function () { sz.outdoor = outBox.checked; } });
+    var outRow = h("label", { class: "row", for: "qrOut", style: "display:none;border-top:0;padding:4px 0" }, [outBox, h("span", { text: " It\u2019s outdoors (yard, garage, exterior)" })]);
+    function drawSize() {
+      szChips.textContent = "";
+      [["quick", "Quick"], ["large", "Big job"]].forEach(function (o) {
+        szChips.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(sz.size === o[0]), text: o[1], "data-testid": "qr-size-" + o[0], onclick: function () { sz.size = o[0]; outRow.style.display = o[0] === "large" ? "" : "none"; if (o[0] !== "large") { sz.outdoor = false; outBox.checked = false; } drawSize(); } }));
+      });
+    }
+    drawSize();
     var status = h("div", { class: "result", role: "status" });
     var saveBtn = h("button", { type: "button", "data-testid": "qr-save", text: "Save reminder" });
     var backBtn = h("button", { type: "button", class: "quiet", text: "Back", onclick: function () { showHome(); } });
@@ -2943,7 +2982,7 @@
       var f = { files: [], problem: "", roomId: roomSel.value, newRoom: newRoom.value.trim() };
       if (f.roomId === "__house") { f.roomId = ""; f.newRoom = "Around the house"; }
       saveBtn.disabled = backBtn.disabled = true; status.className = "result"; status.textContent = "Saving…";
-      saveItem(f, { name: nm, brand: qbrand.value.trim(), model: qmodel.value.trim(), year: "", buy_store: bv.buy_store, buy_url: bv.buy_url }, [{ title: what, detail: null, kind: "maintenance", repeat_days: d || null, accept: true, due_pick: due.value }])
+      saveItem(f, { name: nm, brand: qbrand.value.trim(), model: qmodel.value.trim(), year: "", buy_store: bv.buy_store, buy_url: bv.buy_url }, [{ title: what, detail: null, kind: "maintenance", repeat_days: d || null, accept: true, due_pick: due.value, size: sz.size, outdoor: sz.outdoor }])
         .catch(function (err) { saveBtn.disabled = backBtn.disabled = false; fail("Not saved. " + err.message); });
     });
     view(h("section", { class: "card", "data-testid": "quick-reminder" }, [
@@ -2956,6 +2995,7 @@
       h("label", { class: "field" }, [h("span", { text: "Which room?" }), roomSel, newRoom]),
       h("div", { class: "field" }, [h("span", { text: "How often?" }), chips, custom]),
       h("label", { class: "field" }, [h("span", { text: "First due" }), due]),
+      h("div", { class: "field" }, [h("span", { text: "How big is it? (earns Punchy coins: quick 2, big job 50)" }), szChips, outRow]),
       h("div", { class: "actions" }, [saveBtn, backBtn]),
       status
     ]));
@@ -3046,12 +3086,15 @@
         return {
           profile_id: state.profile.id, item_id: itemRow.id, title: t.title, detail: t.detail, kind: t.kind,
           repeat_days: t.repeat_days, status: t.accept ? "active" : "suggested",
+          size: t.size === "large" ? "large" : "quick", outdoor: !!(t.size === "large" && t.outdoor),
           due_on: t.accept ? (t.due_pick || isoIn(t.first_due_in_days)) : null
         };
       })) }).catch(function (err) { throw new Error("The item saved, but its tasks didn’t: " + err.message); });
-    }).then(function () {
+    }).then(function (made) {
+      return awardNew(made);
+    }).then(function (coins) {
       var kept = tasks.filter(function (t) { return t.accept; }).length;
-      state.notice = "Saved! " + fl.name + " is in " + roomName(roomId) + (kept ? ", with " + kept + (kept === 1 ? " reminder." : " reminders.") : ".");
+      state.notice = "Saved! " + fl.name + " is in " + roomName(roomId) + (kept ? ", with " + kept + (kept === 1 ? " reminder." : " reminders.") : ".") + (coins ? " " + coinText(coins) : "");
       state.filter = "all";
       return loadHome().then(function () { if (kept) showNudge(showHome); else showHome(); });
     });
