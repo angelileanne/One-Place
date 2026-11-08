@@ -48,6 +48,11 @@
   button:disabled { opacity: .5; cursor: default; }
   button.quiet, .filebtn.quiet { background: transparent; color: var(--ink); border: 1px solid var(--line); }
   button.small { min-height: 36px; padding: 6px 12px; font-size: .9rem; }
+  .closet-stage { text-align: center; margin: 4px 0 10px; } .closet-stage img { width: min(74vw, 300px); height: auto; display: block; margin: 0 auto; }
+  .closet-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 8px; }
+  .closet-tile { display: block; padding: 6px 6px 10px; border-radius: 14px; background: var(--card); border: 2px solid var(--line); text-align: center; font-weight: 600; font-size: .88rem; color: var(--ink); }
+  .closet-tile[aria-pressed="true"] { border-color: var(--accent); background: var(--tint); }
+  .closet-tile img { width: 100%; height: auto; display: block; margin-bottom: 4px; }
   .backtop { margin: 2px 0 6px; } .backtop button.link { text-decoration: none; font-weight: 700; font-size: 1.02rem; padding: 6px 4px 6px 0; min-height: 40px; }
   button.link { background: none; color: var(--accent); padding: 4px 0; min-height: 32px; text-decoration: underline; }
   input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], select, textarea {
@@ -2569,13 +2574,6 @@
       h("h2", { text: "Completed Tasks" }),
       h("p", { class: "hint", text: "Nothing finished yet. When you tap Done! on a reminder, it moves here so your main page stays tidy." })
     ]);
-    var months = [], byKey = {};
-    logs.forEach(function (l) {
-      var k = String(l.done_on).slice(0, 7);
-      if (!byKey[k]) { byKey[k] = { key: k, rows: [] }; months.push(byKey[k]); }
-      byKey[k].rows.push(l);
-    });
-    var thisMonth = todayIso().slice(0, 7);
     function titleOf(l) {
       for (var i = 0; i < state.tasks.length; i++) if (state.tasks[i].id === l.task_id) return state.tasks[i].title;
       return l.note || "A finished task";
@@ -2584,25 +2582,115 @@
       for (var i = 0; i < state.items.length; i++) if (state.items[i].id === l.item_id) return state.items[i].name + " \u00b7 " + roomName(state.items[i].room_id);
       return "";
     }
-    var wrap = h("div", { "data-testid": "history" }, [
-      h("p", { class: "hint", text: logs.length + (logs.length === 1 ? " thing" : " things") + " finished so far. Nice work!" })
-    ]);
-    months.forEach(function (mo, idx) {
-      var label = new Date(mo.key + "-15T12:00:00").toLocaleDateString(undefined, { month: "long", year: "numeric" });
-      var d = h("details", { class: "item", "data-testid": "history-month" }, [
-        h("summary", {}, [label, h("span", { class: "badge", text: mo.rows.length + " done" })]),
-        h("div", { class: "body" }, [h("ul", { class: "tasks" }, mo.rows.map(function (l) {
-          var where = whereOf(l);
-          return h("li", { "data-testid": "history-row" }, [h("div", {}, [
-            h("div", { class: "t", text: titleOf(l) }),
-            h("div", { class: "m", text: niceDate(l.done_on) + (where ? " \u00b7 " + where : "") })
-          ])]);
-        }))])
-      ]);
-      if (mo.key === thisMonth || idx === 0) d.open = true;
-      wrap.appendChild(d);
+    var q = h("input", { type: "search", placeholder: "Search completed tasks", "aria-label": "Search completed tasks", "data-testid": "history-search" });
+    var root = h("div", { "data-testid": "history" });
+    var months = [], byMonth = {};
+    logs.forEach(function (l) {
+      var k = String(l.done_on).slice(0, 7);
+      if (!byMonth[k]) { byMonth[k] = { key: k, days: [], byDay: {} }; months.push(byMonth[k]); }
+      var m = byMonth[k];
+      if (!m.byDay[l.done_on]) { m.byDay[l.done_on] = []; m.days.push(l.done_on); }
+      m.byDay[l.done_on].push(l);
     });
-    return h("section", { class: "card" }, [h("h2", { text: "Completed Tasks" }), wrap]);
+    months.forEach(function (mo) {
+      var label = new Date(mo.key + "-15T12:00:00").toLocaleDateString(undefined, { month: "long", year: "numeric" });
+      var month = h("details", { class: "wn-month", "data-testid": "history-month" }, [h("summary", { text: label })]);
+      mo.days.forEach(function (d) {
+        var rows = mo.byDay[d];
+        var dayLabel = new Date(d + "T12:00:00").toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+        var day = h("details", { class: "wn-date", "data-testid": "history-date" }, [
+          h("summary", { text: dayLabel }, [h("span", { class: "wn-count", text: rows.length + (rows.length === 1 ? " task" : " tasks") })])
+        ]);
+        rows.forEach(function (l) {
+          var where = whereOf(l);
+          day.appendChild(h("div", { class: "wn-item", "data-testid": "history-row" }, [h("div", { class: "wn-title", text: titleOf(l) }), where ? h("p", { text: where }) : null]));
+        });
+        month.appendChild(day);
+      });
+      root.appendChild(month);
+    });
+    q.addEventListener("input", function () {
+      var needle = q.value.trim().toLowerCase();
+      [].forEach.call(root.querySelectorAll(".wn-month"), function (m) {
+        var monthHit = false;
+        [].forEach.call(m.querySelectorAll(".wn-date"), function (d) {
+          var hit = false;
+          [].forEach.call(d.querySelectorAll(".wn-item"), function (it) { var ok = !needle || it.textContent.toLowerCase().indexOf(needle) >= 0; it.hidden = !ok; if (ok) hit = true; });
+          d.hidden = !hit; d.open = !!needle && hit; if (hit) monthHit = true;
+        });
+        m.hidden = !monthHit; m.open = !!needle && monthHit;
+      });
+    });
+    var clearMsg = h("div", { class: "result", role: "status" });
+    var clearBtn = h("button", { type: "button", class: "quiet small", "data-testid": "clear-completed", text: "Clear completed tasks" });
+    var armed = false;
+    clearBtn.addEventListener("click", function () {
+      if (!armed) { armed = true; clearBtn.textContent = "Tap again to clear everything"; clearMsg.className = "result"; clearMsg.textContent = "This empties this list for good. Your coins and your repeating reminders stay as they are."; return; }
+      clearBtn.disabled = true; clearMsg.textContent = "Clearing\u2026";
+      var pid = encodeURIComponent(state.profile.id);
+      rest("maintenance_logs?profile_id=eq." + pid, { method: "DELETE" })
+        .then(function () { return rest("maintenance_tasks?profile_id=eq." + pid + "&status=eq.done", { method: "DELETE" }); })
+        .then(function () { state.logs = []; state.tasks = state.tasks.filter(function (t) { return t.status !== "done"; }); state.notice = "Cleared. Fresh start!"; showMore(); })
+        .catch(function (err) { clearBtn.disabled = false; armed = false; clearBtn.textContent = "Clear completed tasks"; clearMsg.className = "result bad"; clearMsg.textContent = "Couldn\u2019t clear that. " + err.message; });
+    });
+    return h("section", { class: "card" }, [
+      h("h2", { text: "Completed Tasks" }),
+      h("p", { class: "hint", text: logs.length + (logs.length === 1 ? " thing" : " things") + " finished so far. Nice work!" }),
+      q, root,
+      h("div", { style: "margin-top:14px" }, [clearBtn, clearMsg])
+    ]);
+  }
+
+
+  // ---- Punchy\u2019s Closet preview (owner only for now: browse every outfit, nothing to buy yet) ----
+  var CLOSET = [
+    { id: "dino", name: "Fuzzy dinosaur", cat: "costume" },
+    { id: "ducky", name: "Ducky", cat: "costume" },
+    { id: "penguin", name: "Grey penguin", cat: "costume" },
+    { id: "elephant", name: "Baby blue elephant", cat: "costume" },
+    { id: "astronaut", name: "Astronaut", cat: "costume" },
+    { id: "piggy", name: "Baby pink piggy", cat: "costume" },
+    { id: "bulldog", name: "Bulldog", cat: "costume" },
+    { id: "husky", name: "Husky", cat: "costume" },
+    { id: "cat", name: "Chunky cat", cat: "costume" },
+    { id: "teddy", name: "Brown teddy bear", cat: "costume" },
+    { id: "koala", name: "Koala", cat: "costume" },
+    { id: "honeybear", name: "Honey bear + pot", cat: "costume" },
+    { id: "xmas", name: "Christmas sweater", cat: "top" },
+    { id: "pj_stars", name: "Pajamas: starry night", cat: "pj" },
+    { id: "pj_clouds", name: "Pajamas: pink clouds", cat: "pj" },
+    { id: "pj_plaid", name: "Pajamas: red & black plaid", cat: "pj" },
+    { id: "turtle_pink", name: "Pink fuzzy turtleneck", cat: "top" },
+    { id: "crew_sage", name: "Sage crew neck sweater", cat: "top" },
+    { id: "cardigan_cream", name: "Cream cardigan", cat: "top" },
+    { id: "polo_navy", name: "Navy polo", cat: "top" },
+    { id: "hoodie_blue", name: "Dusty blue hoodie", cat: "top" },
+    { id: "turtle_lavender", name: "Lavender fuzzy turtleneck", cat: "top" }
+  ];
+  var CLOSET_CATS = [["all", "All"], ["costume", "Costumes"], ["top", "Tops"], ["pj", "Pajamas"]];
+  function showCloset() {
+    state.rerender = showCloset; state.pendingTab = "more";
+    var cat = state.closetCat || "all", wear = state.closetWear || "bare";
+    var cur = null; CLOSET.forEach(function (c) { if (c.id === wear) cur = c; });
+    var stage = h("div", { class: "closet-stage", "data-testid": "closet-stage" }, [
+      h("img", { src: "/assets/closet/" + (cur ? cur.id : "bare") + ".webp", alt: cur ? "Punchy wearing " + cur.name : "Punchy with no outfit" }),
+      h("h2", { text: cur ? cur.name : "Punchy" }),
+      cur ? h("button", { type: "button", class: "quiet small", "data-testid": "closet-off", text: "Take it off", onclick: function () { state.closetWear = "bare"; showCloset(); } }) : h("p", { class: "hint", text: "Pick an outfit below to try it on." })
+    ]);
+    var chips = h("div", { class: "chips", role: "group", "aria-label": "Outfit type" }, CLOSET_CATS.map(function (c) {
+      return h("button", { type: "button", class: "chip", "aria-pressed": String(cat === c[0]), text: c[1], onclick: function () { state.closetCat = c[0]; showCloset(); } });
+    }));
+    var grid = h("div", { class: "closet-grid", "data-testid": "closet-grid" }, CLOSET.filter(function (c) { return cat === "all" || c.cat === cat; }).map(function (c) {
+      return h("button", { type: "button", class: "closet-tile", "data-testid": "closet-tile", "aria-pressed": String(wear === c.id), onclick: function () { state.closetWear = c.id; showCloset(); window.scrollTo(0, 0); } }, [
+        h("img", { src: "/assets/closet/" + c.id + ".webp", alt: "", loading: "lazy" }), c.name]);
+    }));
+    state.backTo = showMore;
+    view([
+      h("header", {}, [h("h1", { text: "Punchy\u2019s Closet \ud83d\udc40" })]),
+      h("p", { class: "hint", text: "Preview just for you. Nothing to buy yet." }),
+      stage, chips, grid,
+      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Back", onclick: showMore })])
+    ]);
   }
 
   // ---- More: settings, feedback and everything that isn't an everyday action ----
@@ -2667,7 +2755,8 @@
     rows.push(moreRow("Look and feel", "Theme, lighting, text size, language", function () { moreSub("Look and feel", function () { return [styleCard()]; }); }));
     if (!state.guest) rows.push(moreRow("Holidays", "Rest days: no reminders on holidays", function () { moreSub("Holidays", function () { return [holidaysCard()]; }); }));
     rows.push(moreRow("Country and area", "Used for local stores and prices", function () { moreSub("Country and area", function () { return [countryCard()]; }); }));
-    rows.push(moreRow("Punchy\u2019s Closet \ud83d\udc40", state.guest || typeof state.coins !== "number" ? "Coming soon" : "Coming soon \u00b7 you have " + state.coins + (state.coins === 1 ? " coin" : " coins") + " \ud83e\ude99", function () {}, true));
+    if (state.isAdmin) rows.push(moreRow("Punchy\u2019s Closet \ud83d\udc40", "Owner preview \u00b7 try on every outfit", showCloset));
+    else rows.push(moreRow("Punchy\u2019s Closet \ud83d\udc40", state.guest || typeof state.coins !== "number" ? "Coming soon" : "Coming soon \u00b7 you have " + state.coins + (state.coins === 1 ? " coin" : " coins") + " \ud83e\ude99", function () {}, true));
     rows.push(moreRow("Help", "How One Place thinks, and a quick check-up", function () { moreSub("Help", function () { return state.guest ? [whyCard()] : [whyCard(), connectionsCard()]; }); }));
     if (!state.guest) {
       rows.push(moreRow("Feedback and invites", "Tell us what you think, bring a friend", function () { moreSub("Feedback and invites", function () { return [feedbackCard(), inviteCard()]; }); }));
