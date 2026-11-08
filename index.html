@@ -317,7 +317,7 @@
   "use strict";
 
   // ---- Build info + changelog. Every build adds an entry here (newest first). ----
-  var BUILD = { version: "0.8.15", phase: "Phase 8 · Joy layer" };
+  var BUILD = { version: "0.8.16", phase: "Phase 8 · Joy layer" };
   var CHANGELOG = [
     {
       month: "November 2026",
@@ -325,7 +325,7 @@
         {
           date: "Nov 7",
           title: "Earn coins for Punchy\u2019s Closet",
-          detail: "Finishing tasks now earns coins for Punchy\u2019s Closet (opening soon). Quick tasks earn 2, big jobs like deep cleaning or yard work earn 50, vehicle tasks 50, and pet tasks 20 when they\u2019re weekly or rarer. Setting a reminder earns 1 (up to 7 a day), and adding One Place to your Home Screen earns 50. Undo takes the coins back. Pick Quick or Big job when you add a reminder. Your coins show in More.",
+          detail: "Finishing tasks now earns coins for Punchy\u2019s Closet (opening soon). Everyday tasks earn 2. Big jobs, meaning anything you do only once or every 3 months or less often (deep cleaning, yard work), earn 50, but only once the reminder is at least a day old. Vehicle tasks earn 50 and pet tasks 20 when they\u2019re weekly or rarer. Setting a reminder earns 1 (up to 7 a day), and adding One Place to your Home Screen earns 50. Undo takes the coins back. Adding a reminder is easier too: paste a link to the product you buy, or snap a photo and the photo helper works out the make and model. Your coins show in More.",
           isNew: true
         },
         {
@@ -2924,6 +2924,41 @@
     ]);
   }
 
+  // ---- Easy start for reminders: paste a product link, or photograph the item or its label ----
+  function linkGuess(url) {
+    var u; try { u = new URL(url); } catch (e) { return { name: "", store: "" }; }
+    var host = u.hostname.replace(/^www\./, "").toLowerCase(), store = "";
+    if (/amazon\./.test(host) || host === "a.co" || host === "amzn.to") store = "Amazon";
+    else if (/walmart\./.test(host)) store = "Walmart";
+    else if (/homedepot\./.test(host)) store = "Home Depot";
+    else if (/lowes\./.test(host)) store = "Lowe\u2019s";
+    else if (/target\./.test(host)) store = "Target";
+    else if (/costco\./.test(host)) store = "Costco";
+    var segs = u.pathname.split("/").filter(Boolean), best = "";
+    segs.forEach(function (sg) { var d = decodeURIComponent(sg); if (/[a-z]/i.test(d) && d.indexOf("-") > 0 && d.length > best.length && !/^(dp|ip|p|gp|product|b0)/i.test(d)) best = d; });
+    var name = best.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+    if (name) name = name.charAt(0).toUpperCase() + name.slice(1);
+    return { name: name.slice(0, 90), store: store };
+  }
+  function supplyPrompt(extra) {
+    return [
+      "Someone wants a reminder to replace or service an everyday household or business supply (a filter, battery, bulb, pad, cartridge, and similar).",
+      extra,
+      prefs.lang !== "en" ? "Write every text value in " + LANG_NAME[prefs.lang] + ". Keep the JSON keys in English." : "",
+      "Reply with JSON only, in exactly this shape:",
+      "{\"name\": string, \"brand\": string|null, \"model\": string|null, \"what_to_do\": string, \"repeat_days\": number|null}",
+      "Rules: name is the plain thing, like Air filter or Water filter cartridge. brand and model (include the size or type, like 20x25x1 MERV 11) must be readable or stated; otherwise use null and never guess. what_to_do is a short action like Replace the filter. repeat_days is how often it is usually replaced, in days (for example 90 for a furnace filter), or null if unsure."
+    ].filter(Boolean).join("\n");
+  }
+  function parseSupply(text) {
+    var t = String(text || "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""), d;
+    try { d = JSON.parse(t); } catch (e) { var m = t.match(/\{[\s\S]*\}/); try { d = m ? JSON.parse(m[0]) : null; } catch (e2) { d = null; } }
+    if (!d || typeof d !== "object") throw new Error("I couldn\u2019t read the answer. Try again, or type it in.");
+    function c(x, n) { return typeof x === "string" && x.trim() ? x.trim().slice(0, n) : ""; }
+    var rd = Math.round(Number(d.repeat_days));
+    return { name: c(d.name, 120), brand: c(d.brand, 80), model: c(d.model, 120), doing: c(d.what_to_do, 120), repeat: rd >= 1 && rd <= 3660 ? rd : 0 };
+  }
+
   // ---- Quick reminder: everyday things (filters, supplies) in a room, no photo needed ----
   function showQuickReminder() {
     var st = { rep: 30, touched: false };
@@ -2932,6 +2967,46 @@
     var qbrand = h("input", { type: "text", maxlength: "80", placeholder: "e.g. Filtrete, Honeywell", "data-testid": "qr-brand" });
     var qmodel = h("input", { type: "text", maxlength: "120", placeholder: "e.g. 20x25x1 MERV 11, model #", "data-testid": "qr-model" });
     var qbuy = buyFields(null);
+    var qbuyUrl = qbuy.node.querySelector("input[type=text]");
+    var easyMsg = h("div", { class: "result", role: "status", "data-testid": "easy-msg" });
+    var detailsBox = null;
+    function applyGuess(g) {
+      if (g.name && !name.value.trim()) name.value = g.name;
+      if (g.doing && !doing.value.trim()) doing.value = g.doing;
+      if (g.brand && !qbrand.value.trim()) qbrand.value = g.brand;
+      if (g.model && !qmodel.value.trim()) qmodel.value = g.model;
+      if (g.repeat) { var known = null; OPTS_EASY.forEach(function (o) { if (o[1] === g.repeat) known = o; }); if (known) { st.rep = known[1]; } else { st.rep = -1; var wk = g.repeat % 30 === 0 ? [g.repeat / 30, "30"] : g.repeat % 7 === 0 ? [g.repeat / 7, "7"] : [g.repeat, "1"]; num.value = String(wk[0]); unit.value = wk[1]; custom.style.display = "flex"; } drawChips(); syncDue(); }
+      if (detailsBox) detailsBox.open = true;
+    }
+    var linkIn = h("input", { type: "text", inputmode: "url", autocapitalize: "none", maxlength: "500", placeholder: "Paste the link where you buy it", "aria-label": "Product link", "data-testid": "easy-link" });
+    var linkGo = h("button", { type: "button", class: "small", text: "Use link", "data-testid": "easy-link-go" });
+    linkGo.addEventListener("click", function () {
+      var url = safeUrl(linkIn.value); easyMsg.className = "result";
+      if (!url) { easyMsg.className = "result bad"; easyMsg.textContent = "That link doesn\u2019t look right."; return; }
+      var g = linkGuess(url); qbuyUrl.value = url;
+      if (g.store) { var chip = Array.prototype.filter.call(qbuy.node.querySelectorAll(".chip"), function (x) { return x.textContent === g.store; })[0]; if (chip && chip.getAttribute("aria-pressed") !== "true") chip.click(); }
+      applyGuess({ name: g.name });
+      if (state.guest || !g.name) { easyMsg.textContent = "Link saved. " + (g.name ? "" : "Type what it is below."); return; }
+      linkGo.disabled = true; easyMsg.textContent = "Reading the link\u2026";
+      callAI([{ text: supplyPrompt("The product link they pasted is: " + url + ". Work only from the words in that link.") }], { timeoutMs: 20000, config: { temperature: 0.2, maxOutputTokens: 600, responseMimeType: "application/json" } })
+        .then(parseSupply).then(function (r) { name.value = r.name || name.value; doing.value = doing.value || r.doing; qbrand.value = qbrand.value || r.brand; qmodel.value = qmodel.value || r.model; applyGuess({ repeat: r.repeat }); easyMsg.textContent = "Filled in from the link. Check it looks right."; })
+        .catch(function () { easyMsg.textContent = "Link saved. Check the name below."; })
+        .then(function () { linkGo.disabled = false; });
+    });
+    var photoIn = h("input", { type: "file", accept: "image/*", id: "easyPhoto", style: "display:none", "data-testid": "easy-photo" });
+    var photoBtn = h("label", { class: "filebtn quiet small", for: "easyPhoto", text: "Take or choose a photo" });
+    photoIn.addEventListener("change", function () {
+      var file = photoIn.files && photoIn.files[0]; if (!file) return; easyMsg.className = "result";
+      if (state.guest) { easyMsg.className = "result bad"; easyMsg.textContent = "The photo helper comes with a free account. Tap More, then Create account, and everything you\u2019ve added comes with you."; return; }
+      easyMsg.textContent = "Looking at your photo\u2026";
+      downscale(file, 1280).then(function (ph) {
+        return callAI([{ text: supplyPrompt("Look at the photo of the item, or its box or label, to work out what it is and its make and model.") }, { inline_data: { mime_type: "image/jpeg", data: ph.base64 } }], { timeoutMs: 30000, config: { temperature: 0.2, maxOutputTokens: 600, responseMimeType: "application/json" }, onBackup: function () { easyMsg.textContent = "That model is busy. Trying a backup\u2026"; } });
+      }).then(parseSupply).then(function (r) {
+        name.value = r.name || name.value; doing.value = r.doing || doing.value; qbrand.value = r.brand || qbrand.value; qmodel.value = r.model || qmodel.value; applyGuess({ repeat: r.repeat });
+        easyMsg.textContent = r.brand || r.model ? "Here\u2019s what I found. Check it looks right." : "I could tell what it is, but not the make or model. A closer photo of the label can help.";
+      }).catch(function (err) { easyMsg.className = "result bad"; easyMsg.textContent = err.message; });
+      photoIn.value = "";
+    });
     var roomSel = h("select", { "data-testid": "qr-room" },
       [h("option", { value: "", text: "Choose a room" })]
         .concat(state.rooms.map(function (r) { return h("option", { value: r.id, text: r.name }); }))
@@ -2947,6 +3022,7 @@
     function days() { if (st.rep === -1) return Math.max(1, Math.round(Number(num.value) || 1)) * Number(unit.value); return st.rep; }
     function syncDue() { if (!st.touched) due.value = isoIn(days() || 7); }
     num.addEventListener("input", syncDue); unit.addEventListener("change", syncDue);
+    var OPTS_EASY = [["Every week", 7], ["Every 2 weeks", 14], ["Monthly", 30], ["Every 3 months", 90], ["Every 6 months", 180], ["Yearly", 365]];
     var OPTS = [["Every week", 7], ["Every 2 weeks", 14], ["Monthly", 30], ["Every 3 months", 90], ["Every 6 months", 180], ["Yearly", 365], ["Just once", 0], ["Custom", -1]];
     var chips = h("div", { class: "chips", role: "group", "aria-label": "Repeat", "data-testid": "qr-repeat" });
     function drawChips() {
@@ -2956,17 +3032,6 @@
       });
     }
     drawChips(); syncDue();
-    var sz = { size: "quick", outdoor: false };
-    var szChips = h("div", { class: "chips", role: "group", "aria-label": "Size of the job", "data-testid": "qr-size" });
-    var outBox = h("input", { type: "checkbox", id: "qrOut", "data-testid": "qr-outdoor", onchange: function () { sz.outdoor = outBox.checked; } });
-    var outRow = h("label", { class: "row", for: "qrOut", style: "display:none;border-top:0;padding:4px 0" }, [outBox, h("span", { text: " It\u2019s outdoors (yard, garage, exterior)" })]);
-    function drawSize() {
-      szChips.textContent = "";
-      [["quick", "Quick"], ["large", "Big job"]].forEach(function (o) {
-        szChips.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(sz.size === o[0]), text: o[1], "data-testid": "qr-size-" + o[0], onclick: function () { sz.size = o[0]; outRow.style.display = o[0] === "large" ? "" : "none"; if (o[0] !== "large") { sz.outdoor = false; outBox.checked = false; } drawSize(); } }));
-      });
-    }
-    drawSize();
     var status = h("div", { class: "result", role: "status" });
     var saveBtn = h("button", { type: "button", "data-testid": "qr-save", text: "Save reminder" });
     var backBtn = h("button", { type: "button", class: "quiet", text: "Back", onclick: function () { showHome(); } });
@@ -2982,20 +3047,24 @@
       var f = { files: [], problem: "", roomId: roomSel.value, newRoom: newRoom.value.trim() };
       if (f.roomId === "__house") { f.roomId = ""; f.newRoom = "Around the house"; }
       saveBtn.disabled = backBtn.disabled = true; status.className = "result"; status.textContent = "Saving…";
-      saveItem(f, { name: nm, brand: qbrand.value.trim(), model: qmodel.value.trim(), year: "", buy_store: bv.buy_store, buy_url: bv.buy_url }, [{ title: what, detail: null, kind: "maintenance", repeat_days: d || null, accept: true, due_pick: due.value, size: sz.size, outdoor: sz.outdoor }])
+      saveItem(f, { name: nm, brand: qbrand.value.trim(), model: qmodel.value.trim(), year: "", buy_store: bv.buy_store, buy_url: bv.buy_url }, [{ title: what, detail: null, kind: "maintenance", repeat_days: d || null, accept: true, due_pick: due.value }])
         .catch(function (err) { saveBtn.disabled = backBtn.disabled = false; fail("Not saved. " + err.message); });
     });
     view(h("section", { class: "card", "data-testid": "quick-reminder" }, [
       h("h2", { text: "Add a reminder" }),
-      h("p", { class: "hint", text: "For everyday things that need doing on a schedule, like filters and supplies. No photo needed." }),
+      h("p", { class: "hint", text: "For everyday things that need doing on a schedule, like filters and supplies. Start with a link or a photo, or just type it." }),
+      h("div", { class: "field", "data-testid": "easy-start" }, [h("span", { text: "Easiest way to start" }),
+        h("div", { class: "actions", style: "margin-top:6px;align-items:center" }, [linkIn, linkGo]),
+        h("div", { class: "actions", style: "margin-top:6px" }, [photoBtn, photoIn]),
+        h("small", { text: "Paste a link to the exact one you buy, or photograph it or its label and I\u2019ll work out the make and model." }), easyMsg]),
       h("label", { class: "field" }, [h("span", { text: "What is it?" }), name]),
-      h("label", { class: "field" }, [h("span", { text: "What needs doing? (optional)" }), doing]),
-      h("div", { class: "two" }, [h("label", { class: "field" }, [h("span", { text: "Make / brand (optional)" }), qbrand]), h("label", { class: "field" }, [h("span", { text: "Model, size or type (optional)" }), qmodel])]),
-      qbuy.node,
+      (detailsBox = h("details", { class: "field", "data-testid": "qr-details" }, [h("summary", { text: "Make, model, what to do and where I buy it (optional)" }),
+        h("label", { class: "field", style: "margin-top:8px" }, [h("span", { text: "What needs doing?" }), doing]),
+        h("div", { class: "two" }, [h("label", { class: "field" }, [h("span", { text: "Make / brand" }), qbrand]), h("label", { class: "field" }, [h("span", { text: "Model, size or type" }), qmodel])]),
+        qbuy.node])),
       h("label", { class: "field" }, [h("span", { text: "Which room?" }), roomSel, newRoom]),
       h("div", { class: "field" }, [h("span", { text: "How often?" }), chips, custom]),
       h("label", { class: "field" }, [h("span", { text: "First due" }), due]),
-      h("div", { class: "field" }, [h("span", { text: "How big is it? (earns Punchy coins: quick 2, big job 50)" }), szChips, outRow]),
       h("div", { class: "actions" }, [saveBtn, backBtn]),
       status
     ]));
@@ -3086,7 +3155,6 @@
         return {
           profile_id: state.profile.id, item_id: itemRow.id, title: t.title, detail: t.detail, kind: t.kind,
           repeat_days: t.repeat_days, status: t.accept ? "active" : "suggested",
-          size: t.size === "large" ? "large" : "quick", outdoor: !!(t.size === "large" && t.outdoor),
           due_on: t.accept ? (t.due_pick || isoIn(t.first_due_in_days)) : null
         };
       })) }).catch(function (err) { throw new Error("The item saved, but its tasks didn’t: " + err.message); });
