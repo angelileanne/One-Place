@@ -47,9 +47,28 @@
   .chick { width: min(66vw, 16rem); height: auto; display: block; margin: 0 auto 1.25rem; overflow: visible; }
   .squish { transform-origin: 110px 190px; animation: chew 1.6s ease-in-out infinite; }
   .hair { transform-origin: 110px 56px; animation: sway 3.2s ease-in-out infinite; }
-  .crumb { opacity: 0; animation: crumb 1.6s ease-in infinite; }
-  .crumb.b { animation-delay: .55s; }
-  .crumb.c { animation-delay: 1.05s; }
+  .crumb { opacity: 0; animation: crumb 1.6s ease-in infinite; animation-delay: var(--d, 0s); }
+  .cheek { transform-origin: 110px 132px; animation: stuff 6.4s ease-in-out infinite; }
+  .biscuit { transform-origin: 110px 150px; animation: nibble 6.4s ease-in-out infinite; }
+  @keyframes stuff {
+    0% { transform: scale(1); }
+    6%, 23% { transform: scale(1.1); }
+    31%, 48% { transform: scale(1.2); }
+    56%, 73% { transform: scale(1.3); }
+    81%, 88% { transform: scale(1.4); }
+    94% { transform: scale(.98); }
+    100% { transform: scale(1); }
+  }
+  @keyframes nibble {
+    0%, 4% { transform: scale(1); opacity: 1; }
+    8%, 25% { transform: scale(.88); }
+    33%, 50% { transform: scale(.76); }
+    58%, 75% { transform: scale(.64); }
+    83%, 90% { transform: scale(.5); opacity: 1; }
+    94% { transform: scale(.4); opacity: 0; }
+    97% { transform: scale(1); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
   @keyframes chew {
     0%, 100% { transform: scale(1, 1); }
     25% { transform: scale(1.025, .965); }
@@ -63,13 +82,13 @@
   @keyframes crumb {
     0% { opacity: 0; transform: translate(0, 0); }
     20% { opacity: 1; }
-    100% { opacity: 0; transform: translate(4px, 30px); }
+    100% { opacity: 0; transform: translate(var(--dx, 4px), var(--dy, 34px)); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .squish, .hair, .crumb { animation: none; }
+    .squish, .hair, .crumb, .cheek, .biscuit { animation: none; }
   }
-  h1 { font-size: clamp(1.9rem, 6vw, 2.6rem); line-height: 1.15; margin: 0 0 .6rem; font-weight: 800; letter-spacing: -.01em; }
-  p { margin: 0; font-size: 1.1rem; line-height: 1.5; color: var(--soft); }
+  h1 { font-size: clamp(1.35rem, 4.4vw, 1.8rem); line-height: 1.15; margin: 0 0 .6rem; font-weight: 800; letter-spacing: -.01em; }
+  p { margin: 0; font-size: .98rem; line-height: 1.5; color: var(--soft); }
   .name { margin-top: 2rem; font-size: .95rem; font-weight: 700; color: var(--ink); }
 </style>
 </head>
@@ -123,20 +142,24 @@
       <circle cx="143" cy="112.5" r="3.2" fill="#fff"/>
       <circle cx="77.5" cy="120" r="1.5" fill="#fff" opacity=".8"/>
       <circle cx="137.5" cy="120" r="1.5" fill="#fff" opacity=".8"/>
-      <ellipse cx="58" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
-      <ellipse cx="162" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
+      <g class="cheek">
+        <ellipse cx="60" cy="134" rx="15" ry="13" fill="url(#fluff)"/>
+        <ellipse cx="160" cy="134" rx="15" ry="13" fill="url(#fluff)"/>
+        <ellipse cx="58" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
+        <ellipse cx="162" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
+      </g>
       <path d="M99 128 Q110 120 121 128 Q118 140 110 141 Q102 140 99 128 Z" fill="var(--beak)"/>
       <path d="M104 126 Q110 123 116 126" fill="none" stroke="#ffb27a" stroke-width="2" stroke-linecap="round" opacity=".8"/>
 
       <!-- cookie -->
-      <g mask="url(#bite)">
+      <g class="biscuit"><g mask="url(#bite)">
         <circle cx="110" cy="166" r="27" fill="url(#biscuit)"/>
         <circle cx="98" cy="160" r="3.4" fill="var(--chip)"/>
         <circle cx="122" cy="168" r="3.6" fill="var(--chip)"/>
         <circle cx="106" cy="178" r="3.1" fill="var(--chip)"/>
         <circle cx="127" cy="154" r="2.8" fill="var(--chip)"/>
         <circle cx="92" cy="174" r="2.6" fill="var(--chip)"/>
-      </g>
+      </g></g>
 
       <!-- stubby wings holding the cookie -->
       <ellipse cx="80" cy="168" rx="15" ry="10" fill="var(--chick)" transform="rotate(28 80 168)"/>
@@ -145,11 +168,18 @@
       <ellipse cx="144" cy="165" rx="7" ry="3.5" fill="var(--chick-hi)" opacity=".7" transform="rotate(-28 144 165)"/>
     </g>
 
-    <circle class="crumb" cx="104" cy="146" r="2.6" fill="var(--cookie)"/>
-    <circle class="crumb b" cx="116" cy="148" r="2.2" fill="var(--cookie)"/>
-    <circle class="crumb c" cx="110" cy="150" r="1.9" fill="var(--cookie)"/>
+    <circle class="crumb" cx="100" cy="146" r="2.6" fill="var(--cookie)" style="--d:0s;--dx:-6px;--dy:36px"/>
+    <circle class="crumb" cx="118" cy="148" r="2.2" fill="var(--cookie)" style="--d:0.2s;--dx:8px;--dy:32px"/>
+    <circle class="crumb" cx="110" cy="151" r="1.9" fill="var(--cookie)" style="--d:0.45s;--dx:0px;--dy:38px"/>
+    <circle class="crumb" cx="92" cy="142" r="2.0" fill="var(--cookie)" style="--d:0.7s;--dx:-12px;--dy:30px"/>
+    <circle class="crumb" cx="126" cy="144" r="2.4" fill="var(--cookie)" style="--d:0.95s;--dx:14px;--dy:34px"/>
+    <circle class="crumb" cx="106" cy="147" r="1.6" fill="var(--cookie)" style="--d:1.15s;--dx:-4px;--dy:40px"/>
+    <circle class="crumb" cx="114" cy="150" r="2.1" fill="var(--cookie)" style="--d:1.3s;--dx:10px;--dy:28px"/>
+    <circle class="crumb" cx="96" cy="150" r="1.7" fill="var(--cookie)" style="--d:0.35s;--dx:-9px;--dy:36px"/>
+    <circle class="crumb" cx="122" cy="152" r="1.8" fill="var(--cookie)" style="--d:0.85s;--dx:6px;--dy:40px"/>
+    <circle class="crumb" cx="103" cy="153" r="1.5" fill="var(--cookie)" style="--d:1.45s;--dx:-2px;--dy:32px"/>
   </svg>
-  <h1>We’re having a snack</h1>
+  <h1>We’re having a snack.</h1>
   <p>We’ll be right back. One Place is getting a fresh start.</p>
   <div class="name">One Place</div>
 </main>
