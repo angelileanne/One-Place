@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="One Place">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light">
 <title>One Place</title>
 <style>
   :root {
@@ -18,14 +18,6 @@
     --accent: #4e2e22; --accent-ink: #fbf3e8; --ok: #1f7a4d; --bad: #b3261e; --wait: #8a6a12;
     --tint: #e9d8c3;
     --shadow: 0 1px 2px rgba(70,40,25,.08), 0 8px 22px rgba(70,40,25,.08);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1f1814; --surface: #2a211b; --line: #43362c; --ink: #f3e8dc; --soft: #c4ae9a;
-      --accent: #e2b79a; --accent-ink: #2a160b; --ok: #7fd1a5; --bad: #ff8a80; --wait: #e6c66b;
-      --tint: #352a22;
-      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.25);
-    }
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -325,7 +317,7 @@
         {
           date: "Nov 7",
           title: "Earn coins for Punchy\u2019s Closet",
-          detail: "Finishing tasks now earns coins for Punchy\u2019s Closet (opening soon). Everyday tasks earn 2. Big jobs earn 100 when they repeat every 3 months or less often (deep cleaning, yard work) and 75 when they\u2019re one-offs, but only once the reminder is at least a day old. Vehicle tasks earn 50 and pet tasks 20 when they\u2019re weekly or rarer. Setting a reminder earns 1 (up to 7 a day), and adding One Place to your Home Screen earns 50. Undo takes the coins back. Adding a reminder is easier too: paste a link to the product you buy, or snap a photo and the photo helper works out the make and model. Your coins show in More.",
+          detail: "Finishing tasks now earns coins for Punchy\u2019s Closet (opening soon). Everyday tasks earn 2. Big jobs earn 100 when they repeat every 3 months or less often (deep cleaning, yard work) and 75 when they\u2019re one-offs, but only once the reminder is at least a day old. Vehicle tasks earn 50 and pet tasks 20 when they\u2019re weekly or rarer. Setting a reminder earns 1 (up to 7 a day), and adding One Place to your Home Screen earns 50. Undo takes the coins back. Adding a reminder is easier too: paste a link to the product you buy, or snap a photo and the photo helper works out the make and model. Your coins show in More. One Place now stays in light mode unless you choose Dark under More, Look and feel.",
           isNew: true
         },
         {
@@ -477,8 +469,9 @@
   ];
   var SIZES = [["Smaller", 0.9], ["Normal", 1], ["Bigger", 1.15], ["Biggest", 1.3]];
   function loadPrefs() {
-    var p = { theme: "latte", mode: "auto", size: 1, lang: "en" };
+    var p = { theme: "latte", mode: "light", size: 1, lang: "en" };
     try { var s = JSON.parse(localStorage.getItem(PREFS_KEY)); if (s) { if (THEMES.some(function (t) { return t.id === s.theme; })) p.theme = s.theme; if (["auto", "light", "dark"].indexOf(s.mode) >= 0) p.mode = s.mode; if (typeof s.lang === "string" && /^(en|es|tl|zh|ja|ko|de|fr|tr|th|lo)$/.test(s.lang)) p.lang = s.lang; if (SIZES.some(function (z) { return z[1] === s.size; })) p.size = s.size; } } catch (e) {}
+    try { if (!localStorage.getItem("oneplace.lightFix")) { localStorage.setItem("oneplace.lightFix", "1"); if (p.mode === "auto") p.mode = "light"; } } catch (e) {}
     try { if (!localStorage.getItem("oneplace.themeFix")) { localStorage.setItem("oneplace.themeFix", "1"); if (p.theme === "pine") p.theme = "latte"; } } catch (e) {}
     return p;
   }
