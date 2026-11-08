@@ -183,9 +183,9 @@
   .snackico { display: inline-block; width: 34px; height: 34px; vertical-align: middle; margin-right: 8px; } .snackico svg { width: 100%; height: 100%; display: block; overflow: visible; }
   @media (prefers-reduced-motion: reduce) { .pp { display: none; } .pdraw, .pdraw.waddle, .pdraw.sleep, .zb, .kbody { animation: none; } .zb { opacity: 1; transform: scale(1.3); } }
 
-  .punchy { position: fixed; z-index: 15; width: var(--psz, 64px); height: var(--psz, 64px); touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; transform-origin: 100% 100%; transition: transform .5s cubic-bezier(.3,.7,.3,1); filter: drop-shadow(0 3px 3px rgba(0,0,0,.28)); }
-  @media (max-width: 600px) { :root { --psz: 50px; } }
-  .punchy[data-acting="1"] { transform: scale(1.7); }
+  .punchy { position: fixed; z-index: 15; width: var(--psz, 108px); height: var(--psz, 108px); touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; transform-origin: 100% 100%; transition: transform .5s cubic-bezier(.3,.7,.3,1); filter: drop-shadow(0 3px 3px rgba(0,0,0,.28)); }
+  @media (max-width: 600px) { :root { --psz: 85px; } }
+  /* Punchy is one size whether he stands, types, waves or flips (no jump in size). */
   .punchy.dragging { cursor: grabbing; transition: none; }
   .punchy[hidden], .pocketpill[hidden] { display: none; }
   .pk { position: absolute; inset: 0; }
@@ -3393,7 +3393,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     el.setAttribute("data-acting", name === "idle" ? "0" : "1");
     if (ms) punchy.timer = setTimeout(function () { punchyPose(punchy.typing ? "type" : "idle"); if (after) after(); }, ms);
   }
-  function punchySize() { return window.innerWidth <= 600 ? 50 : 64; }
+  function punchySize() { return window.innerWidth <= 600 ? 85 : 108; }
   function punchySave() { lsSetJson(PUNCHY_KEY, { x: punchy.x, y: punchy.y, pocket: punchy.pocket, seenWave: punchy.seenWave, seenFlip: punchy.seenFlip }); }
   function punchyPlace() {
     var el = punchy.el, w = window.innerWidth, hh = window.innerHeight, size = punchySize();
