@@ -194,6 +194,8 @@
   @media (max-width: 600px) { :root { --psz: 85px; } }
   /* Punchy is one size whether he stands, types, waves or flips (no jump in size). */
   .punchy.dressed .rig { display: none !important; } .punchy.dressed .rest { display: block !important; }
+  .punchy, .punchy * { -webkit-touch-callout: none; touch-action: none; }
+  html.punchy-drag, html.punchy-drag body { overscroll-behavior: none; overflow: hidden; }
   .punchy.dragging { cursor: grabbing; transition: none; }
   .punchy[hidden], .pocketpill[hidden] { display: none; }
   .pk { position: absolute; inset: 0; }
@@ -3664,17 +3666,20 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     el.addEventListener("pointermove", function (e) {
       if (!drag) return; var dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
       if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 7) return;
-      drag.moved = true; el.classList.add("dragging");
+      drag.moved = true; el.classList.add("dragging"); document.documentElement.classList.add("punchy-drag");
       var w = window.innerWidth, hh = window.innerHeight;
       var nx = Math.max(0, Math.min(w - punchySize(), drag.ox + dx)), ny = Math.max(0, Math.min(hh - punchySize(), drag.oy + dy));
       el.style.left = nx + "px"; el.style.top = ny + "px"; punchyLink(nx, ny, punchySize());
     });
     function end() {
-      if (!drag) return; var d = drag; drag = null; el.classList.remove("dragging");
+      if (!drag) return; var d = drag; drag = null; el.classList.remove("dragging"); document.documentElement.classList.remove("punchy-drag");
       if (d.moved) { var w = window.innerWidth, hh = window.innerHeight; punchy.x = el.offsetLeft / (w - punchySize()); punchy.y = el.offsetTop / (hh - punchySize()); punchySave(); }
       else punchyTap();
     }
-    el.addEventListener("pointerup", end); el.addEventListener("pointercancel", function () { drag = null; el.classList.remove("dragging"); });
+    // Keep the page (and a host app's pull-down sheet) still while Punchy is being dragged.
+    ["touchstart", "touchmove"].forEach(function (ev) { el.addEventListener(ev, function (e) { if (e.cancelable) e.preventDefault(); }, { passive: false }); });
+    el.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    el.addEventListener("pointerup", end); el.addEventListener("pointercancel", function () { drag = null; el.classList.remove("dragging"); document.documentElement.classList.remove("punchy-drag"); });
     window.addEventListener("resize", punchyPlace);
     // Works on his laptop whenever someone is busy: typing, tapping around, scrolling. Rests after a few quiet seconds.
     function busy(e) {
