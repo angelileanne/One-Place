@@ -38,17 +38,7 @@
   .squish { transform-origin: 110px 190px; animation: chew 1.6s ease-in-out infinite; }
   .hair { transform-origin: 110px 56px; animation: sway 3.2s ease-in-out infinite; }
   .crumb { opacity: 0; animation: crumb 1.6s ease-in infinite; animation-delay: var(--d, 0s); }
-  .cheek { transform-origin: 110px 132px; animation: stuff 6.4s ease-in-out infinite; }
   .biscuit { transform-origin: 110px 150px; animation: nibble 6.4s ease-in-out infinite; }
-  @keyframes stuff {
-    0% { transform: scale(1); }
-    6%, 23% { transform: scale(1.1); }
-    31%, 48% { transform: scale(1.2); }
-    56%, 73% { transform: scale(1.3); }
-    81%, 88% { transform: scale(1.4); }
-    94% { transform: scale(.98); }
-    100% { transform: scale(1); }
-  }
   @keyframes nibble {
     0%, 4% { transform: scale(1); opacity: 1; }
     8%, 25% { transform: scale(.88); }
@@ -75,7 +65,7 @@
     100% { opacity: 0; transform: translate(var(--dx, 4px), var(--dy, 34px)); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .squish, .hair, .crumb, .cheek, .biscuit { animation: none; }
+    .squish, .hair, .crumb, .biscuit { animation: none; }
   }
   h1 { margin: 0 0 8px; font-size: 1.45rem; letter-spacing: -.01em; font-weight: 800; }
   p { margin: 0; font-size: .95rem; line-height: 1.5; color: var(--soft); }
@@ -133,12 +123,8 @@
       <circle cx="143" cy="112.5" r="3.2" fill="#fff"/>
       <circle cx="77.5" cy="120" r="1.5" fill="#fff" opacity=".8"/>
       <circle cx="137.5" cy="120" r="1.5" fill="#fff" opacity=".8"/>
-      <g class="cheek">
-        <ellipse cx="60" cy="134" rx="15" ry="13" fill="url(#fluff)"/>
-        <ellipse cx="160" cy="134" rx="15" ry="13" fill="url(#fluff)"/>
-        <ellipse cx="58" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
-        <ellipse cx="162" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
-      </g>
+      <ellipse cx="58" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
+      <ellipse cx="162" cy="136" rx="12" ry="7" fill="var(--blush)" opacity=".6"/>
       <path d="M99 128 Q110 120 121 128 Q118 140 110 141 Q102 140 99 128 Z" fill="var(--beak)"/>
       <path d="M104 126 Q110 123 116 126" fill="none" stroke="#ffb27a" stroke-width="2" stroke-linecap="round" opacity=".8"/>
 
