@@ -1325,8 +1325,25 @@
     if (/not confirmed/i.test(text) || code === "email_not_confirmed") return "Please confirm your email first. Check your inbox for the link.";
     if (res.status === 429 || /rate limit/i.test(text) || code === "over_email_send_rate_limit") return "Too many emails were sent just now. Wait a few minutes and try again.";
     if (/already registered/i.test(text) || code === "user_already_exists") return "That email already has an account. Try signing in.";
-    if (/password/i.test(text) && /(short|least|weak)/i.test(text)) return "Choose a password with at least 8 characters.";
+    if (/password/i.test(text) && /(short|least|weak)/i.test(text)) return "Choose a password with at least 10 characters.";
+    if (/pwned|leaked|compromised|breach/i.test(text)) return "That password has shown up in a data leak. Please choose a different one.";
     return text || ("Sign-in answered with an error (" + res.status + ").");
+  }
+
+  // Free password check (no paid service): at least 10 characters, nothing too common or guessable.
+  var COMMON_PW = ["password","passw0rd","qwertyuiop","qwerty123","1234567890","123456789","12345678","iloveyou","letmein","welcome","admin","monkey","dragon","football","baseball","sunshine","princess","trustno1","abc12345","111111","000000","changeme","oneplace","one place"];
+  function passwordProblem(p, em) {
+    if (p.length < 10) return "Choose a password with at least 10 characters.";
+    var low = p.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (/^(.)\1+$/.test(low)) return "That password is too easy to guess. Try mixing words, numbers, or a short sentence.";
+    if ("abcdefghijklmnopqrstuvwxyz".indexOf(low) >= 0 || "0123456789".indexOf(low) >= 0 || "qwertyuiopasdfghjklzxcvbnm".indexOf(low) >= 0) return "That password is too easy to guess. Try mixing words, numbers, or a short sentence.";
+    for (var i = 0; i < COMMON_PW.length; i++) {
+      var c = COMMON_PW[i].replace(/[^a-z0-9]/g, "");
+      if (low === c || (low.indexOf(c) === 0 && low.length - c.length <= 6 && c.length >= 6)) return "That password is very common. Try something more personal.";
+    }
+    var local = (em || "").split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (local.length >= 4 && low.indexOf(local) >= 0) return "Your password shouldn\u2019t contain your email name. Try something different.";
+    return "";
   }
 
   function showAuth(mode, note) {
@@ -1334,14 +1351,14 @@
     var isNew = mode === "signup";
     var msg = h("div", { class: "result", role: "status", "data-testid": "auth-message" }, note || "");
     var email = h("input", { type: "email", id: "authEmail", autocomplete: "email", required: true, "data-testid": "auth-email" });
-    var pw = h("input", { type: "password", id: "authPw", autocomplete: isNew ? "new-password" : "current-password", minlength: "8", required: true, "data-testid": "auth-password" });
+    var pw = h("input", { type: "password", id: "authPw", autocomplete: isNew ? "new-password" : "current-password", minlength: isNew ? "10" : "8", required: true, "data-testid": "auth-password" });
     var submit = h("button", { type: "submit", "data-testid": "auth-submit", text: isNew ? "Create account" : "Sign in" });
     var keepBox = h("input", { type: "checkbox", id: "authKeep", "data-testid": "auth-keep" });
     try { keepBox.checked = localStorage.getItem("oneplace.keep") !== "0"; if (localStorage.getItem("oneplace.email")) email.value = localStorage.getItem("oneplace.email"); } catch (e) { keepBox.checked = true; }
 
     var form = h("form", { novalidate: true }, [
       h("label", { class: "field" }, [h("span", { text: "Email" }), email]),
-      h("label", { class: "field" }, [h("span", { text: "Password" }), pw, isNew ? h("small", { text: "At least 8 characters." }) : null]),
+      h("label", { class: "field" }, [h("span", { text: "Password" }), pw, isNew ? h("small", { text: "At least 10 characters. A short sentence works well." }) : null]),
       h("label", { style: "display:flex;gap:8px;align-items:center;margin:6px 0" }, [keepBox, h("span", { text: "Keep me signed in on this device" })]),
       submit, msg
     ]);
@@ -1351,7 +1368,8 @@
       try { localStorage.setItem("oneplace.keep", keepBox.checked ? "1" : "0"); if (keepBox.checked) localStorage.setItem("oneplace.email", em); else localStorage.removeItem("oneplace.email"); } catch (e2) {}
       msg.className = "result";
       if (!/^\S+@\S+\.\S+$/.test(em)) { msg.className = "result bad"; msg.textContent = "Type a full email address."; return; }
-      if (p.length < 8) { msg.className = "result bad"; msg.textContent = "Choose a password with at least 8 characters."; return; }
+      if (isNew) { var pwProblem = passwordProblem(p, em); if (pwProblem) { msg.className = "result bad"; msg.textContent = pwProblem; return; } }
+      else if (p.length < 1) { msg.className = "result bad"; msg.textContent = "Type your password."; return; }
       submit.disabled = true;
       msg.textContent = isNew ? "Creating your account…" : "Signing in…";
       var req = isNew
@@ -1397,15 +1415,15 @@
   }
 
   function showNewPassword() {
-    var pw = h("input", { type: "password", autocomplete: "new-password", minlength: "8", "data-testid": "new-password" });
+    var pw = h("input", { type: "password", autocomplete: "new-password", minlength: "10", "data-testid": "new-password" });
     var msg = h("div", { class: "result", role: "status" });
     var form = h("form", { novalidate: true }, [
-      h("label", { class: "field" }, [h("span", { text: "New password" }), pw, h("small", { text: "At least 8 characters." })]),
+      h("label", { class: "field" }, [h("span", { text: "New password" }), pw, h("small", { text: "At least 10 characters. A short sentence works well." })]),
       h("button", { type: "submit", text: "Save new password" }), msg
     ]);
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      if (pw.value.length < 8) { msg.className = "result bad"; msg.textContent = "Choose a password with at least 8 characters."; return; }
+      var npProblem = passwordProblem(pw.value, ""); if (npProblem) { msg.className = "result bad"; msg.textContent = npProblem; return; }
       api("/auth/v1/", "user", { method: "PUT", body: JSON.stringify({ password: pw.value }) }).then(function (res) {
         return readJson(res).then(function (b) {
           if (!res.ok) throw new Error(authMessage(res, b));
