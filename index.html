@@ -193,6 +193,7 @@
   .punchy { position: fixed; z-index: 15; width: var(--psz, 108px); height: var(--psz, 108px); touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; transform-origin: 100% 100%; transition: transform .5s cubic-bezier(.3,.7,.3,1); filter: drop-shadow(0 3px 3px rgba(0,0,0,.28)); }
   @media (max-width: 600px) { :root { --psz: 85px; } }
   /* Punchy is one size whether he stands, types, waves or flips (no jump in size). */
+  .punchy.dressed .rig { display: none !important; } .punchy.dressed .rest { display: block !important; }
   .punchy.dragging { cursor: grabbing; transition: none; }
   .punchy[hidden], .pocketpill[hidden] { display: none; }
   .pk { position: absolute; inset: 0; }
@@ -2726,18 +2727,19 @@
   var CLOSET_CATS = [["all", "All"], ["costume", "Costumes"], ["top", "Tops"], ["pj", "Pajamas"]];
   function showCloset() {
     state.rerender = showCloset; state.pendingTab = "more";
+    if (!state.closetWear) { try { state.closetWear = localStorage.getItem("oneplace.outfit") || "bare"; } catch (e) {} }
     var cat = state.closetCat || "all", wear = state.closetWear || "bare";
     var cur = null; CLOSET.forEach(function (c) { if (c.id === wear) cur = c; });
     var stage = h("div", { class: "closet-stage", "data-testid": "closet-stage" }, [
       h("img", { src: "/assets/closet/" + (cur ? cur.id : "bare") + ".webp", alt: cur ? "Punchy wearing " + cur.name : "Punchy with no outfit" }),
       h("h2", { text: cur ? cur.name : "Punchy" }),
-      cur ? h("button", { type: "button", class: "quiet small", "data-testid": "closet-off", text: "Take it off", onclick: function () { state.closetWear = "bare"; showCloset(); } }) : h("p", { class: "hint", text: "Pick an outfit below to try it on." })
+      cur ? h("button", { type: "button", class: "quiet small", "data-testid": "closet-off", text: "Take it off", onclick: function () { state.closetWear = "bare"; setOutfit(null); showCloset(); } }) : h("p", { class: "hint", text: "Pick an outfit below to try it on." })
     ]);
     var chips = h("div", { class: "chips", role: "group", "aria-label": "Outfit type" }, CLOSET_CATS.map(function (c) {
       return h("button", { type: "button", class: "chip", "aria-pressed": String(cat === c[0]), text: c[1], onclick: function () { state.closetCat = c[0]; showCloset(); } });
     }));
     var grid = h("div", { class: "closet-grid", "data-testid": "closet-grid" }, CLOSET.filter(function (c) { return cat === "all" || c.cat === cat; }).map(function (c) {
-      return h("button", { type: "button", class: "closet-tile", "data-testid": "closet-tile", "aria-pressed": String(wear === c.id), onclick: function () { state.closetWear = c.id; showCloset(); window.scrollTo(0, 0); } }, [
+      return h("button", { type: "button", class: "closet-tile", "data-testid": "closet-tile", "aria-pressed": String(wear === c.id), onclick: function () { state.closetWear = c.id; setOutfit(c.id); showCloset(); window.scrollTo(0, 0); } }, [
         h("img", { src: "/assets/closet/" + c.id + ".webp", alt: "", loading: "lazy" }), c.name]);
     }));
     state.backTo = showMore;
@@ -3586,6 +3588,20 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     + '<path d="M455 575 C395 340 560 172 800 168 C1040 172 1205 340 1145 575" fill="none" stroke="#b8590f" stroke-width="40" stroke-linecap="round" opacity=".55"/><path d="M455 575 C395 340 560 172 800 168 C1040 172 1205 340 1145 575" fill="none" stroke="url(#hp)" stroke-width="30" stroke-linecap="round"/>'
     + '<g><ellipse cx="452" cy="612" rx="60" ry="88" fill="#b8590f"/><ellipse cx="456" cy="610" rx="50" ry="78" fill="url(#hp)"/><ellipse cx="440" cy="590" rx="14" ry="30" fill="#fff" opacity=".28"/><ellipse cx="1148" cy="612" rx="60" ry="88" fill="#b8590f"/><ellipse cx="1144" cy="610" rx="50" ry="78" fill="url(#hp)"/><ellipse cx="1132" cy="590" rx="14" ry="30" fill="#fff" opacity=".28"/></g>'
     + '<ellipse cx="800" cy="1346" rx="360" ry="26" fill="#000" opacity=".16"/><rect x="480" y="1118" width="640" height="220" rx="30" fill="url(#lap)" stroke="#8d949c" stroke-width="5"/><rect x="480" y="1318" width="640" height="26" rx="12" fill="#8d949c"/><circle cx="800" cy="1228" r="22" fill="#f2f4f6" opacity=".7"/></svg>';
+  // The little helper wears whatever outfit was picked in the closet (standing pose only while dressed).
+  function setOutfit(id) {
+    try { if (id && id !== "bare") localStorage.setItem("oneplace.outfit", id); else localStorage.removeItem("oneplace.outfit"); } catch (e) {}
+    applyOutfit();
+  }
+  function applyOutfit() {
+    var el = punchy.el; if (!el) return;
+    var img = el.querySelector(".rest"); if (!img) return;
+    if (!punchy.baseSrc) punchy.baseSrc = img.getAttribute("src");
+    var id = null; try { id = localStorage.getItem("oneplace.outfit"); } catch (e) {}
+    var ok = id && CLOSET.some(function (c) { return c.id === id; });
+    if (ok) { img.src = "/assets/closet/m-" + id + ".webp"; el.classList.add("dressed"); }
+    else { img.src = punchy.baseSrc; el.classList.remove("dressed"); }
+  }
   function punchyBuild() {
     var el = h("div", { class: "punchy noprint", "data-testid": "punchy", role: "img", "aria-label": "Punchy, the little helper" });
     el.innerHTML = '<div class="pk"><img class="rest" alt="" src="' + PUNCHY_IMG.full + '"><div class="rig" style="position:absolute;inset:0"><img class="body" alt="" src="' + PUNCHY_IMG.noarm + '"></div></div>';
@@ -3640,7 +3656,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     var st = lsGetJson(PUNCHY_KEY, {});
     punchy.x = typeof st.x === "number" ? st.x : null; punchy.y = typeof st.y === "number" ? st.y : null;
     punchy.pocket = !!st.pocket; punchy.seenWave = !!st.seenWave; punchy.seenFlip = !!st.seenFlip; punchy.typing = false;
-    var el = punchy.el = punchyBuild(); document.body.appendChild(el);
+    var el = punchy.el = punchyBuild(); document.body.appendChild(el); applyOutfit();
     punchy.link = h("button", { type: "button", class: "pocketlink noprint", text: "tuck me in \uD83D\uDCA4", "data-testid": "punchy-pocket", hidden: true, onclick: function () { punchyPocket(true); } }); document.body.appendChild(punchy.link);
     punchy.pill = h("button", { type: "button", class: "pocketpill noprint", text: "Punchy is napping \u00b7 tap to wake", "data-testid": "punchy-restore", hidden: true, onclick: function () { punchyPocket(false); } }); document.body.appendChild(punchy.pill);
     var drag = null;
