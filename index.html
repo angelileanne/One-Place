@@ -53,6 +53,7 @@
   .closet-tile { display: block; padding: 6px 6px 10px; border-radius: 14px; background: var(--card); border: 2px solid var(--line); text-align: center; font-weight: 600; font-size: .88rem; color: var(--ink); }
   .closet-tile[aria-pressed="true"] { border-color: var(--accent); background: var(--tint); }
   .closet-tile img { width: 100%; height: auto; display: block; margin-bottom: 4px; }
+  details.later { margin-top: 8px; } details.later > summary { cursor: pointer; font-weight: 700; color: var(--soft); padding: 6px 0; min-height: 36px; }
   .backtop { margin: 2px 0 6px; } .backtop button.link { text-decoration: none; font-weight: 700; font-size: 1.02rem; padding: 6px 4px 6px 0; min-height: 40px; }
   button.link { background: none; color: var(--accent); padding: 4px 0; min-height: 32px; text-decoration: underline; }
   input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], select, textarea {
@@ -1612,6 +1613,24 @@
   }
 
   function openTasks(list) { return (list || []).filter(function (t) { return t.status !== "done"; }); }
+  // To do now (due within 30 days, overdue, suggestions, or finished today) vs. coming up later (collapsed).
+  function taskSections(tasks, noneText) {
+    var open = openTasks(tasks), today = todayIso(), limit = addDaysIso(today, 30), now = [], later = [];
+    open.forEach(function (t) {
+      var far = t.status === "active" && t.last_done_on !== today && (isSnoozed(t) || (t.due_on && effDate(t) > limit));
+      (far ? later : now).push(t);
+    });
+    later.sort(function (a, b) { var x = isSnoozed(a) ? a.snoozed_until : effDate(a), y = isSnoozed(b) ? b.snoozed_until : effDate(b); return x < y ? -1 : x > y ? 1 : 0; });
+    var box = h("div", {});
+    if (now.length) box.appendChild(h("ul", { class: "tasks" }, now.map(taskRow)));
+    else if (!later.length) box.appendChild(h("div", { class: "detail", text: tasks.length ? "All done! Finished ones are in More, then Completed Tasks." : noneText }));
+    else box.appendChild(h("div", { class: "detail", text: "Nothing to do right now." }));
+    if (later.length) box.appendChild(h("details", { class: "later", "data-testid": "tasks-later" }, [
+      h("summary", { text: "Coming up later (" + later.length + ")" }),
+      h("ul", { class: "tasks" }, later.map(taskRow))
+    ]));
+    return box;
+  }
   function tasksFor(itemId) { return state.tasks.filter(function (t) { return t.item_id === itemId; }); }
   function itemOf(t) { for (var i = 0; i < state.items.length; i++) if (state.items[i].id === t.item_id) return state.items[i]; return null; }
   function isSnoozed(t) { return !!t.snoozed_until && t.snoozed_until > todayIso(); }
@@ -2305,7 +2324,7 @@
       h("summary", {}, [en.name]),
       h("div", { class: "body" }, [
         bits ? h("div", { class: "detail", text: bits }) : null,
-        openTasks(tasks).length ? h("ul", { class: "tasks" }, openTasks(tasks).map(taskRow)) : h("div", { class: "detail", text: tasks.length ? "All done! Finished ones are in More, then Completed Tasks." : "No reminders yet." }),
+        taskSections(tasks, "No reminders yet."),
         h("div", { class: "actions" }, [rm])
       ])
     ]);
@@ -2473,8 +2492,7 @@
     if (item.problem) body.appendChild(h("div", { class: "detail", text: "Problem: " + item.problem }));
     var thumbs = h("div", { class: "thumbs" });
     body.appendChild(thumbs);
-    if (openTasks(tasks).length) body.appendChild(h("ul", { class: "tasks" }, openTasks(tasks).map(taskRow)));
-    else body.appendChild(h("div", { class: "detail", text: tasks.length ? "All done! Finished ones are in More, then Completed Tasks." : "No tasks yet." }));
+    body.appendChild(taskSections(tasks, "No tasks yet."));
     var pl = partsLog(item); if (pl) body.appendChild(pl);
     body.appendChild(buyPanel(item));
     body.appendChild(helpRow(item));
@@ -2579,6 +2597,27 @@
 
 
   // ---- Completed Tasks: everything finished, grouped by month (newest first) ----
+  function ownerWipeCard() {
+    // Owner only: wipe every task (open and done) so the list can start fresh. Items and rooms stay.
+    var wipeBox = null;
+    if (state.isAdmin) {
+      var wipeMsg = h("div", { class: "result", role: "status" });
+      var wipeBtn = h("button", { type: "button", class: "quiet small", "data-testid": "wipe-all-tasks", text: "Owner: delete ALL my tasks" });
+      var wipeArmed = false;
+      wipeBtn.addEventListener("click", function () {
+        if (!wipeArmed) { wipeArmed = true; wipeBtn.textContent = "Tap again to delete every task"; wipeMsg.className = "result"; wipeMsg.textContent = "This removes all " + state.tasks.length + " tasks and your finished list for good. Your rooms, items and coins stay."; return; }
+        wipeBtn.disabled = true; wipeMsg.textContent = "Deleting\u2026";
+        var pid = encodeURIComponent(state.profile.id);
+        rest("maintenance_logs?profile_id=eq." + pid, { method: "DELETE" })
+          .then(function () { return rest("maintenance_tasks?profile_id=eq." + pid, { method: "DELETE" }); })
+          .then(function () { state.logs = []; state.tasks = []; state.notice = "All tasks deleted. Fresh start!"; showMore(); })
+          .catch(function (err) { wipeBtn.disabled = false; wipeArmed = false; wipeBtn.textContent = "Owner: delete ALL my tasks"; wipeMsg.className = "result bad"; wipeMsg.textContent = "Couldn\u2019t delete. " + err.message; });
+      });
+      wipeBox = h("div", { style: "margin-top:14px" }, [wipeBtn, wipeMsg]);
+    }
+    return wipeBox ? h("section", { class: "card" }, [h("h2", { text: "Owner tools" }), wipeBox]) : null;
+  }
+
   function historyCard() {
     var logs = (state.logs || []).slice().sort(function (a, b) { return a.done_on < b.done_on ? 1 : a.done_on > b.done_on ? -1 : (a.created_at < b.created_at ? 1 : -1); });
     if (!logs.length) return h("section", { class: "card", "data-testid": "history-empty" }, [
@@ -2768,7 +2807,7 @@
     if (!state.guest) rows.push(moreRow("Notifications", "Morning reminders on this phone", function () { moreSub("Notifications", function () { return [notifyCard()]; }); }));
     if (!isStandalone()) rows.push(moreRow("Add to Home Screen", "Open One Place like an app", function () { showInstallGuide(showMore); }));
     if (!state.guest) rows.push(moreRow("My pros", "Trusted handymen, mechanics and more", function () { showPros(); }));
-    rows.push(moreRow("Completed Tasks", "Everything you\u2019ve finished, by month", function () { moreSub("Completed Tasks", function () { return [historyCard()]; }); }));
+    rows.push(moreRow("Completed Tasks", "Everything you\u2019ve finished, by month", function () { moreSub("Completed Tasks", function () { return [historyCard(), ownerWipeCard()]; }); }));
     rows.push(moreRow("Look and feel", "Theme, lighting, text size, language", function () { moreSub("Look and feel", function () { return [styleCard()]; }); }));
     if (!state.guest) rows.push(moreRow("Holidays", "Rest days: no reminders on holidays", function () { moreSub("Holidays", function () { return [holidaysCard()]; }); }));
     rows.push(moreRow("Country and area", "Used for local stores and prices", function () { moreSub("Country and area", function () { return [countryCard()]; }); }));
