@@ -1671,7 +1671,12 @@
   }
 
   function markDone(t) {
-    var today = todayIso(), prev = snapshot(t), logId = null, earned = 0, dueKey = t.due_on || today;
+    var today = todayIso();
+    // One completion per task per day, and ignore extra taps while one is saving.
+    if (t._saving) return;
+    if (t.last_done_on === today && (state.logs || []).some(function (l) { return l.task_id === t.id && l.done_on === today; })) { showToast("Already done today", function () { return Promise.resolve(); }); return; }
+    t._saving = true;
+    var prev = snapshot(t), logId = null, earned = 0, dueKey = t.due_on || today;
     var patch = { last_done_on: today, snoozed_until: null };
     if (t.repeat_days) patch.due_on = addDaysIso(today, Math.min(t.repeat_days, 3650)); else patch.status = "done";
     state.snoozing = null;
@@ -1693,7 +1698,8 @@
           });
         });
       })
-      .catch(function (err) { state.notice = "Couldn’t mark that done. " + err.message; state.rerender && state.rerender(); });
+      .catch(function (err) { state.notice = "Couldn’t mark that done. " + err.message; state.rerender && state.rerender(); })
+      .then(function () { delete t._saving; });
   }
 
   function snoozeTo(t, iso, label) {
@@ -1731,8 +1737,13 @@
   }
 
   function actionButtons(t) {
+    var today = todayIso();
+    if (t.last_done_on === today) {
+      return h("div", { class: "m", "data-testid": "done-today", style: "margin-top:6px;font-weight:700" }, "\u2713 Done today" + (t.due_on ? " \u00b7 next due " + niceDate(t.due_on) : ""));
+    }
+    var early = diffDays(today, effDate(t)) > 14;
     return h("div", { class: "actions", style: "margin-top:0" }, [
-      h("button", { type: "button", class: "small", text: "Done!", "data-testid": "done-button", "aria-label": "Done: " + t.title, onclick: function () { markDone(t); } }),
+      h("button", { type: "button", class: early ? "quiet small" : "small", text: early ? "Done early" : "Done!", "data-testid": "done-button", "aria-label": "Done: " + t.title, onclick: function () { markDone(t); } }),
       h("button", { type: "button", class: "quiet small", text: "Snooze", "data-testid": "snooze-button", "aria-label": "Snooze: " + t.title, onclick: function () { state.snoozing = state.snoozing === t.id ? null : t.id; showHome(); } }),
       h("button", { type: "button", class: "quiet small", text: "Add to my calendar", "data-testid": "add-to-calendar", "aria-label": "Add to my calendar: " + t.title, onclick: function () { addToCalendar(t); } })
     ]);
@@ -2601,9 +2612,15 @@
         var day = h("details", { class: "wn-date", "data-testid": "history-date" }, [
           h("summary", { text: dayLabel }, [h("span", { class: "wn-count", text: rows.length + (rows.length === 1 ? " task" : " tasks") })])
         ]);
+        var seen = {}, merged = [];
         rows.forEach(function (l) {
-          var where = whereOf(l);
-          day.appendChild(h("div", { class: "wn-item", "data-testid": "history-row" }, [h("div", { class: "wn-title", text: titleOf(l) }), where ? h("p", { text: where }) : null]));
+          var key = l.task_id || ("x" + l.id);
+          if (seen[key]) { seen[key].n++; return; }
+          seen[key] = { l: l, n: 1 }; merged.push(seen[key]);
+        });
+        merged.forEach(function (g) {
+          var l = g.l, where = whereOf(l);
+          day.appendChild(h("div", { class: "wn-item", "data-testid": "history-row" }, [h("div", { class: "wn-title", text: titleOf(l) + (g.n > 1 ? " \u00d7" + g.n : "") }), where ? h("p", { text: where }) : null]));
         });
         month.appendChild(day);
       });
