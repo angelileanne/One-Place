@@ -460,7 +460,7 @@
     var tab = state.pendingTab; state.pendingTab = null;
     var nav = $("tabbar"); nav.hidden = !tab; document.body.setAttribute("data-nav", tab ? "1" : "0");
     [].forEach.call(nav.querySelectorAll("button"), function (b) { if (b.getAttribute("data-tab") === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
-    $("newTitle").closest("section").hidden = tab !== "more";
+    $("newTitle").closest("section").hidden = true; // only the main More screen turns this back on
     window.scrollTo(0, 0);
   }
   // ---- Make it yours: themes, lighting, text size (look only; never changes what the app does) ----
