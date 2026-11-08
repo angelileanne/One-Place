@@ -48,6 +48,7 @@
   button:disabled { opacity: .5; cursor: default; }
   button.quiet, .filebtn.quiet { background: transparent; color: var(--ink); border: 1px solid var(--line); }
   button.small { min-height: 36px; padding: 6px 12px; font-size: .9rem; }
+  .backtop { margin: 2px 0 6px; } .backtop button.link { text-decoration: none; font-weight: 700; font-size: 1.02rem; padding: 6px 4px 6px 0; min-height: 40px; }
   button.link { background: none; color: var(--accent); padding: 4px 0; min-height: 32px; text-decoration: underline; }
   input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], select, textarea {
     font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
@@ -441,8 +442,13 @@
     });
     return el;
   }
+  function backTop(fn) {
+    return h("div", { class: "backtop noprint" }, [h("button", { type: "button", class: "link", "data-testid": "back-top", "aria-label": "Back", onclick: function () { fn(); } }, ["\u2039 Back"])]);
+  }
   function view(nodes) {
     var app = $("app");
+    var backFn = state.backTo; state.backTo = null;
+    if (backFn) nodes = [backTop(backFn)].concat(nodes);
     document.body.classList.toggle("cozy", !!state.cozyNext); state.cozyNext = false;
     app.textContent = "";
     [].concat(nodes).forEach(function (n) { if (n) app.appendChild(n); });
@@ -998,6 +1004,7 @@
       return h("button", { type: "button", class: "chip", "aria-pressed": String(l[0] === key), text: l[1], onclick: function () { showInstallGuide(back, l[0]); } });
     }));
     paint();
+    state.backTo = back;
     view(h("section", { class: "card", style: "text-align:center" }, [
       h("h1", { text: "Add One Place to your Home Screen" }),
       h("p", { class: "hint", text: "It opens like an app, one tap away, and it’s how morning reminders reach you." }),
@@ -1058,6 +1065,7 @@
       box.appendChild(sec("Last 30 days", tbl(["Day", "Accounts", "Visits"], a.daily.map(function (d) { return [d.day, d.accounts, d.visits]; }))));
       box.appendChild(sec("Per account", tbl(["Who", "Visits", "Days", "Last seen", "Lang", "Country"], a.per_account.map(function (x) { return [(x.name ? x.name + " " : "") + "(" + x.email + ")", x.visits, x.days, x.last_seen ? dtl(x.last_seen) : "never", x.lang || "", x.country || ""]; }))));
     }).catch(function (err) { box.textContent = ""; box.appendChild(h("p", { class: "hint", text: "Couldn\u2019t load. " + err.message })); });
+    state.backTo = showMore;
     view([h("header", {}, [h("h1", { text: "Analytics" })]), h("p", { class: "hint", text: "Only you can see this. A visit is one time someone opens One Place (counted at most every 30 minutes). Guests aren\u2019t counted." }), box,
       h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Back", onclick: showMore })])]);
   }
@@ -1145,6 +1153,7 @@
       h("div", { class: "actions" }, [save]), msg
     ]);
     if (note) form.open = false;
+    state.backTo = showMore;
     view([
       h("header", {}, [h("h1", { text: "My pros" })]),
       note ? h("div", { class: "banner", role: "status", "data-testid": "notice", text: note }) : null,
@@ -1175,6 +1184,7 @@
         ]));
       });
     }).catch(function (err) { box.textContent = ""; box.appendChild(h("p", { class: "hint", text: "Couldn’t load. " + err.message })); });
+    state.backTo = showMore;
     view([h("header", {}, [h("h1", { text: "Pro leads" })]), h("p", { class: "hint", text: "Only you can see this. People who recommended them stay anonymous." }), box,
       h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Back", onclick: showMore })])]);
   }
@@ -1401,6 +1411,7 @@
       }).catch(function (err) { msg.className = "result bad"; msg.textContent = err.message || "Couldn’t send that. Try again."; });
     } });
 
+    state.backTo = state.session ? null : showIntro;
     view(h("section", { class: "card", "data-testid": "auth-card" }, [
       h("h1", { text: "One Place" }),
       h("p", { class: "hint", text: isNew ? "Make an account with your email. It keeps your home private and lets you send feedback and reach local pros." : "Welcome back! Sign in with your email." }),
@@ -2278,7 +2289,7 @@
       h("summary", {}, [en.name]),
       h("div", { class: "body" }, [
         bits ? h("div", { class: "detail", text: bits }) : null,
-        openTasks(tasks).length ? h("ul", { class: "tasks" }, openTasks(tasks).map(taskRow)) : h("div", { class: "detail", text: tasks.length ? "All done! Finished ones are in More, then Done! history." : "No reminders yet." }),
+        openTasks(tasks).length ? h("ul", { class: "tasks" }, openTasks(tasks).map(taskRow)) : h("div", { class: "detail", text: tasks.length ? "All done! Finished ones are in More, then Completed Tasks." : "No reminders yet." }),
         h("div", { class: "actions" }, [rm])
       ])
     ]);
@@ -2403,6 +2414,7 @@
         .then(function (rows) { state.profiles.push(rows[0]); state.notice = "Added " + nm + ". Add rooms and items whenever you’re ready."; return switchProfile(rows[0]); })
         .catch(function (err) { saveBtn.disabled = false; msg.className = "result bad"; msg.textContent = "Not saved. " + err.message; });
     });
+    state.backTo = showHome;
     view(h("section", { class: "card", "data-testid": "add-profile-card" }, [h("h2", { text: "Add another home or business" }), h("p", { class: "hint", text: "It gets its own rooms, items and reminders. Switch between them any time from the top of Home." }), form]));
   }
   function moveRow(item) {
@@ -2446,7 +2458,7 @@
     var thumbs = h("div", { class: "thumbs" });
     body.appendChild(thumbs);
     if (openTasks(tasks).length) body.appendChild(h("ul", { class: "tasks" }, openTasks(tasks).map(taskRow)));
-    else body.appendChild(h("div", { class: "detail", text: tasks.length ? "All done! Finished ones are in More, then Done! history." : "No tasks yet." }));
+    else body.appendChild(h("div", { class: "detail", text: tasks.length ? "All done! Finished ones are in More, then Completed Tasks." : "No tasks yet." }));
     var pl = partsLog(item); if (pl) body.appendChild(pl);
     body.appendChild(buyPanel(item));
     body.appendChild(helpRow(item));
@@ -2550,11 +2562,11 @@
   }
 
 
-  // ---- Done! history: everything finished, grouped by month (newest first) ----
+  // ---- Completed Tasks: everything finished, grouped by month (newest first) ----
   function historyCard() {
     var logs = (state.logs || []).slice().sort(function (a, b) { return a.done_on < b.done_on ? 1 : a.done_on > b.done_on ? -1 : (a.created_at < b.created_at ? 1 : -1); });
     if (!logs.length) return h("section", { class: "card", "data-testid": "history-empty" }, [
-      h("h2", { text: "Done!" }),
+      h("h2", { text: "Completed Tasks" }),
       h("p", { class: "hint", text: "Nothing finished yet. When you tap Done! on a reminder, it moves here so your main page stays tidy." })
     ]);
     var months = [], byKey = {};
@@ -2590,7 +2602,7 @@
       if (mo.key === thisMonth || idx === 0) d.open = true;
       wrap.appendChild(d);
     });
-    return h("section", { class: "card" }, [h("h2", { text: "Done!" }), wrap]);
+    return h("section", { class: "card" }, [h("h2", { text: "Completed Tasks" }), wrap]);
   }
 
   // ---- More: settings, feedback and everything that isn't an everyday action ----
@@ -2604,6 +2616,7 @@
     var go = function () {
       state.rerender = go; state.pendingTab = "more";
       var notice = state.notice; state.notice = "";
+      state.backTo = showMore;
       view([
         h("header", {}, [h("h1", { text: title })]),
         notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
@@ -2650,7 +2663,7 @@
     if (!state.guest) rows.push(moreRow("Notifications", "Morning reminders on this phone", function () { moreSub("Notifications", function () { return [notifyCard()]; }); }));
     if (!isStandalone()) rows.push(moreRow("Add to Home Screen", "Open One Place like an app", function () { showInstallGuide(showMore); }));
     if (!state.guest) rows.push(moreRow("My pros", "Trusted handymen, mechanics and more", function () { showPros(); }));
-    rows.push(moreRow("Done! history", "Everything you\u2019ve finished, by month", function () { moreSub("Done! history", function () { return [historyCard()]; }); }));
+    rows.push(moreRow("Completed Tasks", "Everything you\u2019ve finished, by month", function () { moreSub("Completed Tasks", function () { return [historyCard()]; }); }));
     rows.push(moreRow("Look and feel", "Theme, lighting, text size, language", function () { moreSub("Look and feel", function () { return [styleCard()]; }); }));
     if (!state.guest) rows.push(moreRow("Holidays", "Rest days: no reminders on holidays", function () { moreSub("Holidays", function () { return [holidaysCard()]; }); }));
     rows.push(moreRow("Country and area", "Used for local stores and prices", function () { moreSub("Country and area", function () { return [countryCard()]; }); }));
@@ -2918,6 +2931,7 @@
     });
 
     drawThumbs();
+    state.backTo = showHome;
     view(h("section", { class: "card", "data-testid": "add-item-flow" }, [
       h("h2", { text: f.another ? "Add another " + (f.name || "item").toLowerCase() : "Plan my fix" }),
       h("p", { class: "hint", text: state.guest ? "Tell me what it is and where it lives. Photos and fix-it plans unlock with a free account." : "Tell me what it is and add a photo or two. I’ll suggest a plan, and you choose what to keep." }),
@@ -3108,6 +3122,7 @@
       saveItem(f, { name: nm, brand: qbrand.value.trim(), model: qmodel.value.trim(), year: "", buy_store: bv.buy_store, buy_url: bv.buy_url }, [{ title: what, detail: null, kind: "maintenance", repeat_days: d || null, accept: true, due_pick: due.value }])
         .catch(function (err) { saveBtn.disabled = backBtn.disabled = false; fail("Not saved. " + err.message); });
     });
+    state.backTo = showHome;
     view(h("section", { class: "card", "data-testid": "quick-reminder" }, [
       h("h2", { text: "Add a reminder" }),
       h("p", { class: "hint", text: "For everyday things that need doing on a schedule, like filters and supplies. Start with a link or a photo, or just type it." }),
@@ -3172,6 +3187,7 @@
     skipAll.addEventListener("click", function () { go(false); });
 
     var needPlate = f.files.length && !plan.plateVisible && !(plan.brand && plan.model);
+    state.backTo = function () { renderStep1(f); };
     view(h("section", { class: "card", "data-testid": "add-item-flow" }, [
       h("h2", { text: "Here’s the plan" }),
       plan.summary ? h("p", { class: "hint", text: plan.summary }) : null,
