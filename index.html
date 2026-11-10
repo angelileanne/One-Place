@@ -375,6 +375,10 @@
   .roomhead .hint { margin: 0 6px 0 auto; }
   .roomhead .orgtoggle { order: 1; } .roomhead .draghandle { order: 2; }
   details.item summary .draghandle { margin-left: auto; }
+  .draghint { position: fixed; z-index: 60; max-width: 240px; padding: 9px 13px; border-radius: 12px; background: #2f2118; color: #fff; font-size: .85rem; font-weight: 600; line-height: 1.3; box-shadow: 0 6px 18px rgba(0,0,0,.3); opacity: 0; transform: translateY(4px); transition: opacity .2s, transform .2s; pointer-events: auto; }
+  .draghint.on { opacity: 1; transform: none; }
+  .draghint::after { content: ""; position: absolute; left: var(--ax, 50%); bottom: -5px; width: 10px; height: 10px; background: inherit; transform: translateX(-50%) rotate(45deg); border-radius: 2px; }
+  .draghint.below::after { bottom: auto; top: -5px; }
   .lifted { position: relative; z-index: 20; box-shadow: 0 10px 28px rgba(0,0,0,.28); cursor: grabbing; }
   body.dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }
   body.dragging .roomgroup > :not(.roomhead):not(.orgbar) , body.dragging details.item[data-testid=entry] > .body { display: none !important; }
@@ -2624,6 +2628,24 @@
     state.backTo = showHome;
     view(h("section", { class: "card", "data-testid": "add-profile-card" }, [h("h2", { text: "Add another home or business" }), h("p", { class: "hint", text: "It gets its own rooms, items and reminders. Switch between them any time from the top of Home." }), form]));
   }
+  // One-time hint the first time someone taps the reorder icon without dragging.
+  function dragHintSeen() { try { return localStorage.getItem("oneplace.dragHint") === "1"; } catch (e) { return false; } }
+  function markDragHint() { try { localStorage.setItem("oneplace.dragHint", "1"); } catch (e) {} }
+  function showDragHint(anchor) {
+    if (dragHintSeen()) return; markDragHint();
+    var old = document.querySelector(".draghint"); if (old) old.remove();
+    var r = anchor.getBoundingClientRect();
+    var tip = h("div", { class: "draghint", role: "status", "data-testid": "drag-hint", text: "Drag to change the order" });
+    document.body.appendChild(tip);
+    var w = tip.offsetWidth, left = Math.max(10, Math.min(window.innerWidth - w - 10, r.right - w)), top = r.top - tip.offsetHeight - 10;
+    if (top < 80) top = r.bottom + 10;
+    tip.style.left = left + "px"; tip.style.top = top + "px";
+    tip.style.setProperty("--ax", Math.max(14, Math.min(w - 14, r.left + r.width / 2 - left)) + "px");
+    if (top > r.top) tip.classList.add("below");
+    requestAnimationFrame(function () { tip.classList.add("on"); });
+    setTimeout(function () { tip.classList.remove("on"); setTimeout(function () { tip.remove(); }, 250); }, 3200);
+    tip.addEventListener("pointerdown", function () { tip.remove(); });
+  }
   function reorderTo(table, list, row, newIdx) {
     var idx = list.indexOf(row);
     if (idx < 0 || newIdx === idx || newIdx < 0 || newIdx >= list.length) return Promise.resolve();
@@ -2639,7 +2661,7 @@
   function dragHandle(sel, elArg, onDrop, label) {
     function getEl() { return typeof elArg === "function" ? elArg() : elArg; }
     var grip = h("button", { type: "button", class: "draghandle noprint", "aria-label": label, title: "Drag to reorder", "data-testid": "drag-handle" });
-    grip.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); });
+    grip.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); showDragHint(grip); });
     grip.addEventListener("touchstart", function (e) { e.preventDefault(); }, { passive: false });
     grip.addEventListener("touchmove", function (e) { e.preventDefault(); }, { passive: false });
     grip.addEventListener("contextmenu", function (e) { e.preventDefault(); });
@@ -2690,7 +2712,8 @@
         done = true; cancelAnimationFrame(raf);
         grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); grip.removeEventListener("pointercancel", cn);
         try { grip.releasePointerCapture(e.pointerId); } catch (x) {}
-        if (!started) return;
+        if (!started) { if (!cancel) showDragHint(grip); return; }
+        markDragHint();
         if (cancel) newIdx = idx0;
         var target = newIdx > idx0 ? rects[newIdx].top + rects[newIdx].h - hEl : rects[newIdx].top;
         el.style.transition = "transform .18s ease"; el.style.transform = "translateY(" + (target - rects[idx0].top) + "px)";
