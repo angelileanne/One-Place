@@ -2975,7 +2975,7 @@
       h("header", {}, [h("h1", { text: "More" })]),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
       h("div", { class: "rowlist" }, rows),
-      state.guest ? null : h("p", { class: "hint", style: "font-size:.8rem;text-align:center", text: "To make One Place better, we\u2019re always improving the things you recommend. All we see is how often it\u2019s opened and the language and country you use, never your items or notes. Thank you for your continued support! \uD83D\uDC9B" }),
+      state.guest ? null : h("p", { class: "hint", style: "font-size:.8rem;text-align:center", text: "To make One Place better, all we see is how often it\u2019s opened and the language and country you use, never your items or notes. I appreciate your continued use to help improve this app \uD83D\uDC9B" }),
       h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: state.guest ? "Leave guest mode" : "Sign out", "data-testid": "sign-out", onclick: state.guest ? function () { leaveGuest(); showIntro(); } : signOut })])
     ]);
     $("newTitle").closest("section").hidden = false;
