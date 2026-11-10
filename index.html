@@ -269,7 +269,7 @@
   .morerow .chev { color: var(--soft); font-size: 1.3rem; flex: none; }
   .morerow[disabled] { opacity: .5; filter: grayscale(1); cursor: not-allowed; }
   .rowlist { display: grid; gap: 10px; }
-  body.cozy .punchy, body.cozy .pocketlink, body.cozy .pocketpill { display: none !important; }
+  body.cozy .punchy, body.cozy .pocketlink, body.cozy .punchysleep { display: none !important; }
   .signin-link { font-weight: 400; font-size: .8rem; min-height: 0; padding: 2px 6px; }
   .cozy-row { display: flex; justify-content: center; gap: 4px; margin: 0 auto 6px; }
   .cozy-row > div { width: 84px; height: 84px; }
@@ -321,10 +321,10 @@
   body::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .5; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .25  0 0 0 0 .15  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
   html[data-mode="dark"] body::after { opacity: .5; filter: invert(1); }
   @media print { body::after { display: none; } }
-  .pocketlink[hidden], .pocketpill[hidden], .punchy[hidden] { display: none !important; }
+  .pocketlink[hidden], .punchysleep[hidden], .punchy[hidden] { display: none !important; }
   /* Punchy sits in the bar next to More: leave a blank spot for him */
   .tabbar { transition: padding .2s ease; }
-  body[data-dock="1"] .tabbar { padding-right: calc(var(--psz, 108px) + 10px); }
+  body[data-dock="1"] .tabbar { padding-right: calc(var(--dockw, var(--psz, 108px)) + 10px); }
   .punchy { z-index: 19; }
   /* Desktop: use the room, stay cozy */
   #app { display: grid; gap: 30px; align-content: start; }
@@ -341,6 +341,29 @@
     h2 { font-size: 1.25rem; }
   }
   @media (min-width: 1500px) { .wrap { max-width: 1240px; } }
+
+  /* nap button, sleeper and delete controls */
+  .pocketlink { text-decoration: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: .78rem; font-weight: 700; opacity: 1; box-shadow: 0 2px 8px rgba(0,0,0,.12); z-index: 20; white-space: nowrap; }
+  .punchysleep { position: fixed; z-index: 19; padding: 0; border: 0; background: none; cursor: pointer; min-height: 0; touch-action: manipulation; }
+  .punchysleep img { width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+  .zbubble { position: absolute; left: 6%; top: -22px; pointer-events: none; display: block; width: 46px; height: 30px; }
+  .zbubble i { position: absolute; font-style: normal; font-weight: 800; color: var(--accent); opacity: 0; animation: zfloat 3.2s ease-in-out infinite; font-size: .9rem; }
+  .zbubble i:nth-child(1) { left: 0; animation-delay: 0s; }
+  .zbubble i:nth-child(2) { left: 14px; animation-delay: 1s; font-size: 1.1rem; }
+  .zbubble i:nth-child(3) { left: 30px; animation-delay: 2s; font-size: 1.35rem; }
+  @keyframes zfloat { 0% { transform: translate(0,12px) scale(.7); opacity: 0; } 25% { opacity: 1; } 100% { transform: translate(8px,-14px) scale(1.1); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .zbubble i { animation: none; opacity: .9; } }
+  .delx { min-height: 0; width: 24px; height: 24px; padding: 0; border-radius: 999px; font-size: 1rem; line-height: 1; font-weight: 800; background: var(--tint); color: var(--soft); border: 1px solid var(--line); display: inline-flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .15s; flex: none; }
+  .delx.armed { width: auto; padding: 0 10px; font-size: .75rem; background: #b3261e; color: #fff; border-color: #b3261e; opacity: 1; }
+  details.item summary .delx { margin-left: auto; }
+  details.item summary:hover .delx, .delwrap:hover .delx, .delx:focus-visible, .delx.armed { opacity: 1; }
+  .delwrap { display: inline-flex; align-items: center; gap: 4px; }
+  @media (hover: none) { .delx { opacity: .75; } }
+  @media (min-width: 960px) {
+    .tabbar { gap: clamp(24px, 5vw, 80px); }
+    .tabbar button { max-width: 230px; flex-direction: row; gap: 10px; font-size: .95rem; min-height: 58px; padding: 6px 18px; }
+    .tabbar button svg { width: 26px; height: 26px; }
+  }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Fraunces:ital,wght@0,600;0,700;1,500&display=swap">
@@ -474,7 +497,6 @@
   var SUPABASE_KEY = "sb_publishable_1TrviuurElOjjrQRY56oUg_yzgNwHiR";
   var AI_MODELS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"];
   var SESSION_KEY = "oneplace.session";
-  var ROOM_IDEAS = ["Kitchen", "Bathroom", "Bedroom", "Living room", "Garage", "Yard"];
 
   var state = { pendingTab: null, rerender: null, cal: { mode: "month", anchor: "" }, session: null, person: null, profile: null, profiles: [], rooms: [], items: [], tasks: [], parts: [], entries: [], logs: [], help: {}, filter: "all", notice: "" };
 
@@ -1666,6 +1688,45 @@
   }
 
   // ---- Home ----
+  // Small "-" control that shows on hover (always on touch screens). Tap once to arm, tap again to delete.
+  function delButton(label, armedText, doDelete) {
+    var b = h("button", { type: "button", class: "delx noprint", "aria-label": label, title: label, text: "\u2212", "data-testid": "delete-btn" });
+    var armed = false, timer = null;
+    function reset() { armed = false; b.classList.remove("armed"); b.textContent = "\u2212"; b.setAttribute("aria-label", label); }
+    b.addEventListener("click", function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (!armed) { armed = true; b.classList.add("armed"); b.textContent = armedText; b.setAttribute("aria-label", armedText); clearTimeout(timer); timer = setTimeout(reset, 4000); return; }
+      clearTimeout(timer); b.disabled = true; b.textContent = "\u2026";
+      doDelete().catch(function (err) { b.disabled = false; reset(); state.notice = "Couldn\u2019t delete. " + err.message; showHome(); });
+    });
+    return b;
+  }
+  function deleteItemRows(item) {
+    var q = "?item_id=eq." + encodeURIComponent(item.id);
+    return rest("maintenance_logs" + q, { method: "DELETE" })
+      .then(function () { return rest("maintenance_tasks" + q, { method: "DELETE" }); })
+      .then(function () { return rest("parts" + q, { method: "DELETE" }); })
+      .then(function () { return rest("items?id=eq." + encodeURIComponent(item.id), { method: "DELETE" }); })
+      .then(function () {
+        state.items = state.items.filter(function (i) { return i.id !== item.id; });
+        state.tasks = state.tasks.filter(function (t) { return t.item_id !== item.id; });
+        state.logs = (state.logs || []).filter(function (l) { return l.item_id !== item.id; });
+      });
+  }
+  function deleteItem(item) {
+    return deleteItemRows(item).then(function () { state.notice = "Deleted " + item.name + "."; showHome(); });
+  }
+  function deleteRoom(room) {
+    var kids = state.items.filter(function (i) { return i.room_id === room.id; }), chain = Promise.resolve();
+    kids.forEach(function (it) { chain = chain.then(function () { return deleteItemRows(it); }); });
+    return chain.then(function () { return rest("rooms?id=eq." + encodeURIComponent(room.id), { method: "DELETE" }); })
+      .then(function () {
+        state.rooms = state.rooms.filter(function (r) { return r.id !== room.id; });
+        if (state.filter === room.id) state.filter = "all";
+        state.notice = "Deleted " + room.name + (kids.length ? " and its " + kids.length + (kids.length === 1 ? " item." : " items.") : ".");
+        showHome();
+      });
+  }
   function addRoom(name) {
     name = name.trim();
     if (!name) return Promise.reject(new Error("Type a room name first."));
@@ -2547,6 +2608,7 @@
     var details = h("details", { class: "item", "data-testid": "item" });
     var summary = h("summary", {}, [item.name + " — " + roomName(item.room_id)]);
     if (active) summary.appendChild(h("span", { class: "badge", text: active + (active === 1 ? " reminder" : " reminders") }));
+    summary.appendChild(delButton("Delete " + item.name, (tasks.length ? "Delete item + " + tasks.length + (tasks.length === 1 ? " task?" : " tasks?") : "Delete item?"), function () { return deleteItem(item); }));
     var body = h("div", { class: "body" });
     var bits = [item.brand, item.model, item.year].filter(Boolean).join(" · ");
     if (bits) body.appendChild(h("div", { class: "detail", text: bits }));
@@ -2593,11 +2655,14 @@
     var filterChips = null;
     if (state.rooms.length) {
       filterChips = h("div", { class: "chips", role: "group", "aria-label": "Show items by room" }, [{ id: "all", name: "All" }].concat(state.rooms).map(function (r) {
-        return h("button", { type: "button", class: "chip", "aria-pressed": String(state.filter === r.id), text: r.name, "data-testid": "room-tab", onclick: function () { state.filter = r.id; showHome(); } });
+        var chip = h("button", { type: "button", class: "chip", "aria-pressed": String(state.filter === r.id), text: r.name, "data-testid": "room-tab", onclick: function () { state.filter = r.id; showHome(); } });
+        if (r.id === "all") return chip;
+        var n = state.items.filter(function (i) { return i.room_id === r.id; }).length;
+        return h("span", { class: "delwrap" }, [chip, delButton("Delete room " + r.name, n ? "Delete room + " + n + (n === 1 ? " item?" : " items?") : "Delete room?", function () { return deleteRoom(r); })]);
       }));
     }
 
-    var roomInput = h("input", { type: "text", maxlength: "60", placeholder: "Add a room, like Kitchen", "aria-label": "New room name", "data-testid": "new-room-input" });
+    var roomInput = h("input", { type: "text", maxlength: "60", placeholder: "Add a room, like Kitchen, Bathroom, Primary bedroom", "aria-label": "New room name", "data-testid": "new-room-input" });
     var roomMsg = h("div", { class: "result", role: "status" });
     var roomForm = h("form", { class: "actions", style: "flex-wrap:nowrap" }, [roomInput, h("button", { type: "submit", text: "Add", "data-testid": "new-room-button" })]);
     function submitRoom(name) {
@@ -2605,7 +2670,6 @@
       addRoom(name).then(function () { showHome(); }).catch(function (err) { roomMsg.className = "result bad"; roomMsg.textContent = err.message; });
     }
     roomForm.addEventListener("submit", function (e) { e.preventDefault(); submitRoom(roomInput.value); });
-    var ideas = ROOM_IDEAS.filter(function (n) { return !state.rooms.some(function (r) { return r.name.toLowerCase() === n.toLowerCase(); }); });
 
     if (!state.items.length && !state.tasks.length) {
       view([
@@ -2643,15 +2707,14 @@
       h("section", { class: "card" }, [
         h("h2", { text: "Need a regular reminder?" }),
         h("p", { class: "hint", text: "Filters, humidifiers, medical device supplies, pet supplies, anything that repeats. Pick a room and how often." }),
-        h("button", { type: "button", class: "quiet", "data-testid": "add-reminder", text: "Add a reminder", onclick: function () { showQuickReminder(); } })
+        h("button", { type: "button", "data-testid": "add-reminder", text: "Add a reminder", onclick: function () { showQuickReminder(); } })
       ]),
       h("section", { class: "card", "aria-labelledby": "roomsTitle" }, [
         h("h2", { id: "roomsTitle", text: "Rooms and items" }),
         filterChips,
         itemsBox,
         h("div", { style: "margin-top:12px" }, [
-          roomForm, roomMsg,
-          ideas.length ? h("div", { class: "chips" }, ideas.map(function (n) { return h("button", { type: "button", class: "chip", text: "+ " + n, onclick: function () { submitRoom(n); } }); })) : null
+          roomForm, roomMsg
         ])
       ]),
       sectionsCard()
@@ -2870,7 +2933,6 @@
     if (!isStandalone()) rows.push(moreRow("Add to Home Screen", "Open One Place like an app", function () { showInstallGuide(showMore); }));
     if (!state.guest) rows.push(moreRow("My pros", "Trusted handymen, mechanics and more", function () { showPros(); }));
     rows.push(moreRow("Completed Tasks", "Everything you\u2019ve finished, by month", function () { moreSub("Completed Tasks", function () { return [historyCard(), ownerWipeCard()]; }); }));
-    rows.push(moreRow("Punchy\u2019s nap", "Let Punchy rest. Tap the pill to wake him.", function () { punchyPocket(true); showToast("Punchy is napping"); }));
     rows.push(moreRow("Look and feel", "Theme, lighting, text size, language", function () { moreSub("Look and feel", function () { return [styleCard()]; }); }));
     if (!state.guest) rows.push(moreRow("Holidays", "Rest days: no reminders on holidays", function () { moreSub("Holidays", function () { return [holidaysCard()]; }); }));
     rows.push(moreRow("Country and area", "Used for local stores and prices", function () { moreSub("Country and area", function () { return [countryCard()]; }); }));
@@ -3686,19 +3748,25 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     var tb = document.querySelector(".tabbar"), shown = tb && !tb.hidden && tb.offsetHeight > 0;
     var tabTop = shown ? tb.getBoundingClientRect().top : hh;
     document.documentElement.style.setProperty("--tabh", (shown ? hh - tabTop : 0) + "px");
-    document.body.setAttribute("data-dock", shown && !punchy.pocket ? "1" : "0");
-    var x = w - size - 6, y = shown ? hh - size - 4 : hh - size - 14;
+    document.body.setAttribute("data-dock", shown ? "1" : "0");
+    var sw = w <= 600 ? 118 : 150, sh = Math.round(sw * 349 / 440), pw = punchy.pocket ? sw : size, ph = punchy.pocket ? sh : size;
+    document.documentElement.style.setProperty("--dockw", pw + "px");
+    var x = w - pw - 6, y = shown ? hh - ph - 4 : hh - ph - 14;
     var more = shown && tb.querySelector("button[data-tab=more]");
     if (more && w >= 700) { var mr = more.getBoundingClientRect(); x = Math.min(x, mr.right + 24); }
     x = Math.max(0, x); y = Math.max(0, y);
-    el.style.left = x + "px"; el.style.top = y + "px";
+    var tgt = punchy.pocket ? punchy.sleeper : el;
+    tgt.style.left = x + "px"; tgt.style.top = y + "px";
+    if (punchy.pocket) { tgt.style.width = pw + "px"; tgt.style.height = ph + "px"; }
     punchyLink(x, y, size);
   }
   function punchyLink(x, y, size) {
     var l = punchy.link; if (!l) return;
-    l.hidden = true; // the nap option lives in More now
-    var w = window.innerWidth; l.style.top = Math.max(2, y - 12) + "px";
-    l.style.left = Math.max(2, Math.min(w - (l.offsetWidth || 120) - 6, x - 22)) + "px";
+    var tb = document.querySelector(".tabbar"), shown = tb && !tb.hidden && tb.offsetHeight > 0;
+    l.hidden = !!punchy.pocket;
+    var w = window.innerWidth, lw = l.offsetWidth || 112;
+    l.style.top = Math.max(2, y - 20) + "px";
+    l.style.left = Math.max(2, Math.min(w - lw - 6, x - lw + 14)) + "px";
   }
   function punchyTap() {
     if (punchy.pose === "flip" || punchy.pose === "wave") return;
@@ -3718,15 +3786,16 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     punchy.pose = "clap"; punchyPose("clap", 1600, function () { punchy.pose = "idle"; });
   }
   function punchyPocket(on) {
-    punchy.pocket = on; punchy.el.hidden = on; punchy.pill.hidden = !on; punchySave(); punchyPlace();
+    punchy.pocket = on; punchy.el.hidden = on; punchy.sleeper.hidden = !on; punchy.link.hidden = on; punchySave(); punchyPlace();
   }
   function startPunchy() {
     var st = lsGetJson(PUNCHY_KEY, {});
     punchy.x = typeof st.x === "number" ? st.x : null; punchy.y = typeof st.y === "number" ? st.y : null;
     punchy.pocket = !!st.pocket; punchy.seenWave = !!st.seenWave; punchy.seenFlip = !!st.seenFlip; punchy.typing = false;
     var el = punchy.el = punchyBuild(); document.body.appendChild(el); applyOutfit();
-    punchy.link = h("button", { type: "button", class: "pocketlink noprint", text: "tuck me in \uD83D\uDCA4", "data-testid": "punchy-pocket", hidden: true, onclick: function () { punchyPocket(true); } }); document.body.appendChild(punchy.link);
-    punchy.pill = h("button", { type: "button", class: "pocketpill noprint", text: "Punchy is napping \u00b7 tap to wake", "data-testid": "punchy-restore", hidden: true, onclick: function () { punchyPocket(false); } }); document.body.appendChild(punchy.pill);
+    punchy.link = h("button", { type: "button", class: "pocketlink noprint", text: "take a nap \uD83D\uDCA4", "data-testid": "punchy-pocket", onclick: function () { punchyPocket(true); showToast("Shh, Punchy is sleeping. Tap him to wake him.", function () { punchyPocket(false); }); } }); document.body.appendChild(punchy.link);
+    punchy.sleeper = h("button", { type: "button", class: "punchysleep noprint", "data-testid": "punchy-restore", "aria-label": "Punchy is sleeping. Tap to wake him.", title: "Tap to wake Punchy", hidden: true, onclick: function () { punchyPocket(false); } });
+    punchy.sleeper.innerHTML = '<img src="/assets/punchy-sleep.webp" alt="" draggable="false"><span class="zbubble" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>'; document.body.appendChild(punchy.sleeper);
     var drag = null;
     el.addEventListener("pointerdown", function (e) { drag = { sx: e.clientX, sy: e.clientY, ox: el.offsetLeft, oy: el.offsetTop, moved: false }; try { el.setPointerCapture(e.pointerId); } catch (x) {} });
     el.addEventListener("pointermove", function (e) {
@@ -3750,14 +3819,14 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     window.addEventListener("resize", punchyPlace);
     // Works on his laptop whenever someone is busy: typing, tapping around, scrolling. Rests after a few quiet seconds.
     function busy(e) {
-      if (e && e.target && e.target.closest && e.target.closest(".punchy, .pocketlink, .pocketpill")) return;
+      if (e && e.target && e.target.closest && e.target.closest(".punchy, .pocketlink, .punchysleep")) return;
       clearTimeout(punchy.typingTimer); punchySetTyping(true);
       punchy.typingTimer = setTimeout(function () { punchySetTyping(false); }, 4000);
     }
     ["pointerdown", "keydown", "input", "change", "focusin", "touchmove", "wheel"].forEach(function (ev) { document.addEventListener(ev, busy, { passive: true, capture: true }); });
     window.addEventListener("scroll", busy, { passive: true });
     punchy.pocket ? punchyPocket(true) : punchyPlace();
-    el.hidden = punchy.pocket; punchy.pill.hidden = !punchy.pocket;
+    el.hidden = punchy.pocket; punchy.sleeper.hidden = !punchy.pocket; punchyPlace();
   }
 
   // ---- What's new ----
