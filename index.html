@@ -363,8 +363,8 @@
   /* rooms and items: each room is its own soft box; the red remove button hangs in the left margin on hover */
   .roomgroup { margin-top: 16px; position: relative; padding: 6px 14px 8px; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--tint) 26%, var(--surface)); }
   .roomhead { position: relative; display: flex; align-items: center; gap: 8px; padding: 6px 0 8px; border-bottom: 1px solid var(--line); }
-  .roomhead h3 { position: relative; margin: 0; padding-bottom: 7px; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 700; font-size: 1.2rem; }
-  .roomhead h3::after { content: ""; position: absolute; left: -2px; right: -6px; bottom: 0; height: 7px; background: var(--soft); opacity: .85; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M1 5.2 C20 3.2 45 6.6 80 4.6 S150 5.6 199 3.4' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round'/%3E%3Cpath d='M5 6.4 C52 4.9 100 6.5 186 4.3' fill='none' stroke='black' stroke-width='1' stroke-linecap='round' opacity='.65'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M1 5.2 C20 3.2 45 6.6 80 4.6 S150 5.6 199 3.4' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round'/%3E%3Cpath d='M5 6.4 C52 4.9 100 6.5 186 4.3' fill='none' stroke='black' stroke-width='1' stroke-linecap='round' opacity='.65'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; }
+  .roomhead h3 { position: relative; margin: 0; padding-bottom: 9px; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 700; font-size: 1.2rem; }
+  .roomhead h3::after { content: ""; position: absolute; left: -4px; right: -8px; bottom: -3px; height: 11px; background: var(--accent); opacity: .55; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 7.2 C1 5.4 5 3.6 14 4.1 C45 3.2 82 5.1 118 3.9 C150 2.9 178 3.4 197 2.6 C199 2.9 194 4.4 186 5 C160 6.6 130 6.4 104 7.5 C70 8.9 40 8.4 18 9.4 C8 9.8 3 9 3 7.2Z' fill='black'/%3E%3Cpath d='M120 8.6 C142 8.2 168 8.5 188 7.3' fill='none' stroke='black' stroke-width='1.1' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M30 10.6 C60 10.3 90 10.8 112 10' fill='none' stroke='black' stroke-width='.8' stroke-linecap='round' opacity='.5'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 7.2 C1 5.4 5 3.6 14 4.1 C45 3.2 82 5.1 118 3.9 C150 2.9 178 3.4 197 2.6 C199 2.9 194 4.4 186 5 C160 6.6 130 6.4 104 7.5 C70 8.9 40 8.4 18 9.4 C8 9.8 3 9 3 7.2Z' fill='black'/%3E%3Cpath d='M120 8.6 C142 8.2 168 8.5 188 7.3' fill='none' stroke='black' stroke-width='1.1' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M30 10.6 C60 10.3 90 10.8 112 10' fill='none' stroke='black' stroke-width='.8' stroke-linecap='round' opacity='.5'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; }
   .roomhead .hint { margin: 0 0 0 auto; font-size: .85rem; }
   .roomgroup > .hint { margin: 8px 0 4px 14px; }
   .roomgroup details.item { margin-left: 14px; border-top: 1px solid var(--line); }
@@ -3691,16 +3691,16 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     if (!reduced) {
       for (var i = 0; i < 18; i++) {
         var g = fx.g[i % fx.g.length], sp = h("span", { class: "pp " + fx.mode, "aria-hidden": "true", text: g });
-        var st = "--s:" + (18 + Math.floor(Math.random() * 16)) + "px;--d:" + (1.9 + Math.random() * 1.4).toFixed(2) + "s;--dl:" + (Math.random() * 0.9).toFixed(2) + "s;";
+        var st = "--s:" + (18 + Math.floor(Math.random() * 16)) + "px;--d:" + (0.9 + Math.random() * 0.7).toFixed(2) + "s;--dl:" + (Math.random() * 0.3).toFixed(2) + "s;";
         if (fx.mode === "burst") st += "--dx:" + Math.round((Math.random() - .5) * 340) + "px;--dy:" + Math.round((Math.random() - .7) * 300) + "px;";
         else st += "--x:" + Math.round(Math.random() * 94) + "%;--dx:" + Math.round((Math.random() - .5) * 90) + "px;";
         sp.setAttribute("style", st); wrap.appendChild(sp);
       }
     }
-    var timer = setTimeout(close, reduced ? 2400 : 3800);
-    function close() { clearTimeout(timer); document.removeEventListener("keydown", onKey); if (wrap.parentNode) wrap.remove(); }
+    var timer = setTimeout(close, reduced ? 1200 : 1700);
+    function close() { clearTimeout(timer); document.removeEventListener("keydown", onKey); if (!wrap.parentNode) return; wrap.style.transition = "opacity .18s"; wrap.style.opacity = "0"; setTimeout(function () { if (wrap.parentNode) wrap.remove(); }, 190); }
     function onKey(e) { if (e.key === "Escape") close(); }
-    wrap.addEventListener("click", close); document.addEventListener("keydown", onKey);
+    wrap.addEventListener("pointerdown", close); wrap.addEventListener("click", close); document.addEventListener("keydown", onKey);
     document.body.appendChild(wrap);
   }
 
