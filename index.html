@@ -295,6 +295,17 @@
   .duelabel { display: grid; gap: 4px; font-size: .85rem; color: var(--soft); }
   .tasks li > label + .duelabel { margin-top: 2px; }
   .duewrap { display: grid; gap: 8px; justify-items: start; }
+  /* Clearer sections, less crowding: more air between cards, a soft lift, and a small accent mark on each section title */
+  .wrap { gap: 22px; }
+  .card { padding: 18px 18px 20px; box-shadow: var(--shadow); }
+  section.card > h2:first-child { font-size: 1.18rem; margin: 0 0 10px; display: flex; align-items: center; gap: 10px; }
+  section.card > h2:first-child::before { content: ""; flex: none; width: 5px; height: 1.05em; border-radius: 3px; background: var(--accent); }
+  .tasks { gap: 10px; }
+  .tasks li { padding: 11px 14px; }
+  .attn-item { padding: 14px; gap: 10px; }
+  .morelist { gap: 12px; }
+  .morerow { padding-top: 14px; padding-bottom: 14px; }
+  details.later { margin-top: 14px; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Fraunces:ital,wght@0,600;0,700;1,500&display=swap">
