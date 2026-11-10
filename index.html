@@ -360,14 +360,19 @@
   @media (prefers-reduced-motion: reduce) { .zbubble i { animation: none; opacity: .9; } }
   .delx { min-height: 0; width: 24px; height: 24px; padding: 0; border-radius: 999px; font-size: 1.1rem; line-height: 1; font-weight: 800; background: #d9453b; color: #fff; border: 0; box-shadow: 0 1px 3px rgba(0,0,0,.25); display: inline-flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .15s; flex: none; }
   .delx.armed { width: auto; padding: 0 12px; font-size: .78rem; background: #a8201a; opacity: 1; }
-  details.item summary .delx { margin-right: 2px; }
-  .roomgroup { margin-top: 14px; }
-  .roomhead { display: flex; align-items: center; gap: 8px; padding: 4px 0 6px; border-bottom: 2px solid var(--line); }
-  .roomhead h3 { margin: 0; font-size: 1.05rem; }
-  .roomhead .hint { margin: 0 0 0 auto; }
-  .roomgroup details.item { margin-left: 32px; }
-  details.item summary:hover .delx, .delwrap:hover .delx, .delx:focus-visible, .delx.armed { opacity: 1; }
-  .delwrap { display: inline-flex; align-items: center; gap: 4px; }
+  /* rooms and items: each room is its own soft box; the red remove button hangs in the left margin on hover */
+  .roomgroup { margin-top: 16px; position: relative; padding: 6px 14px 8px; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--tint) 26%, var(--surface)); }
+  .roomhead { position: relative; display: flex; align-items: center; gap: 8px; padding: 6px 0 8px; border-bottom: 1px solid var(--line); }
+  .roomhead h3 { margin: 0; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; font-size: 1.15rem; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 5px; text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+  .roomhead .hint { margin: 0 0 0 auto; font-size: .85rem; }
+  .roomgroup > .hint { margin: 8px 0 4px 14px; }
+  .roomgroup details.item { margin-left: 14px; border-top: 1px solid var(--line); }
+  .roomgroup details.item:first-of-type { border-top: 0; }
+  details.item summary { font-weight: 400; position: relative; }
+  .roomhead .delx { position: absolute; left: -30px; top: 50%; transform: translateY(-50%); }
+  .roomgroup details.item summary .delx { position: absolute; left: -30px; top: 50%; transform: translateY(-50%); margin: 0; }
+  .roomhead:hover .delx, .roomgroup details.item > summary:hover .delx, .delx:hover, .delx:focus-visible, .delx.armed { opacity: 1; }
+  details.item:not(.x) > summary:hover .delx { opacity: 1; }
   .roomhead.show .delx, details.item[open] > summary .delx { opacity: 1; }
   @media (min-width: 960px) {
     .tabbar { gap: clamp(24px, 5vw, 80px); }
@@ -2675,7 +2680,7 @@
       ]);
       head.addEventListener("click", function (e) { if (e.target.closest(".delx")) return; head.classList.toggle("show"); });
       var grp = h("div", { class: "roomgroup", "data-testid": "room-group" }, [head]);
-      if (!its.length) grp.appendChild(h("p", { class: "hint", style: "margin:4px 0 0 32px", text: "Nothing here yet." }));
+      if (!its.length) grp.appendChild(h("p", { class: "hint", text: "Nothing here yet." }));
       its.forEach(function (i) { grp.appendChild(itemCard(i, true)); });
       itemsBox.appendChild(grp);
     });
@@ -2690,7 +2695,7 @@
       }));
     }
 
-    var roomInput = h("input", { type: "text", maxlength: "60", placeholder: "Add a room, like Kitchen, Bathroom, Primary bedroom", "aria-label": "New room name", "data-testid": "new-room-input" });
+    var roomInput = h("input", { type: "text", maxlength: "60", placeholder: "Add a room, like Primary bedroom", "aria-label": "New room name", "data-testid": "new-room-input" });
     var roomMsg = h("div", { class: "result", role: "status" });
     var roomForm = h("form", { class: "actions", style: "flex-wrap:nowrap" }, [roomInput, h("button", { type: "submit", text: "Add", "data-testid": "new-room-button" })]);
     function submitRoom(name) {
