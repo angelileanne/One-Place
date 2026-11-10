@@ -366,6 +366,13 @@
   .roomhead h3 { position: relative; margin: 0; padding-bottom: 3px; font: inherit; font-weight: 800; font-size: 1.1rem; letter-spacing: -.005em; }
   .roomhead h3::after { content: ""; position: absolute; left: -4px; right: -8px; bottom: -3px; height: 11px; background: var(--accent); opacity: .55; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 7.2 C1 5.4 5 3.6 14 4.1 C45 3.2 82 5.1 118 3.9 C150 2.9 178 3.4 197 2.6 C199 2.9 194 4.4 186 5 C160 6.6 130 6.4 104 7.5 C70 8.9 40 8.4 18 9.4 C8 9.8 3 9 3 7.2Z' fill='black'/%3E%3Cpath d='M120 8.6 C142 8.2 168 8.5 188 7.3' fill='none' stroke='black' stroke-width='1.1' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M30 10.6 C60 10.3 90 10.8 112 10' fill='none' stroke='black' stroke-width='.8' stroke-linecap='round' opacity='.5'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 7.2 C1 5.4 5 3.6 14 4.1 C45 3.2 82 5.1 118 3.9 C150 2.9 178 3.4 197 2.6 C199 2.9 194 4.4 186 5 C160 6.6 130 6.4 104 7.5 C70 8.9 40 8.4 18 9.4 C8 9.8 3 9 3 7.2Z' fill='black'/%3E%3Cpath d='M120 8.6 C142 8.2 168 8.5 188 7.3' fill='none' stroke='black' stroke-width='1.1' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M30 10.6 C60 10.3 90 10.8 112 10' fill='none' stroke='black' stroke-width='.8' stroke-linecap='round' opacity='.5'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; }
   .roomhead .hint { margin: 0 0 0 auto; font-size: .85rem; }
+  .orgtoggle { background: none; border: 0; box-shadow: none; min-height: 32px; min-width: 32px; padding: 0 6px; font-size: 1.05rem; color: var(--soft); cursor: pointer; border-radius: 8px; }
+  .orgtoggle:hover { background: var(--tint); }
+  .orgbar { display: grid; gap: 6px; padding: 8px 0 4px; border-bottom: 1px solid var(--line); }
+  .orgbar .hint { margin: 0; font-size: .8rem; }
+  .orgbar .orgrow { margin: 0; gap: 8px; }
+  .orgbar select { flex: 1; min-width: 0; }
+  details.item .body .orgbar { border-bottom: 0; border-top: 1px solid var(--line); margin-top: 6px; }
   .roomgroup > .hint { margin: 8px 0 4px 0; }
   .roomgroup details.item { margin-left: 0; border-top: 1px solid var(--line); }
   .roomgroup details.item:first-of-type { border-top: 0; }
@@ -1033,7 +1040,7 @@
     return rest("profiles?id=eq." + encodeURIComponent(pid), { method: "PATCH", headers: JSON_ONE, body: JSON.stringify(patch) })
       .then(function (rows) { Object.assign(state.profile, (rows && rows[0]) || patch); })
       .then(function () { return post("rooms", T.rooms, function (r) { return { name: r.name, sort_order: r.sort_order || 0 }; }); })
-      .then(function () { return post("entries", T.entries, function (r) { return { section: r.section, name: r.name, details: r.details || {} }; }); })
+      .then(function () { return post("entries", T.entries, function (r) { return { section: r.section, name: r.name, details: r.details || {}, sort_order: r.sort_order || 0 }; }); })
       .then(function () { return post("items", T.items, function (r) { return { room_id: map[r.room_id], name: r.name, brand: r.brand, model: r.model, year: r.year, problem: r.problem, notes: r.notes, photos: [], buy_store: r.buy_store || null, buy_url: r.buy_url || null }; }); })
       .then(function () { return post("maintenance_tasks", T.maintenance_tasks, function (r) { return { item_id: r.item_id ? map[r.item_id] : null, entry_id: r.entry_id ? map[r.entry_id] : null, title: r.title, detail: r.detail, kind: r.kind, repeat_days: r.repeat_days, status: r.status, due_on: r.due_on, snoozed_until: r.snoozed_until, last_done_on: r.last_done_on, size: r.size === "large" ? "large" : "quick", outdoor: !!r.outdoor }; }); })
       .then(function () { return post("parts", T.parts, function (r) { return { item_id: map[r.item_id], name: r.name, part_number: r.part_number, replaced_on: r.replaced_on, next_due_on: r.next_due_on }; }); })
@@ -1636,7 +1643,7 @@
       rest("items?select=*&profile_id=eq." + pid + "&order=created_at.desc"),
       rest("maintenance_tasks?select=*&profile_id=eq." + pid + "&order=created_at.asc"),
       rest("parts?select=*&profile_id=eq." + pid + "&order=created_at.desc"),
-      rest("entries?select=*&profile_id=eq." + pid + "&order=created_at.asc"),
+      rest("entries?select=*&profile_id=eq." + pid + "&order=sort_order.asc,created_at.asc"),
       rest("maintenance_logs?select=*&profile_id=eq." + pid + "&order=done_on.desc,created_at.desc&limit=1000").catch(function () { return []; })
     ]).then(function (r) { state.rooms = r[0]; state.items = r[1]; state.tasks = r[2]; state.parts = r[3]; state.entries = r[4]; state.logs = r[5] || []; return loadHolidays(); });
   }
@@ -2475,7 +2482,8 @@
       h("div", { class: "body" }, [
         bits ? h("div", { class: "detail", text: bits }) : null,
         taskSections(tasks, "No reminders yet."),
-        h("div", { class: "actions" }, [rm])
+        h("div", { class: "actions" }, [rm]),
+        organizer({ table: "entries", row: en, list: state.entries.filter(function (x) { return x.section === sec.id; }), rpc: "move_entry" })
       ])
     ]);
   }
@@ -2501,7 +2509,7 @@
       sec.fields.forEach(function (f) { var v = inputs[f[0]].value.trim(); if (v) details[f[0]] = f[2] === "number" ? Number(v) : v; });
       save.disabled = true; msg.className = "result"; msg.textContent = "Saving…";
       var made;
-      rest("entries", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ profile_id: state.profile.id, section: sec.id, name: nm, details: details }) }).then(function (rows) {
+      rest("entries", { method: "POST", headers: JSON_ONE, body: JSON.stringify({ profile_id: state.profile.id, section: sec.id, name: nm, details: details, sort_order: state.entries.filter(function (x) { return x.section === sec.id; }).length }) }).then(function (rows) {
         made = rows[0]; state.entries.push(made);
         var tasks = sec.reminders.filter(function (r) { return dates[r[0]].value; }).map(function (r) {
           return { profile_id: state.profile.id, entry_id: made.id, title: r[2] + " — " + nm, kind: "maintenance", repeat_days: r[3], status: "active", due_on: dates[r[0]].value };
@@ -2602,6 +2610,43 @@
     state.backTo = showHome;
     view(h("section", { class: "card", "data-testid": "add-profile-card" }, [h("h2", { text: "Add another home or business" }), h("p", { class: "hint", text: "It gets its own rooms, items and reminders. Switch between them any time from the top of Home." }), form]));
   }
+  // Reorder (up/down) and move to another home or business, for rooms and for vehicles, phones, pets and printers.
+  function organizer(o) {
+    var idx = o.list.indexOf(o.row), others = state.profiles.filter(function (pr) { return pr.id !== state.profile.id; });
+    var msg = h("div", { class: "result", role: "status" });
+    function shift(d) {
+      var j = idx + d; if (j < 0 || j >= o.list.length) return;
+      var order = o.list.slice(); order.splice(idx, 1); order.splice(j, 0, o.row);
+      var changed = [];
+      order.forEach(function (r, n) { if (r.sort_order !== n) { r.sort_order = n; changed.push(r); } });
+      Promise.all(changed.map(function (r) { return rest(o.table + "?id=eq." + encodeURIComponent(r.id), { method: "PATCH", body: JSON.stringify({ sort_order: r.sort_order }) }); }))
+        .then(function () { var pool = state[o.table]; pool.sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0); }); showHome(); })
+        .catch(function (err) { msg.className = "result bad"; msg.textContent = "Couldn\u2019t reorder. " + err.message; });
+    }
+    var up = h("button", { type: "button", class: "quiet small", text: "\u2191 Up", disabled: idx <= 0, "data-testid": "org-up", onclick: function () { shift(-1); } });
+    var down = h("button", { type: "button", class: "quiet small", text: "\u2193 Down", disabled: idx >= o.list.length - 1, "data-testid": "org-down", onclick: function () { shift(1); } });
+    var kids = [h("div", { class: "actions orgrow" }, [up, down])];
+    if (others.length) {
+      var sel = h("select", { "aria-label": "Move " + o.row.name + " to", "data-testid": "org-target" }, others.map(function (pr) { return h("option", { value: pr.id, text: pr.name }); }));
+      var go = h("button", { type: "button", class: "small", text: "Move", "data-testid": "org-move", onclick: function () {
+        var target = others.filter(function (pr) { return pr.id === sel.value; })[0], from = state.profile;
+        go.disabled = true; msg.className = "result"; msg.textContent = "Moving\u2026";
+        rest("rpc/" + o.rpc, { method: "POST", body: JSON.stringify(o.rpc === "move_room" ? { p_room: o.row.id, p_to: target.id } : { p_entry: o.row.id, p_to: target.id }) }).then(function (newId) {
+          return loadHome().then(function () {
+            showHome();
+            showToast("Moved " + o.row.name + " to " + target.name, function () {
+              var back = o.rpc === "move_room" ? { p_room: newId, p_to: from.id } : { p_entry: o.row.id, p_to: from.id };
+              return rest("rpc/" + o.rpc, { method: "POST", body: JSON.stringify(back) }).then(function () { return loadHome(); });
+            });
+          });
+        }).catch(function (err) { go.disabled = false; msg.className = "result bad"; msg.textContent = "Not moved. " + err.message; });
+      } });
+      kids.push(h("p", { class: "hint", text: o.rpc === "move_room" ? "Moves the room with everything in it. If the other place already has a room with this name, they join." : "Moves it with its reminders." }));
+      kids.push(h("div", { class: "actions orgrow", style: "flex-wrap:nowrap" }, [sel, go]));
+    }
+    kids.push(msg);
+    return h("div", { class: "orgbar", "data-testid": "org-bar" }, kids);
+  }
   function moveRow(item) {
     var others = state.profiles.filter(function (pr) { return pr.id !== state.profile.id; });
     if (!others.length) return { button: null, panel: null };
@@ -2684,10 +2729,12 @@
       var its = shown.filter(function (i) { return i.room_id === r.id; });
       var head = h("div", { class: "roomhead" }, [
         delButton("Delete room " + r.name, its.length ? "Delete room + " + its.length + (its.length === 1 ? " item?" : " items?") : "Delete room?", function () { return deleteRoom(r); }),
-        h("h3", { text: r.name }), h("span", { class: "hint", text: its.length + (its.length === 1 ? " item" : " items") })
+        h("h3", { text: r.name }), h("span", { class: "hint", text: its.length + (its.length === 1 ? " item" : " items") }),
+        h("button", { type: "button", class: "orgtoggle noprint", "aria-label": "Reorder or move " + r.name, title: "Reorder or move", text: "\u2195", "data-testid": "org-toggle", onclick: function (e) { e.stopPropagation(); state.orgOpen = state.orgOpen || {}; state.orgOpen[r.id] = !state.orgOpen[r.id]; showHome(); } })
       ]);
-      head.addEventListener("click", function (e) { if (e.target.closest(".delx")) return; head.classList.toggle("show"); });
+      head.addEventListener("click", function (e) { if (e.target.closest(".delx") || e.target.closest(".orgtoggle")) return; head.classList.toggle("show"); });
       var grp = h("div", { class: "roomgroup", "data-testid": "room-group" }, [head]);
+      if (state.orgOpen && state.orgOpen[r.id]) grp.appendChild(organizer({ table: "rooms", row: r, list: state.rooms, rpc: "move_room" }));
       if (!its.length) grp.appendChild(h("p", { class: "hint", text: "Nothing here yet." }));
       its.forEach(function (i) { grp.appendChild(itemCard(i, true)); });
       itemsBox.appendChild(grp);
@@ -2989,8 +3036,8 @@
       h("header", {}, [h("h1", { text: "More" })]),
       notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
       h("div", { class: "rowlist" }, rows),
-      state.guest ? null : h("p", { class: "hint", style: "font-size:.8rem;text-align:center", text: "To make One Place better, all we see is how often it\u2019s opened and the language and country you use, never your items or notes. I appreciate your continued use to help improve this app \uD83D\uDC9B" }),
-      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: state.guest ? "Leave guest mode" : "Sign out", "data-testid": "sign-out", onclick: state.guest ? function () { leaveGuest(); showIntro(); } : signOut })])
+      state.guest ? null : h("p", { class: "hint", style: "font-size:.8rem;text-align:center;margin:18px 12px 6px;line-height:1.45", text: "To make One Place better, all we see is how often it\u2019s opened and the language and country you use, never your items or notes. I appreciate your continued use to help improve this app \uD83D\uDC9B" }),
+      h("div", { class: "actions", style: "margin-top:6px;justify-content:center" }, [h("button", { type: "button", class: "quiet", text: state.guest ? "Leave guest mode" : "Sign out", "data-testid": "sign-out", onclick: state.guest ? function () { leaveGuest(); showIntro(); } : signOut })])
     ]);
     $("newTitle").closest("section").hidden = false;
   }
