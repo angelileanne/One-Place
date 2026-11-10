@@ -366,6 +366,13 @@
   .roomhead h3 { position: relative; margin: 0; padding-bottom: 3px; font: inherit; font-weight: 800; font-size: 1.1rem; letter-spacing: -.005em; }
   .roomhead h3::after { content: ""; position: absolute; left: -4px; right: -8px; bottom: -3px; height: 11px; background: var(--accent); opacity: .55; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 7.2 C1 5.4 5 3.6 14 4.1 C45 3.2 82 5.1 118 3.9 C150 2.9 178 3.4 197 2.6 C199 2.9 194 4.4 186 5 C160 6.6 130 6.4 104 7.5 C70 8.9 40 8.4 18 9.4 C8 9.8 3 9 3 7.2Z' fill='black'/%3E%3Cpath d='M120 8.6 C142 8.2 168 8.5 188 7.3' fill='none' stroke='black' stroke-width='1.1' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M30 10.6 C60 10.3 90 10.8 112 10' fill='none' stroke='black' stroke-width='.8' stroke-linecap='round' opacity='.5'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 7.2 C1 5.4 5 3.6 14 4.1 C45 3.2 82 5.1 118 3.9 C150 2.9 178 3.4 197 2.6 C199 2.9 194 4.4 186 5 C160 6.6 130 6.4 104 7.5 C70 8.9 40 8.4 18 9.4 C8 9.8 3 9 3 7.2Z' fill='black'/%3E%3Cpath d='M120 8.6 C142 8.2 168 8.5 188 7.3' fill='none' stroke='black' stroke-width='1.1' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M30 10.6 C60 10.3 90 10.8 112 10' fill='none' stroke='black' stroke-width='.8' stroke-linecap='round' opacity='.5'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; }
   .roomhead .hint { margin: 0 0 0 auto; font-size: .85rem; }
+  .draghandle { flex: none; box-sizing: content-box; width: 14px; height: 21px; padding: 6px 10px; margin: 0 0 0 auto; border: 0; box-shadow: none; min-height: 0; border-radius: 8px; background: radial-gradient(circle, var(--soft) 1.5px, transparent 2px) center / 7px 7px; background-clip: content-box; background-origin: content-box; touch-action: none; cursor: grab; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; opacity: .7; }
+  .roomhead .hint + .draghandle, .roomhead .draghandle { margin-left: 4px; }
+  .roomhead .hint { margin-left: auto; }
+  details.item summary .draghandle { margin-left: auto; }
+  .draghandle:hover, .draghandle:focus-visible { opacity: 1; }
+  .lifted { position: relative; z-index: 20; box-shadow: 0 10px 28px rgba(0,0,0,.28); cursor: grabbing; }
+  body.dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }
   .orgtoggle { background: none; border: 0; box-shadow: none; min-height: 32px; min-width: 32px; padding: 0 6px; font-size: 1.05rem; color: var(--soft); cursor: pointer; border-radius: 8px; }
   .orgtoggle:hover { background: var(--tint); }
   .orgbar { display: grid; gap: 6px; padding: 8px 0 4px; border-bottom: 1px solid var(--line); }
@@ -385,6 +392,7 @@
   details.item .body .detail { margin: 0; line-height: 1.35; }
   details.item .body { padding: 2px 0 6px; }
   .roomhead .delx { position: absolute; left: -30px; top: 50%; transform: translateY(-50%); }
+  .roomhead .delx.armed, .roomgroup details.item summary .delx.armed { left: auto; right: 0; z-index: 6; white-space: nowrap; min-height: 32px; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
   .roomgroup details.item summary .delx { position: absolute; left: -30px; top: 50%; transform: translateY(-50%); margin: 0; }
   .roomhead:hover .delx, .roomgroup details.item > summary:hover .delx, .delx:hover, .delx:focus-visible, .delx.armed { opacity: 1; }
   details.item:not(.x) > summary:hover .delx { opacity: 1; }
@@ -2477,8 +2485,9 @@
         state.notice = "Removed " + en.name + "."; showHome();
       }).catch(function (err) { rm.disabled = false; state.notice = "Couldn’t remove that. " + err.message; showHome(); });
     });
-    return h("details", { class: "item", "data-testid": "entry" }, [
-      h("summary", {}, [en.name]),
+    var edet, entryList = state.entries.filter(function (x) { return x.section === sec.id; });
+    return edet = h("details", { class: "item", "data-testid": "entry" }, [
+      h("summary", {}, [en.name, entryList.length > 1 ? dragHandle("details.item[data-testid=entry]", function () { return edet; }, function (a, b) { reorderTo("entries", state.entries, entryList[a], state.entries.indexOf(entryList[b])); }, "Drag to reorder " + en.name) : null]),
       h("div", { class: "body" }, [
         bits ? h("div", { class: "detail", text: bits }) : null,
         taskSections(tasks, "No reminders yet."),
@@ -2610,22 +2619,84 @@
     state.backTo = showHome;
     view(h("section", { class: "card", "data-testid": "add-profile-card" }, [h("h2", { text: "Add another home or business" }), h("p", { class: "hint", text: "It gets its own rooms, items and reminders. Switch between them any time from the top of Home." }), form]));
   }
-  // Reorder (up/down) and move to another home or business, for rooms and for vehicles, phones, pets and printers.
+  function reorderTo(table, list, row, newIdx) {
+    var idx = list.indexOf(row);
+    if (idx < 0 || newIdx === idx || newIdx < 0 || newIdx >= list.length) return Promise.resolve();
+    var order = list.slice(); order.splice(idx, 1); order.splice(newIdx, 0, row);
+    var changed = [];
+    order.forEach(function (r, n) { if (r.sort_order !== n) { r.sort_order = n; changed.push(r); } });
+    state[table].sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0); });
+    return Promise.all(changed.map(function (r) { return rest(table + "?id=eq." + encodeURIComponent(r.id), { method: "PATCH", body: JSON.stringify({ sort_order: r.sort_order }) }); }))
+      .then(function () { showHome(); })
+      .catch(function (err) { state.notice = "Couldn\u2019t reorder. " + err.message; return loadHome().then(showHome); });
+  }
+  // Press the grip, drag, and the others slide out of the way; let go and it snaps in.
+  function dragHandle(sel, elArg, onDrop, label) {
+    function getEl() { return typeof elArg === "function" ? elArg() : elArg; }
+    var grip = h("button", { type: "button", class: "draghandle noprint", "aria-label": label, title: "Drag to reorder", "data-testid": "drag-handle" });
+    grip.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); });
+    grip.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+      e.preventDefault(); var el = getEl(), sibs = Array.prototype.filter.call(el.parentNode.children, function (c) { return c.matches(sel); });
+      onDrop(sibs.indexOf(el), sibs.indexOf(el) + (e.key === "ArrowUp" ? -1 : 1));
+    });
+    grip.addEventListener("pointerdown", function (e) {
+      if (e.button != null && e.button > 0) return;
+      e.preventDefault(); e.stopPropagation();
+      var el = getEl(), sibs = Array.prototype.filter.call(el.parentNode.children, function (c) { return c.matches(sel); });
+      var idx0 = sibs.indexOf(el); if (sibs.length < 2 || idx0 < 0) return;
+      var sy = window.scrollY, rects = sibs.map(function (c) { var r = c.getBoundingClientRect(); return { top: r.top + sy, h: r.height }; });
+      var gap = Math.max(0, rects[1].top - (rects[0].top + rects[0].h)); if (idx0 > 0) gap = Math.max(0, rects[idx0].top - (rects[idx0 - 1].top + rects[idx0 - 1].h));
+      var hEl = rects[idx0].h, startPageY = e.clientY + sy, clientY = e.clientY, newIdx = idx0, started = false, raf = 0, done = false;
+      try { grip.setPointerCapture(e.pointerId); } catch (x) {}
+      function layout() {
+        var dy = clientY + window.scrollY - startPageY;
+        el.style.transform = "translateY(" + dy + "px) scale(1.02)";
+        var center = rects[idx0].top + hEl / 2 + dy, n = 0;
+        rects.forEach(function (r, k) { if (k !== idx0 && r.top + r.h / 2 < center) n++; });
+        if (n !== newIdx) { newIdx = n; if (navigator.vibrate) { try { navigator.vibrate(8); } catch (x) {} } }
+        sibs.forEach(function (c, k) {
+          if (k === idx0) return;
+          var sh = 0; if (k > idx0 && k <= newIdx) sh = -(hEl + gap); else if (k < idx0 && k >= newIdx) sh = hEl + gap;
+          c.style.transform = sh ? "translateY(" + sh + "px)" : "";
+        });
+      }
+      function tick() {
+        if (done) return;
+        if (clientY < 90) window.scrollBy(0, -12); else if (clientY > window.innerHeight - 150) window.scrollBy(0, 12);
+        layout(); raf = requestAnimationFrame(tick);
+      }
+      function begin() {
+        started = true; document.body.classList.add("dragging");
+        sibs.forEach(function (c) { if (c !== el) c.style.transition = "transform .18s ease"; });
+        el.classList.add("lifted"); raf = requestAnimationFrame(tick);
+      }
+      function move(ev) { clientY = ev.clientY; if (!started && Math.abs(clientY + window.scrollY - startPageY) > 4) begin(); }
+      function finish(cancel) {
+        done = true; cancelAnimationFrame(raf);
+        grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); grip.removeEventListener("pointercancel", cn);
+        try { grip.releasePointerCapture(e.pointerId); } catch (x) {}
+        if (!started) return;
+        if (cancel) newIdx = idx0;
+        var target = newIdx > idx0 ? rects[newIdx].top + rects[newIdx].h - hEl : rects[newIdx].top;
+        el.style.transition = "transform .18s ease"; el.style.transform = "translateY(" + (target - rects[idx0].top) + "px)";
+        el.classList.remove("lifted");
+        setTimeout(function () {
+          document.body.classList.remove("dragging");
+          sibs.forEach(function (c) { c.style.transform = ""; c.style.transition = ""; });
+          if (newIdx !== idx0) onDrop(idx0, newIdx);
+        }, 190);
+      }
+      function up() { finish(false); } function cn() { finish(true); }
+      grip.addEventListener("pointermove", move); grip.addEventListener("pointerup", up); grip.addEventListener("pointercancel", cn);
+    });
+    return grip;
+  }
+  // Move to another home or business (rooms, vehicles, phones, pets, printers), for rooms and for vehicles, phones, pets and printers.
   function organizer(o) {
     var idx = o.list.indexOf(o.row), others = state.profiles.filter(function (pr) { return pr.id !== state.profile.id; });
     var msg = h("div", { class: "result", role: "status" });
-    function shift(d) {
-      var j = idx + d; if (j < 0 || j >= o.list.length) return;
-      var order = o.list.slice(); order.splice(idx, 1); order.splice(j, 0, o.row);
-      var changed = [];
-      order.forEach(function (r, n) { if (r.sort_order !== n) { r.sort_order = n; changed.push(r); } });
-      Promise.all(changed.map(function (r) { return rest(o.table + "?id=eq." + encodeURIComponent(r.id), { method: "PATCH", body: JSON.stringify({ sort_order: r.sort_order }) }); }))
-        .then(function () { var pool = state[o.table]; pool.sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0); }); showHome(); })
-        .catch(function (err) { msg.className = "result bad"; msg.textContent = "Couldn\u2019t reorder. " + err.message; });
-    }
-    var up = h("button", { type: "button", class: "quiet small", text: "\u2191 Up", disabled: idx <= 0, "data-testid": "org-up", onclick: function () { shift(-1); } });
-    var down = h("button", { type: "button", class: "quiet small", text: "\u2193 Down", disabled: idx >= o.list.length - 1, "data-testid": "org-down", onclick: function () { shift(1); } });
-    var kids = [h("div", { class: "actions orgrow" }, [up, down])];
+    var kids = [];
     if (others.length) {
       var sel = h("select", { "aria-label": "Move " + o.row.name + " to", "data-testid": "org-target" }, others.map(function (pr) { return h("option", { value: pr.id, text: pr.name }); }));
       var go = h("button", { type: "button", class: "small", text: "Move", "data-testid": "org-move", onclick: function () {
@@ -2727,13 +2798,14 @@
     var roomList = state.rooms.filter(function (r) { return state.filter === "all" || state.filter === r.id; });
     roomList.forEach(function (r) {
       var its = shown.filter(function (i) { return i.room_id === r.id; });
-      var head = h("div", { class: "roomhead" }, [
+      var grp, head = h("div", { class: "roomhead" }, [
         delButton("Delete room " + r.name, its.length ? "Delete room + " + its.length + (its.length === 1 ? " item?" : " items?") : "Delete room?", function () { return deleteRoom(r); }),
         h("h3", { text: r.name }), h("span", { class: "hint", text: its.length + (its.length === 1 ? " item" : " items") }),
-        h("button", { type: "button", class: "orgtoggle noprint", "aria-label": "Reorder or move " + r.name, title: "Reorder or move", text: "\u2195", "data-testid": "org-toggle", onclick: function (e) { e.stopPropagation(); state.orgOpen = state.orgOpen || {}; state.orgOpen[r.id] = !state.orgOpen[r.id]; showHome(); } })
+        state.rooms.length > 1 ? dragHandle(".roomgroup[data-testid=room-group]", function () { return grp; }, function (a, b) { var shownRooms = state.rooms.filter(function (x) { return state.filter === "all" || state.filter === x.id; }); reorderTo("rooms", state.rooms, shownRooms[a], state.rooms.indexOf(shownRooms[b])); }, "Drag to reorder " + r.name) : null,
+        h("button", { type: "button", class: "orgtoggle noprint", "aria-label": "Move " + r.name + " to another home or business", title: "Move to another home or business", text: "\u22ef", "data-testid": "org-toggle", onclick: function (e) { e.stopPropagation(); state.orgOpen = state.orgOpen || {}; state.orgOpen[r.id] = !state.orgOpen[r.id]; showHome(); } })
       ]);
       head.addEventListener("click", function (e) { if (e.target.closest(".delx") || e.target.closest(".orgtoggle")) return; head.classList.toggle("show"); });
-      var grp = h("div", { class: "roomgroup", "data-testid": "room-group" }, [head]);
+      grp = h("div", { class: "roomgroup", "data-testid": "room-group" }, [head]);
       if (state.orgOpen && state.orgOpen[r.id]) grp.appendChild(organizer({ table: "rooms", row: r, list: state.rooms, rpc: "move_room" }));
       if (!its.length) grp.appendChild(h("p", { class: "hint", text: "Nothing here yet." }));
       its.forEach(function (i) { grp.appendChild(itemCard(i, true)); });
