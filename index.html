@@ -54,7 +54,7 @@
   .closet-tile[aria-pressed="true"] { border-color: var(--accent); background: var(--tint); }
   .closet-tile img { width: 100%; height: auto; display: block; margin-bottom: 4px; }
   details.later { margin-top: 8px; } details.later > summary { cursor: pointer; font-weight: 700; color: var(--soft); padding: 6px 0; min-height: 36px; }
-  .backtop { margin: 2px 0 6px; } .backtop button.link { text-decoration: none; font-weight: 700; font-size: 1.02rem; padding: 6px 4px 6px 0; min-height: 40px; }
+  .backtop { margin: 2px 0 10px; } .backtop button.link { text-decoration: none; font-weight: 700; font-size: 1rem; padding: 8px 18px 8px 14px; min-height: 40px; border-radius: 999px; background: var(--tint); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow); }
   button.link { background: none; color: var(--accent); padding: 4px 0; min-height: 32px; text-decoration: underline; }
   input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], select, textarea {
     font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
@@ -309,6 +309,19 @@
   .looktabs { display: flex; gap: 6px; padding: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; margin-bottom: 16px; }
   .looktab { flex: 1; min-height: 40px; padding: 6px 8px; border-radius: 999px; background: transparent; color: var(--soft); font-size: .92rem; }
   .looktab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+  /* Section spacing + lift */
+  .wrap { gap: 30px; }
+  .card { box-shadow: 0 1px 0 rgba(255,255,255,.55) inset, 0 2px 5px rgba(60,40,20,.10), 0 16px 30px -10px rgba(60,40,20,.24); }
+  html[data-mode="dark"] .card { box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 2px 6px rgba(0,0,0,.45), 0 16px 30px -10px rgba(0,0,0,.6); }
+  /* Page textures (all theme-aware: they use transparent tints of the theme's own colors) */
+  body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+  html[data-bg="linen"] body::before { background-image: repeating-linear-gradient(0deg, rgba(90,60,30,.10) 0 1px, transparent 1px 4px), repeating-linear-gradient(90deg, rgba(90,60,30,.10) 0 1px, transparent 1px 4px), repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 2px, transparent 2px 7px); }
+  html[data-bg="grain"] body::before { opacity: .95; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .25  0 0 0 0 .15  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+  html[data-bg="crumbs"] body::before { background-image: radial-gradient(circle at 20% 30%, color-mix(in srgb, var(--accent) 34%, transparent) 0 3px, transparent 3.5px), radial-gradient(circle at 70% 65%, color-mix(in srgb, var(--accent) 26%, transparent) 0 2.2px, transparent 2.7px), radial-gradient(circle at 45% 85%, color-mix(in srgb, var(--soft) 28%, transparent) 0 1.6px, transparent 2.1px); background-size: 74px 74px, 53px 53px, 41px 41px; }
+  html[data-bg="blobs"] body::before { background-image: radial-gradient(closest-side at 50% 50%, color-mix(in srgb, var(--accent) 30%, transparent), transparent), radial-gradient(closest-side at 50% 50%, color-mix(in srgb, var(--tint) 100%, transparent), transparent), radial-gradient(closest-side at 50% 50%, color-mix(in srgb, var(--accent) 22%, transparent), transparent); background-repeat: no-repeat; background-size: 120vmax 90vmax, 100vmax 80vmax, 90vmax 70vmax; background-position: 120% -5%, -35% 42%, 105% 105%; }
+  html[data-mode="dark"][data-bg="linen"] body::before { background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 4px), repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 4px); }
+  html[data-mode="dark"][data-bg="grain"] body::before { opacity: .25; filter: invert(1); }
+  @media print { body::before { display: none; } }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Fraunces:ital,wght@0,600;0,700;1,500&display=swap">
@@ -495,12 +508,14 @@
     { id: "chocolate", name: "Chocolate", l: ["#dcc7b0", "#efe3d3", "#bfa58a", "#2b1a10", "#5a4030", "#3f2415", "#f6ece0", "#cfb89c"], d: ["#1a110c", "#251a13", "#3d2c21", "#efdfcf", "#c4a78f", "#d9a272", "#2a1608", "#2f2219"] },
     { id: "graphite", name: "Graphite", l: ["#eceeef", "#ffffff", "#d3d7d9", "#1f2427", "#4f5a60", "#2f3b44", "#ffffff", "#dfe3e5"], d: ["#141718", "#1e2326", "#343b3f", "#eceff0", "#aab3b8", "#cfd8dd", "#12181b", "#272d31"] }
   ];
+  var BGS = [["Plain", "plain"], ["Linen", "linen"], ["Paper grain", "grain"], ["Crumbs", "crumbs"], ["Soft blobs", "blobs"]];
   var SIZES = [["Smaller", 0.9], ["Normal", 1], ["Bigger", 1.15], ["Biggest", 1.3]];
   function loadPrefs() {
-    var p = { theme: "latte", mode: "light", size: 1, lang: "en" };
+    var p = { theme: "latte", mode: "light", size: 1, lang: "en", bg: "linen" };
     try { var s = JSON.parse(localStorage.getItem(PREFS_KEY)); if (s) { if (THEMES.some(function (t) { return t.id === s.theme; })) p.theme = s.theme; if (["auto", "light", "dark"].indexOf(s.mode) >= 0) p.mode = s.mode; if (typeof s.lang === "string" && /^(en|es|tl|zh|ja|ko|de|fr|tr|th|lo)$/.test(s.lang)) p.lang = s.lang; if (SIZES.some(function (z) { return z[1] === s.size; })) p.size = s.size; } } catch (e) {}
     try { if (!localStorage.getItem("oneplace.lightFix")) { localStorage.setItem("oneplace.lightFix", "1"); if (p.mode === "auto") p.mode = "light"; } } catch (e) {}
     try { if (!localStorage.getItem("oneplace.themeFix")) { localStorage.setItem("oneplace.themeFix", "1"); if (p.theme === "pine") p.theme = "latte"; } } catch (e) {}
+    try { var s2 = JSON.parse(localStorage.getItem(PREFS_KEY)); if (s2 && BGS.some(function (b) { return b[1] === s2.bg; })) p.bg = s2.bg; } catch (e) {}
     return p;
   }
   var prefs = loadPrefs();
@@ -515,6 +530,7 @@
     root.style.setProperty("--shadow", t.shadow || (dark ? "0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.25)" : "0 1px 2px rgba(29,58,44,.08), 0 6px 18px rgba(29,58,44,.06)"));
     root.style.colorScheme = dark ? "dark" : "light";
     root.style.fontSize = (16 * prefs.size) + "px";
+    root.setAttribute("data-bg", prefs.bg || "linen");
     root.setAttribute("data-theme", t.id); root.setAttribute("data-mode", dark ? "dark" : "light");
   }
   applyPrefs();
@@ -649,6 +665,7 @@
     var panel = h("div", { class: "looktab-panel", role: "tabpanel", "data-testid": "look-panel" });
     var tabs = [
       ["theme", "Theme", function () { return h("div", {}, [tiles, h("p", { class: "hint", style: "margin:16px 0 8px;font-weight:700", text: "Lighting" }), seg("Lighting", "mode", [["Auto", "auto"], ["Light", "light"], ["Dark", "dark"]], function () { return prefs.mode; }, function (v) { prefs.mode = v; savePrefs(); applyPrefs(); })]); }],
+      ["background", "Background", function () { return h("div", {}, [h("p", { class: "hint", style: "margin:0 0 8px;font-weight:700", text: "Page texture" }), seg("Background", "bg", BGS, function () { return prefs.bg; }, function (v) { prefs.bg = v; savePrefs(); applyPrefs(); })]); }],
       ["language", "Language", function () { return langChips(); }],
       ["size", "Text size", function () { return seg("Text size", "size", SIZES, function () { return prefs.size; }, function (v) { prefs.size = v; savePrefs(); applyPrefs(); }); }]
     ];
@@ -1102,8 +1119,7 @@
       box.appendChild(sec("Per account", tbl(["Who", "Visits", "Days", "Last seen", "Lang", "Country"], a.per_account.map(function (x) { return [(x.name ? x.name + " " : "") + "(" + x.email + ")", x.visits, x.days, x.last_seen ? dtl(x.last_seen) : "never", x.lang || "", x.country || ""]; }))));
     }).catch(function (err) { box.textContent = ""; box.appendChild(h("p", { class: "hint", text: "Couldn\u2019t load. " + err.message })); });
     state.backTo = showMore;
-    view([h("header", {}, [h("h1", { text: "Analytics" })]), h("p", { class: "hint", text: "Only you can see this. A visit is one time someone opens One Place (counted at most every 30 minutes). Guests aren\u2019t counted." }), box,
-      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Back", onclick: showMore })])]);
+    view([h("header", {}, [h("h1", { text: "Analytics" })]), h("p", { class: "hint", text: "Only you can see this. A visit is one time someone opens One Place (counted at most every 30 minutes). Guests aren\u2019t counted." }), box]);
   }
   function showPros(note) {
     state.rerender = showPros; state.pendingTab = "more";
@@ -1194,8 +1210,7 @@
       h("header", {}, [h("h1", { text: "My pros" })]),
       note ? h("div", { class: "banner", role: "status", "data-testid": "notice", text: note }) : null,
       h("p", { class: "hint", text: "Your go-to handymen, landscapers, mechanics and more, all in one place. Tap “I used them again” to keep track." }),
-      form, list, local,
-      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Back", onclick: showMore })])
+      form, list, local
     ]);
     load(); loadLocal();
   }
@@ -1221,8 +1236,7 @@
       });
     }).catch(function (err) { box.textContent = ""; box.appendChild(h("p", { class: "hint", text: "Couldn’t load. " + err.message })); });
     state.backTo = showMore;
-    view([h("header", {}, [h("h1", { text: "Pro leads" })]), h("p", { class: "hint", text: "Only you can see this. People who recommended them stay anonymous." }), box,
-      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Back", onclick: showMore })])]);
+    view([h("header", {}, [h("h1", { text: "Pro leads" })]), h("p", { class: "hint", text: "Only you can see this. People who recommended them stay anonymous." }), box]);
   }
   function prosCard() {
     var kids = [h("h2", { text: "My pros" }), h("p", { class: "hint", text: "Save the handymen, landscapers, mechanics and pool cleaners you trust, and keep track of when you use them." }),
@@ -2467,7 +2481,7 @@
         radio("nptenure", "renter", "Renter", false, function () { tenure = "renter"; })
       ])]),
       h("label", { class: "field" }, [nameLabel, nameInput]),
-      h("div", { class: "actions" }, [saveBtn, h("button", { type: "button", class: "quiet", text: "Back", onclick: function () { showHome(); } })]), msg
+      h("div", { class: "actions" }, [saveBtn]), msg
     ]);
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -2775,8 +2789,7 @@
     view([
       h("header", {}, [h("h1", { text: "Punchy\u2019s Closet \ud83d\udc40" })]),
       h("p", { class: "hint", text: "Preview just for you. Nothing to buy yet." }),
-      stage, chips, grid,
-      h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", text: "Back", onclick: showMore })])
+      stage, chips, grid
     ]);
   }
 
@@ -2795,8 +2808,7 @@
       view([
         h("header", {}, [h("h1", { text: title })]),
         notice ? h("div", { class: /Couldn|Not saved/.test(notice) ? "banner bad" : "banner", role: "status", "data-testid": "notice", text: notice }) : null,
-        h("div", { class: "morelist" }, build()),
-        h("div", { class: "actions" }, [h("button", { type: "button", class: "quiet", "data-testid": "more-back", text: "Back", onclick: showMore })])
+        h("div", { class: "morelist" }, build())
       ]);
     };
     go();
@@ -3076,7 +3088,7 @@
       if (f.roomId === "__new" && !f.newRoom) { fail("Type a name for the new room."); return false; }
       return true;
     }
-    function busy(on) { [planBtn, skipBtn, backBtn].forEach(function (b) { b.disabled = on; }); }
+    function busy(on) { [planBtn, skipBtn].forEach(function (b) { b.disabled = on; }); }
 
     planBtn.addEventListener("click", function () {
       collect(); status.className = "result";
@@ -3116,7 +3128,7 @@
       state.guest ? null : h("div", { class: "field" }, [h("span", { text: "Photos (up to 6)" }), h("div", { class: "actions" }, [addLabel, fileInput]), thumbs, count, photoMsg,
         h("small", { text: "Include the model plate or label if you can see one." })]),
       h("label", { class: "field" }, [h("span", { text: "What’s wrong? (optional)" }), problem]),
-      h("div", { class: "actions" }, [planBtn, skipBtn, backBtn]),
+      h("div", { class: "actions" }, [planBtn, skipBtn]),
       status
     ]));
   }
@@ -3314,7 +3326,7 @@
       h("label", { class: "field" }, [h("span", { text: "Which room?" }), roomSel, newRoom]),
       h("div", { class: "field" }, [h("span", { text: "How often?" }), chips, custom]),
       h("label", { class: "field" }, [h("span", { text: "First due" }), due]),
-      h("div", { class: "actions" }, [saveBtn, backBtn]),
+      h("div", { class: "actions" }, [saveBtn]),
       status
     ]));
   }
@@ -3380,7 +3392,7 @@
       boxes.length
         ? h("div", {}, [h("h2", { text: "Suggested tasks" }), h("p", { class: "hint", text: "Tick the ones you want as reminders, or pick your own due date. The rest stay here as suggestions." }), h("ul", { class: "tasks", "data-testid": "suggestions" }, boxes.map(function (b) { return b.li; }))])
         : h("p", { class: "hint", text: "No tasks were suggested. You can still save the item." }),
-      h("div", { class: "actions" }, boxes.length ? [saveBtn, allBtn, skipAll, backBtn] : [saveBtn, backBtn]),
+      h("div", { class: "actions" }, boxes.length ? [saveBtn, allBtn, skipAll] : [saveBtn]),
       status
     ]));
   }
