@@ -363,13 +363,20 @@
   /* rooms and items: each room is its own soft box; the red remove button hangs in the left margin on hover */
   .roomgroup { margin-top: 16px; position: relative; padding: 6px 14px 8px; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--tint) 26%, var(--surface)); }
   .roomhead { position: relative; display: flex; align-items: center; gap: 8px; padding: 6px 0 8px; border-bottom: 1px solid var(--line); }
-  .roomhead h3 { position: relative; margin: 0; padding-bottom: 3px; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 700; font-size: 1.2rem; }
+  .roomhead h3 { position: relative; margin: 0; padding-bottom: 3px; font: inherit; font-weight: 800; font-size: 1.1rem; letter-spacing: -.005em; }
   .roomhead h3::after { content: ""; position: absolute; left: -4px; right: -8px; bottom: -3px; height: 11px; background: var(--accent); opacity: .55; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 7.2 C1 5.4 5 3.6 14 4.1 C45 3.2 82 5.1 118 3.9 C150 2.9 178 3.4 197 2.6 C199 2.9 194 4.4 186 5 C160 6.6 130 6.4 104 7.5 C70 8.9 40 8.4 18 9.4 C8 9.8 3 9 3 7.2Z' fill='black'/%3E%3Cpath d='M120 8.6 C142 8.2 168 8.5 188 7.3' fill='none' stroke='black' stroke-width='1.1' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M30 10.6 C60 10.3 90 10.8 112 10' fill='none' stroke='black' stroke-width='.8' stroke-linecap='round' opacity='.5'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 7.2 C1 5.4 5 3.6 14 4.1 C45 3.2 82 5.1 118 3.9 C150 2.9 178 3.4 197 2.6 C199 2.9 194 4.4 186 5 C160 6.6 130 6.4 104 7.5 C70 8.9 40 8.4 18 9.4 C8 9.8 3 9 3 7.2Z' fill='black'/%3E%3Cpath d='M120 8.6 C142 8.2 168 8.5 188 7.3' fill='none' stroke='black' stroke-width='1.1' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M30 10.6 C60 10.3 90 10.8 112 10' fill='none' stroke='black' stroke-width='.8' stroke-linecap='round' opacity='.5'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; }
   .roomhead .hint { margin: 0 0 0 auto; font-size: .85rem; }
-  .roomgroup > .hint { margin: 8px 0 4px 14px; }
-  .roomgroup details.item { margin-left: 14px; border-top: 1px solid var(--line); }
+  .roomgroup > .hint { margin: 8px 0 4px 0; }
+  .roomgroup details.item { margin-left: 0; border-top: 1px solid var(--line); }
   .roomgroup details.item:first-of-type { border-top: 0; }
-  details.item summary { font-weight: 400; position: relative; }
+  details.item summary { font: inherit; font-weight: 400; font-size: .92rem; position: relative; }
+  details.item .body { gap: 4px; }
+  details.item .body .thumbs:empty, details.item .body .thumbs:empty + .detail { display: none; }
+  details.item .body > * { margin-top: 0; margin-bottom: 0; }
+  details.item .body .tasks { margin-top: 6px; gap: 6px; }
+  details.item .body details.later { margin-top: 0; } details.item .body details.later > summary { min-height: 28px; padding: 2px 0; font-weight: 600; font-size: .88rem; }
+  details.item .body .detail { margin: 0; line-height: 1.35; }
+  details.item .body { padding: 2px 0 6px; }
   .roomhead .delx { position: absolute; left: -30px; top: 50%; transform: translateY(-50%); }
   .roomgroup details.item summary .delx { position: absolute; left: -30px; top: 50%; transform: translateY(-50%); margin: 0; }
   .roomhead:hover .delx, .roomgroup details.item > summary:hover .delx, .delx:hover, .delx:focus-visible, .delx.armed { opacity: 1; }
@@ -3256,10 +3263,38 @@
 
 
   // ---- Reordering: where I buy it, and a one-tap link ----
-  var STORES = ["Amazon", "Walmart", "Home Depot", "Lowe\u2019s", "Target", "Costco", "Other"];
+  var STORE_BY_COUNTRY = {
+    US: ["Amazon", "Walmart", "Home Depot", "Lowe\u2019s", "Target", "Costco"],
+    CA: ["Amazon", "Home Depot", "Canadian Tire", "Walmart", "Costco", "Rona"],
+    GB: ["Amazon", "B&Q", "Screwfix", "Argos", "Tesco", "Wickes"],
+    AU: ["Amazon", "Bunnings", "Kmart", "Officeworks", "Woolworths"],
+    NZ: ["Bunnings", "Mitre 10", "Placemakers", "Warehouse", "Countdown"],
+    IE: ["Amazon", "Woodie\u2019s", "Argos", "Screwfix", "Tesco"],
+    MX: ["Amazon", "Mercado Libre", "Home Depot", "Walmart", "Costco"],
+    PH: ["Lazada", "Shopee", "Wilcon Depot", "SM Hardware", "Amazon"],
+    DE: ["Amazon", "OBI", "Bauhaus", "Hornbach", "Otto"],
+    AT: ["Amazon", "OBI", "Bauhaus", "Hornbach"],
+    CH: ["Galaxus", "Jumbo", "Hornbach", "Amazon"],
+    FR: ["Amazon", "Leroy Merlin", "Castorama", "Brico D\u00e9p\u00f4t"],
+    ES: ["Amazon", "Leroy Merlin", "Bricomart", "El Corte Ingl\u00e9s"],
+    BE: ["Brico", "Amazon", "Hubo", "Gamma"],
+    TR: ["Hepsiburada", "Trendyol", "Amazon", "N11"],
+    JP: ["Amazon", "Cainz", "Rakuten", "Yodobashi"],
+    KR: ["Coupang", "Gmarket", "Naver Shopping"],
+    CN: ["Taobao", "JD.com", "Tmall"],
+    TH: ["HomePro", "Thai Watsadu", "Global House", "DoHome", "Lazada"],
+    LA: ["HomePro", "Thai Watsadu", "Lazada"]
+  };
+  function storeList(extra) {
+    var code = "US"; try { code = (countryInfo().code || "US").toUpperCase(); } catch (e) {}
+    var list = (STORE_BY_COUNTRY[code] || ["Amazon", "Google Shopping"]).slice();
+    if (extra && extra !== "Other" && list.indexOf(extra) < 0) list.push(extra);
+    list.push("Other"); return list;
+  }
   function storeSearchUrl(store, q) {
     var e = encodeURIComponent(q);
     if (store === "Amazon") { var l = storeLinks(q).filter(function (x) { return x.name === "Amazon"; })[0]; if (l) return l.url; return "https://www.amazon.com/s?k=" + e; }
+    var direct = storeLinks(q).filter(function (x) { return x.name === store; })[0]; if (direct) return direct.url;
     if (store === "Walmart") return "https://www.walmart.com/search?q=" + e;
     if (store === "Home Depot") return "https://www.homedepot.com/s/" + e;
     if (store === "Lowe\u2019s") return "https://www.lowes.com/search?searchTerm=" + e;
@@ -3280,7 +3315,7 @@
     var st = { store: (init && init.buy_store) || "" };
     var chips = h("div", { class: "chips", role: "group", "aria-label": "Where do you usually buy it?", "data-testid": "buy-store" });
     var url = h("input", { type: "text", inputmode: "url", autocapitalize: "none", maxlength: "500", placeholder: "Paste the product link (optional)", "aria-label": "Link to the exact product", "data-testid": "buy-url", value: (init && init.buy_url) || "" });
-    function draw() { chips.textContent = ""; STORES.forEach(function (n) { chips.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(st.store === n), text: n, onclick: function () { st.store = st.store === n ? "" : n; draw(); } })); }); }
+    function draw() { chips.textContent = ""; storeList(st.store).forEach(function (n) { chips.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(st.store === n), text: n, onclick: function () { st.store = st.store === n ? "" : n; draw(); } })); }); }
     draw();
     var node = h("div", { class: "field" }, [h("span", { text: "Where do you usually buy it? (optional)" }), chips, url,
       h("small", { text: "Paste a link to the exact one you buy and reordering is one tap. Otherwise I\u2019ll search that store for you." })]);
