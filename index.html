@@ -3774,7 +3774,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     var tabTop = shown ? tb.getBoundingClientRect().top : hh;
     document.documentElement.style.setProperty("--tabh", (shown ? hh - tabTop : 0) + "px");
     document.body.setAttribute("data-dock", shown ? "1" : "0");
-    var sw = w <= 600 ? 96 : 124, sh = Math.round(sw * 350 / 440), pw = punchy.pocket ? sw : size, ph = punchy.pocket ? sh : size;
+    var sw = w <= 600 ? 96 : 124, sh = Math.round(sw * 220 / 440), pw = punchy.pocket ? sw : size, ph = punchy.pocket ? sh : size;
     document.documentElement.style.setProperty("--dockw", pw + "px");
     var x = w - pw - 6, y = shown ? hh - ph - 4 : hh - ph - 14;
     var more = shown && tb.querySelector("button[data-tab=more]");
