@@ -1805,10 +1805,10 @@
   // ---- Toast with Undo (lives outside #app so it survives re-renders) ----
   var toastTimer = null;
   function clearToast() { clearTimeout(toastTimer); $("toast").textContent = ""; }
-  function showToast(message, undoFn) {
+  function showToast(message, undoFn, noDash) {
     clearToast();
     var undo = h("button", { type: "button", "data-testid": "undo-button", text: "Undo" });
-    var box = h("div", { class: "toast", role: "status", "data-testid": "undo-toast" }, [h("span", { text: message + " — " }), undo]);
+    var box = h("div", { class: "toast", role: "status", "data-testid": "undo-toast" }, [h("span", { text: noDash ? message + " " : message + " — " }), undo]);
     undo.addEventListener("click", function () {
       undo.disabled = true;
       undoFn().then(function () { clearToast(); if (state.rerender) state.rerender(); })
@@ -3826,7 +3826,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     punchy.x = typeof st.x === "number" ? st.x : null; punchy.y = typeof st.y === "number" ? st.y : null;
     punchy.pocket = !!st.pocket; punchy.seenWave = !!st.seenWave; punchy.seenFlip = !!st.seenFlip; punchy.typing = false;
     var el = punchy.el = punchyBuild(); document.body.appendChild(el); applyOutfit();
-    punchy.link = h("button", { type: "button", class: "pocketlink noprint", text: "take a nap \uD83D\uDCA4", "data-testid": "punchy-pocket", onclick: function () { punchyPocket(true); showToast("Shh, Punchy is sleeping. Tap him to wake him.", function () { punchyPocket(false); return Promise.resolve(); }); } }); document.body.appendChild(punchy.link);
+    punchy.link = h("button", { type: "button", class: "pocketlink noprint", text: "take a nap \uD83D\uDCA4", "data-testid": "punchy-pocket", onclick: function () { punchyPocket(true); showToast("Shh, Punchy is sleeping. Tap him to wake him.", function () { punchyPocket(false); return Promise.resolve(); }, true); } }); document.body.appendChild(punchy.link);
     punchy.sleeper = h("button", { type: "button", class: "punchysleep noprint", "data-testid": "punchy-restore", "aria-label": "Punchy is sleeping. Tap to wake him.", title: "Tap to wake Punchy", hidden: true, onclick: function () { punchyPocket(false); } });
     punchy.sleeper.innerHTML = '<img class="sbase" src="/assets/punchy-sleep.webp" alt="" draggable="false"><span class="belly"><img src="/assets/punchy-belly.webp" alt="" draggable="false"><span class="blk"></span></span><span class="zbubble" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>'; document.body.appendChild(punchy.sleeper);
     var drag = null;
