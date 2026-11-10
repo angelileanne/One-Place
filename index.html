@@ -3162,10 +3162,13 @@
         ]));
       });
       count.textContent = f.files.length + " of " + MAX_PHOTOS + " photos";
-      addLabel.style.display = f.files.length >= MAX_PHOTOS ? "none" : "";
+      addLabel.style.display = camLabel.style.display = f.files.length >= MAX_PHOTOS ? "none" : "";
     }
     var fileInput = h("input", { type: "file", id: "addPhotos", accept: "image/*", multiple: true, "data-testid": "add-item-photos" });
-    var addLabel = h("label", { class: "filebtn quiet", for: "addPhotos", text: "Add photos" });
+    var addLabel = h("label", { class: "filebtn quiet", for: "addPhotos", text: "Choose photos" });
+    var camInput = h("input", { type: "file", id: "takePhoto", accept: "image/*", capture: "environment", "data-testid": "take-photo" });
+    var camLabel = h("label", { class: "filebtn", for: "takePhoto", text: "Take a photo" });
+    function onPick(fileInput) {
     fileInput.addEventListener("change", function () {
       var picked = [].slice.call(fileInput.files || []).slice(0, MAX_PHOTOS - f.files.length);
       var tooMany = (fileInput.files || []).length > picked.length;
@@ -3179,6 +3182,8 @@
         photoMsg.textContent = bad ? bad.error : (tooMany ? "Only " + MAX_PHOTOS + " photos fit. The rest were left out." : "");
       });
     });
+    }
+    onPick(fileInput); onPick(camInput);
 
     var status = h("div", { class: "result", role: "status", "data-testid": "add-item-status" });
     var planBtn = h("button", { type: "button", "data-testid": "plan-submit", text: "Plan my fix" });
@@ -3230,10 +3235,10 @@
     view(h("section", { class: "card", "data-testid": "add-item-flow" }, [
       h("h2", { text: f.another ? "Add another " + (f.name || "item").toLowerCase() : "Plan my fix" }),
       h("p", { class: "hint", text: state.guest ? "Tell me what it is and where it lives. Photos and fix-it plans unlock with a free account." : "Tell me what it is and add a photo or two. I’ll suggest a plan, and you choose what to keep." }),
-      h("label", { class: "field" }, [h("span", { text: "What is it?" }), name]),
-      h("label", { class: "field" }, [h("span", { text: "Which room?" }), roomSel, newRoom]),
-      state.guest ? null : h("div", { class: "field" }, [h("span", { text: "Photos (up to 6)" }), h("div", { class: "actions" }, [addLabel, fileInput]), thumbs, count, photoMsg,
+      state.guest ? null : h("div", { class: "field" }, [h("span", { text: "1. Add or take a photo (up to 6)" }), h("div", { class: "actions" }, [camLabel, addLabel, camInput, fileInput]), thumbs, count, photoMsg,
         h("small", { text: "Include the model plate or label if you can see one." })]),
+      h("label", { class: "field" }, [h("span", { text: state.guest ? "What is it?" : "2. What is it?" }), name]),
+      h("label", { class: "field" }, [h("span", { text: state.guest ? "Which room?" : "3. Which room?" }), roomSel, newRoom]),
       h("label", { class: "field" }, [h("span", { text: "What’s wrong? (optional)" }), problem]),
       h("div", { class: "actions" }, [planBtn, skipBtn]),
       status
