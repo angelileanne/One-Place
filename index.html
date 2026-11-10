@@ -344,8 +344,11 @@
 
   /* nap button, sleeper and delete controls */
   .pocketlink { text-decoration: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: .78rem; font-weight: 700; opacity: 1; box-shadow: 0 2px 8px rgba(0,0,0,.12); z-index: 20; white-space: nowrap; }
-  .punchysleep { position: fixed; z-index: 19; padding: 0; border: 0; background: none; cursor: pointer; min-height: 0; touch-action: manipulation; }
-  .punchysleep img { width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+  .punchysleep { position: fixed; display: block; z-index: 19; padding: 0; border: 0; background: none; cursor: pointer; min-height: 0; touch-action: manipulation; }
+  .punchysleep img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+  .punchysleep .belly { transform-origin: 55% 100%; animation: snore 3.6s ease-in-out infinite; }
+  @keyframes snore { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.025, 1.06); } }
+  @media (prefers-reduced-motion: reduce) { .punchysleep .belly { animation: none; } }
   .zbubble { position: absolute; left: 6%; top: -22px; pointer-events: none; display: block; width: 46px; height: 30px; }
   .zbubble i { position: absolute; font-style: normal; font-weight: 800; color: var(--accent); opacity: 0; animation: zfloat 3.2s ease-in-out infinite; font-size: .9rem; }
   .zbubble i:nth-child(1) { left: 0; animation-delay: 0s; }
@@ -353,9 +356,14 @@
   .zbubble i:nth-child(3) { left: 30px; animation-delay: 2s; font-size: 1.35rem; }
   @keyframes zfloat { 0% { transform: translate(0,12px) scale(.7); opacity: 0; } 25% { opacity: 1; } 100% { transform: translate(8px,-14px) scale(1.1); opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .zbubble i { animation: none; opacity: .9; } }
-  .delx { min-height: 0; width: 24px; height: 24px; padding: 0; border-radius: 999px; font-size: 1rem; line-height: 1; font-weight: 800; background: var(--tint); color: var(--soft); border: 1px solid var(--line); display: inline-flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .15s; flex: none; }
-  .delx.armed { width: auto; padding: 0 10px; font-size: .75rem; background: #b3261e; color: #fff; border-color: #b3261e; opacity: 1; }
-  details.item summary .delx { margin-left: auto; }
+  .delx { min-height: 0; width: 24px; height: 24px; padding: 0; border-radius: 999px; font-size: 1.1rem; line-height: 1; font-weight: 800; background: #d9453b; color: #fff; border: 0; box-shadow: 0 1px 3px rgba(0,0,0,.25); display: inline-flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .15s; flex: none; }
+  .delx.armed { width: auto; padding: 0 12px; font-size: .78rem; background: #a8201a; opacity: 1; }
+  details.item summary .delx { margin-right: 2px; }
+  .roomgroup { margin-top: 14px; }
+  .roomhead { display: flex; align-items: center; gap: 8px; padding: 4px 0 6px; border-bottom: 2px solid var(--line); }
+  .roomhead h3 { margin: 0; font-size: 1.05rem; }
+  .roomhead .hint { margin: 0 0 0 auto; }
+  .roomgroup details.item { margin-left: 32px; }
   details.item summary:hover .delx, .delwrap:hover .delx, .delx:focus-visible, .delx.armed { opacity: 1; }
   .delwrap { display: inline-flex; align-items: center; gap: 4px; }
   @media (hover: none) { .delx { opacity: .75; } }
@@ -524,6 +532,7 @@
   }
   function view(nodes) {
     var app = $("app");
+    state.keepY = window.scrollY || 0;
     var backFn = state.backTo; state.backTo = null;
     if (backFn) nodes = [backTop(backFn)].concat(nodes);
     document.body.classList.toggle("cozy", !!state.cozyNext); state.cozyNext = false;
@@ -534,7 +543,9 @@
     [].forEach.call(nav.querySelectorAll("button"), function (b) { if (b.getAttribute("data-tab") === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
     document.body.setAttribute("data-page", app.querySelector("[data-testid=needs-attention]") ? "home" : "other");
     $("newTitle").closest("section").hidden = true; // only the main More screen turns this back on
-    window.scrollTo(0, 0);
+    var again = state.rerender === showHome && state.lastShown === showHome;
+    state.lastShown = state.rerender;
+    window.scrollTo(0, again ? state.keepY : 0);
   }
   // ---- Make it yours: themes, lighting, text size (look only; never changes what the app does) ----
   var PREFS_KEY = "oneplace.prefs";
@@ -2602,13 +2613,13 @@
     return { button: button, panel: panel };
   }
 
-  function itemCard(item) {
+  function itemCard(item, hideRoom) {
     var tasks = tasksFor(item.id);
     var active = tasks.filter(function (t) { return t.status === "active"; }).length;
     var details = h("details", { class: "item", "data-testid": "item" });
-    var summary = h("summary", {}, [item.name + " — " + roomName(item.room_id)]);
+    var summary = h("summary", {}, [hideRoom ? item.name : item.name + " — " + roomName(item.room_id)]);
     if (active) summary.appendChild(h("span", { class: "badge", text: active + (active === 1 ? " reminder" : " reminders") }));
-    summary.appendChild(delButton("Delete " + item.name, (tasks.length ? "Delete item + " + tasks.length + (tasks.length === 1 ? " task?" : " tasks?") : "Delete item?"), function () { return deleteItem(item); }));
+    summary.insertBefore(delButton("Delete " + item.name, (tasks.length ? "Delete item + " + tasks.length + (tasks.length === 1 ? " task?" : " tasks?") : "Delete item?"), function () { return deleteItem(item); }), summary.firstChild);
     var body = h("div", { class: "body" });
     var bits = [item.brand, item.model, item.year].filter(Boolean).join(" · ");
     if (bits) body.appendChild(h("div", { class: "detail", text: bits }));
@@ -2629,6 +2640,9 @@
       mv.button
     ]));
     if (mv.panel) body.appendChild(mv.panel);
+    state.openItems = state.openItems || {};
+    if (state.openItems[item.id]) details.open = true;
+    details.addEventListener("toggle", function () { state.openItems[item.id] = details.open; });
     details.appendChild(summary); details.appendChild(body);
     var loaded = false;
     details.addEventListener("toggle", function () {
@@ -2650,15 +2664,26 @@
     var shown = state.items.filter(function (i) { return state.filter === "all" || i.room_id === state.filter; });
     if (!state.items.length) itemsBox.appendChild(h("p", { class: "hint", text: "Nothing here yet. Tap “Plan my fix” to add your first item." }));
     else if (!shown.length) itemsBox.appendChild(h("p", { class: "hint", text: "No items in this room yet." }));
-    shown.forEach(function (i) { itemsBox.appendChild(itemCard(i)); });
+    var roomList = state.rooms.filter(function (r) { return state.filter === "all" || state.filter === r.id; });
+    roomList.forEach(function (r) {
+      var its = shown.filter(function (i) { return i.room_id === r.id; });
+      var head = h("div", { class: "roomhead" }, [
+        delButton("Delete room " + r.name, its.length ? "Delete room + " + its.length + (its.length === 1 ? " item?" : " items?") : "Delete room?", function () { return deleteRoom(r); }),
+        h("h3", { text: r.name }), h("span", { class: "hint", text: its.length + (its.length === 1 ? " item" : " items") })
+      ]);
+      var grp = h("div", { class: "roomgroup", "data-testid": "room-group" }, [head]);
+      if (!its.length) grp.appendChild(h("p", { class: "hint", style: "margin:4px 0 0 32px", text: "Nothing here yet." }));
+      its.forEach(function (i) { grp.appendChild(itemCard(i, true)); });
+      itemsBox.appendChild(grp);
+    });
+    var strays = shown.filter(function (i) { return !state.rooms.some(function (r) { return r.id === i.room_id; }); });
+    if (strays.length && state.filter === "all") { var og = h("div", { class: "roomgroup" }, [h("div", { class: "roomhead" }, [h("h3", { text: "Around the house" })])]); strays.forEach(function (i) { og.appendChild(itemCard(i, true)); }); itemsBox.appendChild(og); }
 
     var filterChips = null;
     if (state.rooms.length) {
       filterChips = h("div", { class: "chips", role: "group", "aria-label": "Show items by room" }, [{ id: "all", name: "All" }].concat(state.rooms).map(function (r) {
         var chip = h("button", { type: "button", class: "chip", "aria-pressed": String(state.filter === r.id), text: r.name, "data-testid": "room-tab", onclick: function () { state.filter = r.id; showHome(); } });
-        if (r.id === "all") return chip;
-        var n = state.items.filter(function (i) { return i.room_id === r.id; }).length;
-        return h("span", { class: "delwrap" }, [chip, delButton("Delete room " + r.name, n ? "Delete room + " + n + (n === 1 ? " item?" : " items?") : "Delete room?", function () { return deleteRoom(r); })]);
+        return chip;
       }));
     }
 
@@ -3749,7 +3774,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     var tabTop = shown ? tb.getBoundingClientRect().top : hh;
     document.documentElement.style.setProperty("--tabh", (shown ? hh - tabTop : 0) + "px");
     document.body.setAttribute("data-dock", shown ? "1" : "0");
-    var sw = w <= 600 ? 96 : 124, sh = Math.round(sw * 300 / 440), pw = punchy.pocket ? sw : size, ph = punchy.pocket ? sh : size;
+    var sw = w <= 600 ? 96 : 124, sh = Math.round(sw * 350 / 440), pw = punchy.pocket ? sw : size, ph = punchy.pocket ? sh : size;
     document.documentElement.style.setProperty("--dockw", pw + "px");
     var x = w - pw - 6, y = shown ? hh - ph - 4 : hh - ph - 14;
     var more = shown && tb.querySelector("button[data-tab=more]");
@@ -3795,7 +3820,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     var el = punchy.el = punchyBuild(); document.body.appendChild(el); applyOutfit();
     punchy.link = h("button", { type: "button", class: "pocketlink noprint", text: "take a nap \uD83D\uDCA4", "data-testid": "punchy-pocket", onclick: function () { punchyPocket(true); showToast("Shh, Punchy is sleeping. Tap him to wake him.", function () { punchyPocket(false); }); } }); document.body.appendChild(punchy.link);
     punchy.sleeper = h("button", { type: "button", class: "punchysleep noprint", "data-testid": "punchy-restore", "aria-label": "Punchy is sleeping. Tap to wake him.", title: "Tap to wake Punchy", hidden: true, onclick: function () { punchyPocket(false); } });
-    punchy.sleeper.innerHTML = '<img src="/assets/punchy-sleep.webp" alt="" draggable="false"><span class="zbubble" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>'; document.body.appendChild(punchy.sleeper);
+    punchy.sleeper.innerHTML = '<img class="sbase" src="/assets/punchy-sleep.webp" alt="" draggable="false"><img class="belly" src="/assets/punchy-belly.webp" alt="" draggable="false"><span class="zbubble" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>'; document.body.appendChild(punchy.sleeper);
     var drag = null;
     el.addEventListener("pointerdown", function (e) { drag = { sx: e.clientX, sy: e.clientY, ox: el.offsetLeft, oy: el.offsetTop, moved: false }; try { el.setPointerCapture(e.pointerId); } catch (x) {} });
     el.addEventListener("pointermove", function (e) {
