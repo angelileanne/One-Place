@@ -999,7 +999,17 @@
   function showIntro() {
     state.rerender = showIntro; state.pendingTab = null; state.cozyNext = true;
     function go(mode) { lsSet("oneplace.welcomed", "1"); showAuth(mode); }
+    if (!prefs.langChosen && !state.autoLang) {
+      state.autoLang = true;
+      var nl = String((navigator.languages && navigator.languages[0]) || navigator.language || "en").toLowerCase();
+      var nm = { fil: "tl", tl: "tl" }[nl.slice(0, 3)] || nl.slice(0, 2);
+      if (nm !== prefs.lang && LANGS.some(function (l) { return l[0] === nm; })) { prefs.lang = nm; savePrefs(); applyLang(); }
+    }
     view(h("section", { class: "card", "data-testid": "intro", style: "text-align:center" }, [
+      h("div", { style: "margin:0 0 14px" }, [
+        h("p", { class: "hint", style: "margin:0 0 6px", "data-testid": "intro-lang-label", text: "\uD83C\uDF10 Language" }),
+        langChips()
+      ]),
       h("h1", { text: "Welcome to One Place!" }),
       h("p", { class: "hint", text: "Everything about your home or business in one welcoming spot: what you have, when it needs care, and how to fix it." }),
       h("ul", { style: "list-style:none;padding:0;margin:16px 0;display:grid;gap:8px" }, [
