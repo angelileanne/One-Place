@@ -346,7 +346,9 @@
   .pocketlink { text-decoration: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: .78rem; font-weight: 700; opacity: 1; box-shadow: 0 2px 8px rgba(0,0,0,.12); z-index: 20; white-space: nowrap; }
   .punchysleep { position: fixed; display: block; z-index: 19; padding: 0; border: 0; background: none; cursor: pointer; min-height: 0; touch-action: manipulation; }
   .punchysleep img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
-  .punchysleep .belly { transform-origin: 55% 100%; animation: snore 3.6s ease-in-out infinite; }
+  .punchysleep .belly { position: absolute; inset: 0; display: block; transform-origin: 55% 100%; animation: snore 3.6s ease-in-out infinite; }
+  .punchysleep .belly img { position: absolute; inset: 0; }
+  .punchysleep .blk { position: absolute; inset: 0; display: block; background-color: color-mix(in srgb, var(--accent) 50%, #fff); background-image: url(/assets/punchy-blanket.webp); background-size: 100% 100%; background-blend-mode: multiply; -webkit-mask-image: url(/assets/punchy-blanket.webp); mask-image: url(/assets/punchy-blanket.webp); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
   @keyframes snore { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.025, 1.06); } }
   @media (prefers-reduced-motion: reduce) { .punchysleep .belly { animation: none; } }
   .zbubble { position: absolute; left: 6%; top: -22px; pointer-events: none; display: block; width: 46px; height: 30px; }
@@ -3825,7 +3827,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     var el = punchy.el = punchyBuild(); document.body.appendChild(el); applyOutfit();
     punchy.link = h("button", { type: "button", class: "pocketlink noprint", text: "take a nap \uD83D\uDCA4", "data-testid": "punchy-pocket", onclick: function () { punchyPocket(true); showToast("Shh, Punchy is sleeping. Tap him to wake him.", function () { punchyPocket(false); }); } }); document.body.appendChild(punchy.link);
     punchy.sleeper = h("button", { type: "button", class: "punchysleep noprint", "data-testid": "punchy-restore", "aria-label": "Punchy is sleeping. Tap to wake him.", title: "Tap to wake Punchy", hidden: true, onclick: function () { punchyPocket(false); } });
-    punchy.sleeper.innerHTML = '<img class="sbase" src="/assets/punchy-sleep.webp" alt="" draggable="false"><img class="belly" src="/assets/punchy-belly.webp" alt="" draggable="false"><span class="zbubble" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>'; document.body.appendChild(punchy.sleeper);
+    punchy.sleeper.innerHTML = '<img class="sbase" src="/assets/punchy-sleep.webp" alt="" draggable="false"><span class="belly"><img src="/assets/punchy-belly.webp" alt="" draggable="false"><span class="blk"></span></span><span class="zbubble" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>'; document.body.appendChild(punchy.sleeper);
     var drag = null;
     el.addEventListener("pointerdown", function (e) { drag = { sx: e.clientX, sy: e.clientY, ox: el.offsetLeft, oy: el.offsetTop, moved: false }; try { el.setPointerCapture(e.pointerId); } catch (x) {} });
     el.addEventListener("pointermove", function (e) {
