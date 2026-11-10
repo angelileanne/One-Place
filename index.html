@@ -363,7 +363,8 @@
   /* rooms and items: each room is its own soft box; the red remove button hangs in the left margin on hover */
   .roomgroup { margin-top: 16px; position: relative; padding: 6px 14px 8px; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--tint) 26%, var(--surface)); }
   .roomhead { position: relative; display: flex; align-items: center; gap: 8px; padding: 6px 0 8px; border-bottom: 1px solid var(--line); }
-  .roomhead h3 { margin: 0; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; font-size: 1.15rem; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 5px; text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+  .roomhead h3 { position: relative; margin: 0; padding-bottom: 7px; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 700; font-size: 1.2rem; }
+  .roomhead h3::after { content: ""; position: absolute; left: -2px; right: -6px; bottom: 0; height: 7px; background: var(--soft); opacity: .85; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M1 5.2 C20 3.2 45 6.6 80 4.6 S150 5.6 199 3.4' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round'/%3E%3Cpath d='M5 6.4 C52 4.9 100 6.5 186 4.3' fill='none' stroke='black' stroke-width='1' stroke-linecap='round' opacity='.65'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M1 5.2 C20 3.2 45 6.6 80 4.6 S150 5.6 199 3.4' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round'/%3E%3Cpath d='M5 6.4 C52 4.9 100 6.5 186 4.3' fill='none' stroke='black' stroke-width='1' stroke-linecap='round' opacity='.65'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; }
   .roomhead .hint { margin: 0 0 0 auto; font-size: .85rem; }
   .roomgroup > .hint { margin: 8px 0 4px 14px; }
   .roomgroup details.item { margin-left: 14px; border-top: 1px solid var(--line); }
@@ -381,7 +382,7 @@
   }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Fraunces:ital,wght@0,600;0,700;1,500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Fraunces:ital,wght@0,600;0,700;1,500;1,700&display=swap">
 </head>
 <body>
 <div class="wrap">
