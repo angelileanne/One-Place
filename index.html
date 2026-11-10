@@ -396,7 +396,8 @@
   details.item .body .detail { margin: 0; line-height: 1.35; }
   details.item .body { padding: 2px 0 6px; }
   .roomhead .delx { position: absolute; left: -30px; top: 50%; transform: translateY(-50%); }
-  .roomhead .delx.armed, .roomgroup details.item summary .delx.armed { left: auto; right: 0; z-index: 6; white-space: nowrap; min-height: 32px; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+  .roomhead:has(.delx.armed) h3::after { display: none; }
+  .roomhead .delx.armed, .roomgroup details.item summary .delx.armed { left: 0; right: 0; top: 2px; bottom: 2px; width: auto; height: auto; transform: none; z-index: 6; white-space: nowrap; border-radius: 10px; font-size: .9rem; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
   .roomgroup details.item summary .delx { position: absolute; left: -30px; top: 50%; transform: translateY(-50%); margin: 0; }
   .roomhead:hover .delx, .roomgroup details.item > summary:hover .delx, .delx:hover, .delx:focus-visible, .delx.armed { opacity: 1; }
   details.item:not(.x) > summary:hover .delx { opacity: 1; }
