@@ -2336,6 +2336,8 @@
     function drawLinks() {
       links.textContent = "";
       links.appendChild(link("Find " + d.trade + "s near me", "https://www.google.com/maps/search/" + enc(d.trade + " near " + (nearText() || "me")), "find-pros"));
+      var yelpHost = { US: "www.yelp.com", CA: "www.yelp.ca", GB: "www.yelp.co.uk", AU: "www.yelp.com.au" }[countryInfo().code];
+      if (yelpHost) links.appendChild(link("Also on Yelp", "https://" + yelpHost + "/search?find_desc=" + enc(d.trade) + (nearText() ? "&find_loc=" + enc(nearText()) : ""), "find-pros-yelp"));
       links.appendChild(link("Email it", "mailto:?subject=" + enc(subject) + "&body=" + enc(ta.value), "quote-email"));
       links.appendChild(link("Text it", "sms:?&body=" + enc(ta.value), "quote-text"));
     }
