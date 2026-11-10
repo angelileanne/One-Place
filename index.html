@@ -368,7 +368,7 @@
   .roomgroup details.item { margin-left: 32px; }
   details.item summary:hover .delx, .delwrap:hover .delx, .delx:focus-visible, .delx.armed { opacity: 1; }
   .delwrap { display: inline-flex; align-items: center; gap: 4px; }
-  @media (hover: none) { .delx { opacity: .75; } }
+  .roomhead.show .delx, details.item[open] > summary .delx { opacity: 1; }
   @media (min-width: 960px) {
     .tabbar { gap: clamp(24px, 5vw, 80px); }
     .tabbar button { max-width: 230px; flex-direction: row; gap: 10px; font-size: .95rem; min-height: 58px; padding: 6px 18px; }
@@ -2673,6 +2673,7 @@
         delButton("Delete room " + r.name, its.length ? "Delete room + " + its.length + (its.length === 1 ? " item?" : " items?") : "Delete room?", function () { return deleteRoom(r); }),
         h("h3", { text: r.name }), h("span", { class: "hint", text: its.length + (its.length === 1 ? " item" : " items") })
       ]);
+      head.addEventListener("click", function (e) { if (e.target.closest(".delx")) return; head.classList.toggle("show"); });
       var grp = h("div", { class: "roomgroup", "data-testid": "room-group" }, [head]);
       if (!its.length) grp.appendChild(h("p", { class: "hint", style: "margin:4px 0 0 32px", text: "Nothing here yet." }));
       its.forEach(function (i) { grp.appendChild(itemCard(i, true)); });
@@ -2707,7 +2708,7 @@
           h("h2", { text: "Let\u2019s start with one thing" }),
           h("p", { class: "hint", text: "Pick whichever is easiest. You can add the rest any time." }),
           h("div", { class: "actions", style: "justify-content:center" }, [
-            h("button", { type: "button", "data-testid": "plan-my-fix", text: "Something to fix", onclick: function () { showAddItem({}); } }),
+            h("button", { type: "button", "data-testid": "plan-my-fix", text: "Planning a fix", onclick: function () { showAddItem({}); } }),
             h("button", { type: "button", class: "quiet", "data-testid": "add-reminder", text: "A regular reminder", onclick: function () { showQuickReminder(); } })
           ])
         ]),
@@ -3825,7 +3826,7 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     punchy.x = typeof st.x === "number" ? st.x : null; punchy.y = typeof st.y === "number" ? st.y : null;
     punchy.pocket = !!st.pocket; punchy.seenWave = !!st.seenWave; punchy.seenFlip = !!st.seenFlip; punchy.typing = false;
     var el = punchy.el = punchyBuild(); document.body.appendChild(el); applyOutfit();
-    punchy.link = h("button", { type: "button", class: "pocketlink noprint", text: "take a nap \uD83D\uDCA4", "data-testid": "punchy-pocket", onclick: function () { punchyPocket(true); showToast("Shh, Punchy is sleeping. Tap him to wake him.", function () { punchyPocket(false); }); } }); document.body.appendChild(punchy.link);
+    punchy.link = h("button", { type: "button", class: "pocketlink noprint", text: "take a nap \uD83D\uDCA4", "data-testid": "punchy-pocket", onclick: function () { punchyPocket(true); showToast("Shh, Punchy is sleeping. Tap him to wake him.", function () { punchyPocket(false); return Promise.resolve(); }); } }); document.body.appendChild(punchy.link);
     punchy.sleeper = h("button", { type: "button", class: "punchysleep noprint", "data-testid": "punchy-restore", "aria-label": "Punchy is sleeping. Tap to wake him.", title: "Tap to wake Punchy", hidden: true, onclick: function () { punchyPocket(false); } });
     punchy.sleeper.innerHTML = '<img class="sbase" src="/assets/punchy-sleep.webp" alt="" draggable="false"><span class="belly"><img src="/assets/punchy-belly.webp" alt="" draggable="false"><span class="blk"></span></span><span class="zbubble" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>'; document.body.appendChild(punchy.sleeper);
     var drag = null;
