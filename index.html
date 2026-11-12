@@ -342,6 +342,7 @@
   .tabbar { transition: padding .2s ease; }
   body[data-dock="1"] .tabbar { padding-right: calc(var(--dockw, var(--psz, 108px)) + 10px); }
   .punchy { z-index: 19; }
+  .homegrid { display: contents; }
   /* Desktop: use the room, stay cozy */
   #app { display: grid; gap: 30px; align-content: start; }
   #app > * { min-width: 0; }
@@ -353,6 +354,16 @@
     body[data-page="home"] #app { max-width: none; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
     body[data-page="home"] #app > header, body[data-page="home"] #app > .guestbar, body[data-page="home"] #app > [data-testid="needs-attention"], body[data-page="home"] #app > [data-testid="week-card"] { grid-column: 1 / -1; }
     body[data-page="home"] #app > header h1 { font-size: 2rem; }
+    body[data-page="home"] #app > .chips, body[data-page="home"] #app > .banner, body[data-page="home"] #app > [data-testid="install-card"], body[data-page="home"] #app > [data-testid="invites"], body[data-page="home"] #app > .homegrid { grid-column: 1 / -1; }
+    body[data-page="home"] #app > .chips { margin: -12px 0 0; }
+    body[data-page="home"] #app > [data-testid="install-card"] { display: grid; grid-template-columns: 1fr auto; column-gap: 28px; align-items: center; padding: 16px 24px; }
+    body[data-page="home"] #app > [data-testid="install-card"] h2 { font-size: 1.05rem; margin: 0 0 2px; grid-column: 1; }
+    body[data-page="home"] #app > [data-testid="install-card"] p { margin: 0; grid-column: 1; font-size: .92rem; }
+    body[data-page="home"] #app > [data-testid="install-card"] .actions { grid-column: 2; grid-row: 1 / span 2; margin: 0; flex-wrap: nowrap; }
+    body[data-page="home"] #app > [data-testid="needs-attention"] .attn { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+    body[data-page="home"] .homegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+    body[data-page="home"] .homegrid > .hg-rooms { grid-column: 2; grid-row: 1 / span 3; }
+    body[data-page="home"] .homegrid > :not(.hg-rooms) { grid-column: 1; }
     .card { padding: 22px 24px 24px; }
     h2 { font-size: 1.25rem; }
   }
@@ -3206,17 +3217,18 @@
       installCard(),
       attentionCard(),
       weekCard(),
-      h("section", { class: "card" }, [
+      h("div", { class: "homegrid" }, [
+      h("section", { class: "card hg-fix" }, [
         h("h2", { text: "Something to fix? Start with a photo." }),
         h("p", { class: "hint", text: "Snap a photo, say what’s wrong, and get a plan you can accept or skip." }),
         h("button", { type: "button", "data-testid": "plan-my-fix", text: "Plan my fix", onclick: function () { showAddItem({}); } })
       ]),
-      h("section", { class: "card" }, [
+      h("section", { class: "card hg-rem" }, [
         h("h2", { text: "Need a regular reminder?" }),
         h("p", { class: "hint", text: "Filters, humidifiers, medical device supplies, pet supplies, anything that repeats. Pick a room and how often." }),
         h("button", { type: "button", "data-testid": "add-reminder", text: "Add a reminder", onclick: function () { showQuickReminder(); } })
       ]),
-      h("section", { class: "card", "aria-labelledby": "roomsTitle" }, [
+      h("section", { class: "card hg-rooms", "aria-labelledby": "roomsTitle" }, [
         h("h2", { id: "roomsTitle", text: "Rooms and items" }),
         filterChips,
         itemsBox,
@@ -3225,6 +3237,7 @@
         ])
       ]),
       sectionsCard()
+      ])
     ]);
   }
 
