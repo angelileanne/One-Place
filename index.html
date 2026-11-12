@@ -1020,7 +1020,7 @@
       ].map(function (x) { return h("li", { class: "attn-item", style: "text-align:center;padding:10px 14px", text: x }); })),
       h("div", { class: "actions", style: "justify-content:center" }, [
         h("button", { type: "button", class: "small", "data-testid": "intro-start", text: "Get started", onclick: function () { go("signup"); } }),
-        h("button", { type: "button", class: "ghost small", "data-testid": "intro-guest", text: guestHas() ? "Back to my visit" : "Just looking", onclick: function () { startGuest(); } })
+        guestHas() ? h("button", { type: "button", class: "ghost small", "data-testid": "intro-guest", text: "Back to my visit", onclick: function () { startGuest(); } }) : null
       ]),
       h("div", { class: "actions", style: "justify-content:center;margin:18px 0 0" }, [
         h("button", { type: "button", class: "link signin-link", "data-testid": "intro-signin", text: "I already have an account", onclick: function () { go("signin"); } })
