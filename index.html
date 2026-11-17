@@ -576,7 +576,7 @@
   // ---- Config. The publishable key is designed to be public; the database rules (RLS) are what protect data. ----
   var SUPABASE_URL = "https://ykqnjpgbdwrenilwxkio.supabase.co";
   var SUPABASE_KEY = "sb_publishable_1TrviuurElOjjrQRY56oUg_yzgNwHiR";
-  var AI_MODELS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"];
+  var AI_MODELS = ["gemini-2.5-flash", "gemini-flash-lite-latest", "gemini-flash-latest"];
   var SESSION_KEY = "oneplace.session";
 
   var state = { pendingTab: null, rerender: null, cal: { mode: "month", anchor: "", day: "" }, notes: [], session: null, person: null, profile: null, profiles: [], rooms: [], items: [], tasks: [], parts: [], entries: [], logs: [], help: {}, filter: "all", notice: "" };
@@ -3766,7 +3766,7 @@
       status.textContent = "Looking at your item…";
       var slow = setTimeout(function () { if (!onBackup) status.textContent = "Let me think harder about this, one moment…"; }, 6000);
       var parts = [{ text: planPrompt(f) }].concat(f.files.map(function (p) { return { inline_data: { mime_type: "image/jpeg", data: p.base64 } }; }));
-      callAI(parts, { timeoutMs: 20000, config: { temperature: 0.2, maxOutputTokens: 2048, responseMimeType: "application/json" },
+      callAI(parts, { timeoutMs: 14000, config: { temperature: 0.2, maxOutputTokens: 2048, responseMimeType: "application/json" },
         onBackup: function () { onBackup = true; status.textContent = "That model is busy. Trying a backup…"; } })
         .then(parsePlan).then(function (plan) { clearTimeout(slow); f.plan = plan; renderReview(f); })
         .catch(function (err) {
