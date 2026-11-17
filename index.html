@@ -4437,7 +4437,9 @@ function plushSvg(k, label) { return '<svg viewBox="0 0 200 200" role="img" aria
     var w = window.innerWidth, lw = l.offsetWidth || 112;
     var lh = l.offsetHeight || 30;
     l.style.top = Math.max(2, y - lh + 2) + "px";
-    l.style.left = Math.max(2, Math.min(w - lw - 6, x + (size || 108) / 2 - lw / 2)) + "px";
+    l.style.left = Math.max(2, Math.min(w - lw - 12, x + (size || 108) / 2 - lw / 2)) + "px";
+    var lr = l.getBoundingClientRect();
+    if (lr.width && lr.right > w - 12) l.style.left = Math.max(2, w - lr.width - 12) + "px";
   }
   function punchyTap() {
     if (punchy.pose === "flip" || punchy.pose === "wave") return;
