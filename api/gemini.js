@@ -95,6 +95,7 @@ module.exports = async function handler(req, res) {
       out = await callGemini(cfg);
     }
     var upstream = out.r, data = out.d;
+    console.log("gemini final", model, out.r.status, "ms", Date.now() - t0, out.r.ok ? "ok" : JSON.stringify(data && data.error && data.error.message).slice(0, 300));
     if (!upstream.ok) {
       var message =
         (data && data.error && data.error.message) ||
