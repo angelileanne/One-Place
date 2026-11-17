@@ -67,15 +67,32 @@ module.exports = async function handler(req, res) {
     encodeURIComponent(model) +
     ":generateContent";
 
+  async function callGemini(cfg) {
+    var ctrl = new AbortController();
+    var t = setTimeout(function () { ctrl.abort(); }, 25000);
+    try {
+      var r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({ contents: contents, generationConfig: cfg }),
+        signal: ctrl.signal,
+      });
+      var d = await r.json().catch(function () { return null; });
+      return { r: r, d: d };
+    } finally { clearTimeout(t); }
+  }
+
   try {
-    var upstream = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({ contents: contents, generationConfig: generationConfig }),
-    });
-    var data = await upstream.json().catch(function () {
-      return null;
-    });
+    // Thinking makes answers slow and eats the output budget; the plan doesn't need it.
+    var cfg = Object.assign({}, generationConfig || {});
+    var noThink = !cfg.thinkingConfig;
+    if (noThink) cfg.thinkingConfig = { thinkingBudget: 0 };
+    var out = await callGemini(cfg);
+    if (!out.r.ok && out.r.status === 400 && noThink) {
+      delete cfg.thinkingConfig; // this model doesn't allow turning thinking off
+      out = await callGemini(cfg);
+    }
+    var upstream = out.r, data = out.d;
     if (!upstream.ok) {
       var message =
         (data && data.error && data.error.message) ||
