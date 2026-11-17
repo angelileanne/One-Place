@@ -4,15 +4,37 @@
 // (Project -> Settings -> Environment Variables). It is never in this file, never
 // in the page, and never logged. The page calls POST /api/gemini with
 // { model, contents, generationConfig } and gets Gemini's generateContent
-// response back. Deploy by placing this file at api/gemini.js in the repo;
-// Vercel serves it at /api/gemini on the same domain as the page.
+// response back.
+//
+// Only signed-in people can use it: the page sends its Supabase sign-in token in
+// the Authorization header, and we check that token with Supabase before spending
+// any of the Gemini quota. (The Supabase URL and publishable key below are public
+// by design.)
 
 var ALLOWED_MODEL = /^gemini-[a-z0-9.-]+$/i;
+var SUPABASE_URL = "https://ykqnjpgbdwrenilwxkio.supabase.co";
+var SUPABASE_KEY = "sb_publishable_1TrviuurElOjjrQRY56oUg_yzgNwHiR";
+
+async function isSignedIn(authHeader) {
+  if (typeof authHeader !== "string" || authHeader.slice(0, 7).toLowerCase() !== "bearer ") return false;
+  try {
+    var r = await fetch(SUPABASE_URL + "/auth/v1/user", {
+      headers: { apikey: SUPABASE_KEY, Authorization: authHeader },
+    });
+    return r.ok;
+  } catch (e) {
+    return false;
+  }
+}
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  if (!(await isSignedIn(req.headers.authorization))) {
+    return res.status(401).json({ error: "Please sign in again to use the photo AI." });
   }
 
   var key = process.env.GEMINI_API_KEY;
