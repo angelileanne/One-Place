@@ -87,7 +87,9 @@ module.exports = async function handler(req, res) {
     var cfg = Object.assign({}, generationConfig || {});
     var noThink = !cfg.thinkingConfig;
     if (noThink) cfg.thinkingConfig = { thinkingBudget: 0 };
+    var t0 = Date.now();
     var out = await callGemini(cfg);
+    console.log("gemini timing", model, "status", out.r.status, "ms", Date.now() - t0, "bytes", JSON.stringify(contents).length);
     if (!out.r.ok && out.r.status === 400 && noThink) {
       delete cfg.thinkingConfig; // this model doesn't allow turning thinking off
       out = await callGemini(cfg);
