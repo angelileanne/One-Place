@@ -3232,8 +3232,7 @@
           h("p", { class: "hint", text: "Pick whichever is easiest. You can add the rest any time." }),
           h("div", { class: "actions", style: "justify-content:center" }, [
             h("button", { type: "button", "data-testid": "plan-my-fix", text: "Planning a fix", onclick: function () { showAddItem({}); } }),
-            h("button", { type: "button", class: "quiet", "data-testid": "add-reminder", text: "A regular reminder", onclick: function () { showQuickReminder(); } }),
-            h("button", { type: "button", class: "quiet", "data-testid": "starter-pack-open", text: "Start with the basics", onclick: function () { showStarterPack(); } })
+            h("button", { type: "button", class: "quiet", "data-testid": "add-reminder", text: "A regular reminder", onclick: function () { showQuickReminder(); } })
           ])
         ]),
         installCard(),
@@ -3261,10 +3260,7 @@
       h("section", { class: "card hg-rem" }, [
         h("h2", { text: "Need a regular reminder?" }),
         h("p", { class: "hint", text: "Filters, humidifiers, medical device supplies, pet supplies, anything that repeats. Pick a room and how often." }),
-        h("div", { class: "actions", style: "margin-top:0" }, [
-          h("button", { type: "button", "data-testid": "add-reminder", text: "Add a reminder", onclick: function () { showQuickReminder(); } }),
-          !lsGet("oneplace.starter") && state.tasks.length < 4 ? h("button", { type: "button", class: "quiet", "data-testid": "starter-pack-open", text: "Start with the basics", onclick: function () { showStarterPack(); } }) : null
-        ])
+        h("button", { type: "button", "data-testid": "add-reminder", text: "Add a reminder", onclick: function () { showQuickReminder(); } })
       ]),
       h("section", { class: "card hg-rooms", "aria-labelledby": "roomsTitle" }, [
         h("h2", { id: "roomsTitle", text: "Rooms and items" }),
