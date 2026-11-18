@@ -94,6 +94,11 @@ module.exports = async function handler(req, res) {
       delete cfg.thinkingConfig; // this model doesn't allow turning thinking off
       out = await callGemini(cfg);
     }
+    // Busy spikes usually pass within a second or two: try the same model again before giving up on it.
+    for (var tries = 0; tries < 2 && !out.r.ok && out.r.status === 503; tries++) {
+      await new Promise(function (r) { setTimeout(r, 900); });
+      out = await callGemini(cfg);
+    }
     var upstream = out.r, data = out.d;
     console.log("gemini final", model, out.r.status, "ms", Date.now() - t0, out.r.ok ? "ok" : JSON.stringify(data && data.error && data.error.message).slice(0, 300));
     if (!upstream.ok) {
