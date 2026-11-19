@@ -629,6 +629,7 @@
     var nav = $("tabbar"); nav.hidden = !tab; document.body.setAttribute("data-nav", tab ? "1" : "0"); try { if (punchy && punchy.el) punchyPlace(); } catch (e) {}
     [].forEach.call(nav.querySelectorAll("button"), function (b) { if (b.getAttribute("data-tab") === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
     document.body.setAttribute("data-page", app.querySelector("[data-testid=needs-attention]") ? "home" : "other");
+    try { trackScreen(); } catch (e) {}
     $("newTitle").closest("section").hidden = true; // only the main More screen turns this back on
     var again = state.rerender === showHome && state.lastShown === showHome;
     state.lastShown = state.rerender;
@@ -1380,6 +1381,25 @@
     return out;
   }
   var lastVisitLog = 0;
+  // Counts which steps people reach and how the photo AI behaves. Only names and timings are saved: never photos or anything typed.
+  var lastScreen = { name: "", at: 0 };
+  function track(kind, name, extra) {
+    if (state.guest || !state.session) return;
+    extra = extra || {};
+    var row = { kind: kind, name: String(name || "").slice(0, 60) };
+    if (typeof extra.ok === "boolean") row.ok = extra.ok;
+    if (typeof extra.ms === "number") row.ms = Math.max(0, Math.min(599999, Math.round(extra.ms)));
+    if (extra.detail) row.detail = String(extra.detail).slice(0, 200);
+    try { rest("app_events", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(row) }).catch(function () {}); } catch (e) {}
+  }
+  function trackScreen() {
+    var app = $("app"), h1 = app && app.querySelector("h1"), t = h1 ? h1.textContent.trim() : "", name;
+    if (document.body.getAttribute("data-page") === "home") name = "Home";
+    else name = t && Object.prototype.hasOwnProperty.call(DICT, t) ? t : "Other";
+    if (name === lastScreen.name && Date.now() - lastScreen.at < 4000) return;
+    lastScreen = { name: name, at: Date.now() };
+    track("screen", name);
+  }
   function logVisit() {
     if (state.guest || !state.session || Date.now() - lastVisitLog < 30 * 60 * 1000) return;
     lastVisitLog = Date.now();
@@ -1395,8 +1415,29 @@
         h("tbody", {}, rows.map(function (r) { return h("tr", {}, r.map(function (c) { return h("td", { style: "padding:4px 6px;border-bottom:1px solid var(--line)", text: String(c == null ? "" : c) }); })); }))])]);
     }
     function sec(title, node) { return h("section", { class: "card", style: "margin:10px 0" }, [h("h2", { text: title }), node]); }
+    var live = h("div", { "data-testid": "analytics-live" }, [h("p", { class: "hint", text: "Loading live numbers\u2026" })]);
+    function secs(ms) { return ms == null ? "\u2013" : (Math.round(ms / 100) / 10) + "s"; }
+    function ago(ts) { var s = Math.max(0, Math.round((Date.now() - new Date(ts).getTime()) / 1000)); return s < 60 ? s + "s ago" : s < 3600 ? Math.round(s / 60) + "m ago" : s < 86400 ? Math.round(s / 3600) + "h ago" : Math.round(s / 86400) + "d ago"; }
+    function loadLive() {
+      rest("rpc/events_report", { method: "POST", body: "{}" }).then(function (r) {
+        live.textContent = "";
+        var ai = r.ai || {};
+        live.appendChild(h("div", { class: "chips" }, [h("span", { class: "chip", text: r.online_now + " online now" }), h("span", { class: "chip", text: r.events_hour + " actions in the last hour" }), h("span", { class: "chip", text: r.events_total + " actions in all" })]));
+        live.appendChild(sec("Photo AI", h("div", {}, [
+          h("div", { class: "chips" }, [h("span", { class: "chip", text: (ai.calls || 0) + " requests" }), h("span", { class: "chip", text: (ai.failed || 0) + " failed" }), h("span", { class: "chip", text: "avg " + secs(ai.avg_ms) }), h("span", { class: "chip", text: "slowest 1 in 10: " + secs(ai.p90_ms) }), h("span", { class: "chip", text: (ai.slow || 0) + " over 10s" })]),
+          tbl(["Model", "Requests", "Worked", "Avg time"], (r.ai_by_model || []).map(function (m) { return [m.model, m.calls, m.ok, secs(m.avg_ms)]; })),
+          (r.ai_errors || []).length ? tbl(["Recent failures", "Model", "After", "What happened"], r.ai_errors.map(function (e) { return [ago(e.created_at), e.model, secs(e.ms), e.detail]; })) : h("p", { class: "hint", text: "No failures yet." })])));
+        live.appendChild(sec("Where people stay longest", tbl(["Screen", "Views", "Avg seconds", "Longest"], (r.screens || []).map(function (x) { return [x.name, x.views, x.avg_sec, x.max_sec]; }))));
+        live.appendChild(sec("Steps people reach", tbl(["Step", "Times", "People", "Last 24h"], (r.steps || []).map(function (x) { return [x.name, x.total, x.people, x.last_24h]; }))));
+        live.appendChild(sec("Happening now", tbl(["When", "Who", "What"], (r.recent || []).map(function (x) { return [ago(x.created_at), x.who, x.name + (x.kind === "ai" ? (x.ok ? " \u2713 " : " \u2717 ") + secs(x.ms) : "")]; }))));
+        live.appendChild(h("p", { class: "hint", text: "Updates every 15 seconds while this screen is open." }));
+      }).catch(function (err) { live.textContent = ""; live.appendChild(h("p", { class: "hint", text: "Couldn\u2019t load live numbers. " + err.message })); });
+    }
+    loadLive();
+    var liveTimer = setInterval(function () { if (!document.body.contains(live)) { clearInterval(liveTimer); return; } if (document.visibilityState === "visible") loadLive(); }, 15000);
+    box.textContent = ""; box.appendChild(live);
     rest("rpc/analytics", { method: "POST", body: "{}" }).then(function (a) {
-      box.textContent = "";
+
       box.appendChild(h("div", { class: "chips" }, [h("span", { class: "chip", text: a.accounts + " accounts" }), h("span", { class: "chip", text: a.countries.length + " countries" }), h("span", { class: "chip", text: a.languages.length + " languages" })]));
       box.appendChild(sec("Countries", tbl(["Country", "Accounts"], a.countries.map(function (c) { return [c.country, c.accounts]; }))));
       box.appendChild(sec("Languages", tbl(["Language", "Accounts"], a.languages.map(function (c) { return [c.lang, c.accounts]; }))));
@@ -2065,7 +2106,7 @@
     // One completion per task per day, and ignore extra taps while one is saving.
     if (t._saving) return;
     if (t.last_done_on === today && (state.logs || []).some(function (l) { return l.task_id === t.id && l.done_on === today; })) { showToast("Already done today", function () { return Promise.resolve(); }); return; }
-    t._saving = true;
+    t._saving = true; track("step", "task_done");
     var prev = snapshot(t), logId = null, earned = 0, dueKey = t.due_on || today;
     var patch = { last_done_on: today, snoozed_until: null };
     if (t.repeat_days) patch.due_on = addDaysIso(today, Math.min(t.repeat_days, 3650)); else patch.status = "done";
@@ -2730,6 +2771,7 @@
     Object.keys(btns).forEach(function (k) { btns[k].setAttribute("aria-pressed", String(k === kind)); });
     box.setAttribute("data-kind", kind); box.style.display = "";
     var key = item.id + ":" + kind + ":" + countryInfo().code;
+    track("step", "help_" + kind);
     if (state.help[key]) { spec.render(item, box, state.help[key]); return; }
     box.textContent = "";
     var status = h("div", { class: "result", role: "status", text: spec.label });
@@ -3655,7 +3697,7 @@
   // ---- Photo AI (through our own server function; sign-in required) ----
   function callAIWith(model, parts, opts) {
     if (state.guest) return Promise.reject(Object.assign(new Error("The photo helper comes with a free account. Tap More, then Create account, and everything you\u2019ve added comes with you."), { fatal: true }));
-    var ctrl = new AbortController();
+    var ctrl = new AbortController(), t0 = Date.now();
     var timer = setTimeout(function () { ctrl.abort(); }, opts.timeoutMs);
     return ensureFresh().then(function (s) {
       return fetch("/api/gemini", {
@@ -3683,7 +3725,7 @@
         if (!text) throw new Error("The photo AI answered, but with nothing in it.");
         return text;
       });
-    }).then(function (t) { clearTimeout(timer); return t; }, function (e) { clearTimeout(timer); throw e; });
+    }).then(function (t) { clearTimeout(timer); track("ai", model, { ok: true, ms: Date.now() - t0 }); return t; }, function (e) { clearTimeout(timer); track("ai", model, { ok: false, ms: Date.now() - t0, detail: e && e.message }); throw e; });
   }
   // Tries each model in turn; if one is busy or slow, the next one gets a go.
   function callAI(parts, opts) {
@@ -3828,6 +3870,8 @@
       Promise.all(picked.map(function (file) { return downscale(file, 900).then(function (p) { return p; }, function (e) { return { error: e.message }; }); })).then(function (res) {
         var bad = res.filter(function (r) { return r.error; })[0];
         res.filter(function (r) { return !r.error; }).forEach(function (r) { f.files.push(r); });
+        if (res.some(function (r) { return !r.error; })) track("step", "photo_added");
+        if (bad) track("step", "photo_failed", { detail: bad.error });
         drawThumbs();
         photoMsg.className = bad ? "result bad" : "result";
         photoMsg.textContent = bad ? bad.error : (tooMany ? "Only " + MAX_PHOTOS + " photos fit. The rest were left out." : "");
@@ -3860,15 +3904,17 @@
       if (!roomOk()) return;
       f.roomName = f.roomId === "__new" ? f.newRoom : roomName(f.roomId);
       busy(true);
-      var onBackup = false;
+      var onBackup = false, planT0 = Date.now();
+      track("step", "plan_requested");
       status.textContent = "Looking at your item…";
       var slow = setTimeout(function () { if (!onBackup) status.textContent = "Let me think harder about this, one moment…"; }, 6000);
       var parts = [{ text: planPrompt(f) }].concat(f.files.map(function (p) { return { inline_data: { mime_type: "image/jpeg", data: p.base64 } }; }));
       callAI(parts, { timeoutMs: 14000, config: { temperature: 0.2, maxOutputTokens: 2048, responseMimeType: "application/json" },
         onBackup: function () { onBackup = true; status.textContent = "That model is busy. Trying a backup…"; } })
-        .then(parsePlan).then(function (plan) { clearTimeout(slow); f.plan = plan; renderReview(f); })
+        .then(parsePlan).then(function (plan) { clearTimeout(slow); track("step", "plan_shown", { ok: true, ms: Date.now() - planT0 }); f.plan = plan; renderReview(f); })
         .catch(function (err) {
           clearTimeout(slow); busy(false);
+          track("step", "plan_failed", { ok: false, ms: Date.now() - planT0, detail: err.message });
           if (/sign in/i.test(err.message)) { showAuth("signin", err.message); return; }
           fail(err.message + " You can still save the item without a plan.");
         });
@@ -4290,6 +4336,7 @@
       return awardNew(made);
     }).then(function (coins) {
       var kept = tasks.filter(function (t) { return t.accept; }).length;
+      track("step", merged ? "item_merged" : "item_saved");
       state.notice = "Saved! " + fl.name + " is in " + roomName(roomId) + (kept ? ", with " + kept + (kept === 1 ? " reminder." : " reminders.") : ".") + (coins ? " " + coinText(coins) : "");
       state.filter = "all";
       return loadHome().then(function () { if (kept) showNudge(showHome); else showHome(); });
