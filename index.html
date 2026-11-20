@@ -1395,7 +1395,8 @@
   function trackScreen() {
     var app = $("app"), h1 = app && app.querySelector("h1"), t = h1 ? h1.textContent.trim() : "", name;
     if (document.body.getAttribute("data-page") === "home") name = "Home";
-    else name = t && Object.prototype.hasOwnProperty.call(DICT, t) ? t : "Other";
+    else if (t && Object.prototype.hasOwnProperty.call(DICT, t)) name = t;
+    else { var tid = app && app.querySelector("[data-testid]"); name = tid ? "Screen: " + String(tid.getAttribute("data-testid")).slice(0, 40) : "Other"; }
     if (name === lastScreen.name && Date.now() - lastScreen.at < 4000) return;
     lastScreen = { name: name, at: Date.now() };
     track("screen", name);
@@ -1418,6 +1419,23 @@
     var live = h("div", { "data-testid": "analytics-live" }, [h("p", { class: "hint", text: "Loading live numbers\u2026" })]);
     function secs(ms) { return ms == null ? "\u2013" : (Math.round(ms / 100) / 10) + "s"; }
     function ago(ts) { var s = Math.max(0, Math.round((Date.now() - new Date(ts).getTime()) / 1000)); return s < 60 ? s + "s ago" : s < 3600 ? Math.round(s / 60) + "m ago" : s < 86400 ? Math.round(s / 3600) + "h ago" : Math.round(s / 86400) + "d ago"; }
+    function dayKey(ts) { return new Date(ts).toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" }); }
+    function dayLabel(ts) {
+      var k = dayKey(ts), today = dayKey(Date.now()), yest = dayKey(Date.now() - 86400000);
+      var nice = new Date(ts).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/Los_Angeles" });
+      return k === today ? "Today" : k === yest ? "Yesterday \u00b7 " + nice : nice;
+    }
+    // One collapsible block per date. The newest date starts open.
+    function byDate(items, keyOf, labelOf, countText, makeTable) {
+      var groups = [], idx = {};
+      items.forEach(function (x) { var k = keyOf(x); if (!(k in idx)) { idx[k] = groups.length; groups.push({ k: k, label: labelOf(x), rows: [] }); } groups[idx[k]].rows.push(x); });
+      return h("div", {}, groups.map(function (g, i) {
+        var d = h("details", { class: "later", "data-testid": "day-group" }, [h("summary", { text: g.label + " \u00b7 " + countText(g.rows) }), makeTable(g.rows)]);
+        if (i === 0) d.open = true;
+        return d;
+      }));
+    }
+    function clock(ts) { return new Date(ts).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" }); }
     function loadLive() {
       rest("rpc/events_report", { method: "POST", body: "{}" }).then(function (r) {
         live.textContent = "";
@@ -1429,7 +1447,9 @@
           (r.ai_errors || []).length ? tbl(["Recent failures", "Model", "After", "What happened"], r.ai_errors.map(function (e) { return [ago(e.created_at), e.model, secs(e.ms), e.detail]; })) : h("p", { class: "hint", text: "No failures yet." })])));
         live.appendChild(sec("Where people stay longest", tbl(["Screen", "Views", "Avg seconds", "Longest"], (r.screens || []).map(function (x) { return [x.name, x.views, x.avg_sec, x.max_sec]; }))));
         live.appendChild(sec("Steps people reach", tbl(["Step", "Times", "People", "Last 24h"], (r.steps || []).map(function (x) { return [x.name, x.total, x.people, x.last_24h]; }))));
-        live.appendChild(sec("Happening now", tbl(["When", "Who", "What"], (r.recent || []).map(function (x) { return [ago(x.created_at), x.who, x.name + (x.kind === "ai" ? (x.ok ? " \u2713 " : " \u2717 ") + secs(x.ms) : "")]; }))));
+        live.appendChild(sec("Happening now", byDate(r.recent || [], function (x) { return dayKey(x.created_at); }, function (x) { return dayLabel(x.created_at); }, function (rows) { return rows.length + (rows.length === 1 ? " action" : " actions"); }, function (rows) {
+          return tbl(["Time", "Who", "What"], rows.map(function (x) { return [clock(x.created_at), x.who, x.name + (x.kind === "ai" ? (x.ok ? " \u2713 " : " \u2717 ") + secs(x.ms) : "")]; }));
+        })));
         live.appendChild(h("p", { class: "hint", text: "Updates every 15 seconds while this screen is open." }));
       }).catch(function (err) { live.textContent = ""; live.appendChild(h("p", { class: "hint", text: "Couldn\u2019t load live numbers. " + err.message })); });
     }
@@ -1441,7 +1461,9 @@
       box.appendChild(h("div", { class: "chips" }, [h("span", { class: "chip", text: a.accounts + " accounts" }), h("span", { class: "chip", text: a.countries.length + " countries" }), h("span", { class: "chip", text: a.languages.length + " languages" })]));
       box.appendChild(sec("Countries", tbl(["Country", "Accounts"], a.countries.map(function (c) { return [c.country, c.accounts]; }))));
       box.appendChild(sec("Languages", tbl(["Language", "Accounts"], a.languages.map(function (c) { return [c.lang, c.accounts]; }))));
-      box.appendChild(sec("Last 30 days", tbl(["Day", "Accounts", "Visits"], a.daily.map(function (d) { return [d.day, d.accounts, d.visits]; }))));
+      box.appendChild(sec("Last 30 days", byDate(a.daily, function (d) { return String(d.day).slice(0, 7); }, function (d) { return new Date(String(d.day).slice(0, 7) + "-15T12:00:00").toLocaleDateString("en-US", { month: "long", year: "numeric" }); }, function (rows) { var v = rows.reduce(function (n, d) { return n + Number(d.visits || 0); }, 0); return rows.length + (rows.length === 1 ? " day, " : " days, ") + v + (v === 1 ? " visit" : " visits"); }, function (rows) {
+        return tbl(["Day", "Accounts", "Visits"], rows.map(function (d) { return [d.day, d.accounts, d.visits]; }));
+      })));
       box.appendChild(sec("Per account", tbl(["Who", "Visits", "Days", "Last seen", "Lang", "Country"], a.per_account.map(function (x) { return [(x.name ? x.name + " " : "") + "(" + x.email + ")", x.visits, x.days, x.last_seen ? dtl(x.last_seen) : "never", x.lang || "", x.country || ""]; }))));
     }).catch(function (err) { box.textContent = ""; box.appendChild(h("p", { class: "hint", text: "Couldn\u2019t load. " + err.message })); });
     state.backTo = showMore;
