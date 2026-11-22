@@ -483,6 +483,12 @@
       month: "November 2026",
       entries: [
         {
+          date: "Nov 22",
+          title: "Find your item faster",
+          detail: "Plan my fix now starts with the room, then a search box with common things for that room, like Refrigerator in the Kitchen or Toilet in the Bathroom. Add the make, model, year you got it and when you last did upkeep (all optional), and the plan follows that model\u2019s usual maintenance. The photo is optional now.",
+          isNew: true
+        },
+        {
           date: "Nov 11",
           title: "Tap any calendar day, shared homes and every language",
           detail: "Tap any day on the calendar to see everything planned and add your own note. Holidays now switch right away when you change your country. Invite family, a partner or a team to share a home or business under More, then People and sharing. The whole app now speaks 11 languages, with a language picker on the welcome screen, and dates follow your country. Everyone makes a free account first so nothing is ever lost.",
@@ -3767,7 +3773,10 @@
       f.name ? "They say the item is: \"" + f.name + "\". Treat that as certain and do not rename it. Use the photos only for brand, model, year, material and condition." : "They did not name the item. Work out what it is from the photos.",
       f.roomName ? "Room: " + f.roomName + "." : "",
       f.brand || f.model ? "Known so far: " + [f.brand, f.model, f.year].filter(Boolean).join(" ") + "." : "",
-      f.problem ? "What they say is wrong: \"" + f.problem + "\"." : "They did not describe a problem.",
+      f.problem ? "What they say is wrong: \"" + f.problem + "\". Base the repair steps on how this problem is usually fixed for this exact make and model when known." : "They did not describe a problem.",
+      f.brand || f.model ? "Base the upkeep tasks and how often they repeat on the maker\u2019s recommended maintenance for this make and model (its owner\u2019s manual) as far as you reliably know it. If you are not sure about this model, use standard guidance for this kind of item." : "",
+      f.year ? "They got it in " + f.year + "; mention age-related checks only if it is old enough to need them." : "",
+      f.lastCare ? (f.lastCare === "never" ? "They have never done upkeep on it, so routine tasks are overdue: set their first_due_in_days to 7 or less." : "They last did upkeep on it " + f.lastCare + ". Set first_due_in_days so anything overdue comes due within 7 days and the rest follow the usual schedule from then.") : "",
       prefs.lang !== "en" ? "Write every text value of your reply in " + LANG_NAME[prefs.lang] + ". Keep the JSON keys in English." : "",
       "Reply with JSON only, in exactly this shape:",
       "{\"name\": string, \"brand\": string|null, \"model\": string|null, \"year\": number|null, \"plate_visible\": boolean, \"closeup_hint\": string|null, \"summary\": string, \"tasks\": [{\"title\": string, \"detail\": string, \"kind\": \"maintenance\"|\"repair\", \"repeat_days\": number|null, \"first_due_in_days\": number}]}",
@@ -3840,10 +3849,44 @@
   // ---- Add an item: step 1 (what is it?) ----
   var MAX_PHOTOS = 6;
 
+  // Common things that need upkeep or tend to break, grouped by the kind of room.
+  var COMMON_ITEMS = {
+    kitchen: ["Refrigerator", "Dishwasher", "Oven", "Stove / cooktop", "Microwave", "Range hood", "Garbage disposal", "Kitchen faucet", "Ice maker", "Water filter", "Kitchen sink", "Cabinets"],
+    bathroom: ["Toilet", "Shower", "Bathtub", "Bathroom faucet", "Sink drain", "Exhaust fan", "Caulk and grout", "Vanity", "Showerhead", "Towel bar"],
+    bedroom: ["Ceiling fan", "Window", "Blinds", "Closet door", "Smoke alarm", "Air purifier", "Humidifier", "Light fixture", "Mattress", "Carpet"],
+    living: ["Ceiling fan", "TV", "Fireplace", "Window", "Blinds", "Couch", "Carpet", "Light fixture", "Thermostat", "Air purifier"],
+    laundry: ["Washing machine", "Dryer", "Dryer vent", "Laundry sink", "Water shutoff valves", "Iron"],
+    garage: ["Garage door", "Garage door opener", "Water heater", "Freezer", "Water softener", "Workbench tools", "Car"],
+    outdoor: ["Lawn mower", "Gutters", "Sprinklers", "Pool pump", "Pool", "AC unit", "Deck", "Fence", "Grill", "Roof", "Outdoor faucet", "Patio furniture"],
+    utility: ["Furnace", "Water heater", "AC unit", "Air filter", "Sump pump", "Water softener", "Electrical panel", "Dehumidifier"],
+    office: ["Computer", "Printer", "Wi-Fi router", "Desk chair", "Ceiling fan", "Light fixture"],
+    house: ["Smoke & CO alarms", "Air filter", "Thermostat", "Water heater", "Furnace", "AC unit", "Fire extinguisher", "Door locks", "Windows", "Light fixtures"]
+  };
+  var COMMON_ROOMS = ["Kitchen", "Living room", "Bedroom", "Bathroom", "Laundry room", "Garage", "Outside"];
+  var LAST_CARE = [["", "Don\u2019t remember"], ["the last month", "In the last month"], ["1 to 6 months ago", "1\u20136 months ago"], ["6 to 12 months ago", "6\u201312 months ago"], ["over a year ago", "Over a year ago"], ["never", "Never"]];
+  function roomKind(name) {
+    var n = String(name || "").toLowerCase();
+    if (/kitchen|pantry/.test(n)) return "kitchen";
+    if (/bath|toilet|powder|restroom|shower/.test(n)) return "bathroom";
+    if (/laundry/.test(n)) return "laundry";
+    if (/bed|nursery|guest room|kid/.test(n)) return "bedroom";
+    if (/living|family|den|lounge|great room|dining/.test(n)) return "living";
+    if (/garage|shed|workshop/.test(n)) return "garage";
+    if (/yard|outdoor|outside|patio|garden|pool|deck|porch|balcony|lawn|roof/.test(n)) return "outdoor";
+    if (/basement|utility|mechanical|attic|furnace/.test(n)) return "utility";
+    if (/office|study/.test(n)) return "office";
+    return "house";
+  }
+  function allCommonItems() {
+    var seen = {}, out = [];
+    Object.keys(COMMON_ITEMS).forEach(function (k) { COMMON_ITEMS[k].forEach(function (x) { if (!seen[x.toLowerCase()]) { seen[x.toLowerCase()] = 1; out.push(x); } }); });
+    return out.sort();
+  }
+
   function showAddItem(prefill) {
     renderStep1({
       name: prefill.name || "", brand: prefill.brand || "", model: prefill.model || "", year: prefill.year || "",
-      roomId: "", newRoom: "", problem: "", files: [], plan: null, another: !!prefill.name
+      roomId: "", newRoom: "", problem: "", lastCare: "", files: [], plan: null, another: !!prefill.name
     });
   }
 
@@ -3853,15 +3896,50 @@
   }
 
   function renderStep1(f) {
-    var name = h("input", { type: "text", maxlength: "120", value: f.name, placeholder: "e.g. Oven, toilet, stair railing", "data-testid": "add-item-name" });
+    var name = h("input", { type: "search", maxlength: "120", value: f.name, placeholder: "Search, like fridge, toilet, garage door", autocomplete: "off", "data-testid": "add-item-name" });
+    var have = state.rooms.map(function (r) { return normName(r.name); });
+    var extraRooms = COMMON_ROOMS.filter(function (n) { return have.indexOf(normName(n)) < 0; });
     var roomSel = h("select", { "data-testid": "add-item-room" },
       [h("option", { value: "", text: "Choose a room" })]
         .concat(state.rooms.map(function (r) { return h("option", { value: r.id, text: r.name }); }))
+        .concat(extraRooms.length ? [h("optgroup", { label: state.rooms.length ? "Add a room" : "Pick a room" }, extraRooms.map(function (n) { return h("option", { value: "__new:" + n, text: n }); }))] : [])
         .concat([h("option", { value: "__new", text: "+ New room…" })]));
-    roomSel.value = f.roomId;
+    roomSel.value = f.roomId === "__new" && extraRooms.indexOf(f.newRoom) >= 0 ? "__new:" + f.newRoom : f.roomId;
     var newRoom = h("input", { type: "text", maxlength: "60", value: f.newRoom, placeholder: "Room name, like Guest Bathroom", "aria-label": "New room name", style: "margin-top:8px", "data-testid": "add-item-new-room" });
-    function syncRoom() { newRoom.style.display = roomSel.value === "__new" ? "" : "none"; }
+    function pickedRoomName() {
+      var v = roomSel.value;
+      if (v.indexOf("__new:") === 0) return v.slice(6);
+      if (v === "__new") return newRoom.value;
+      return v ? roomName(v) : "";
+    }
+    // Suggestions under the search box: what's common in the chosen room, or matches for what they type.
+    var suggest = h("div", { class: "chips", role: "group", "aria-label": "Common things", "data-testid": "item-suggest", style: "margin-top:8px" });
+    var suggestHint = h("small", {});
+    function drawSuggest() {
+      var q = normName(name.value), list;
+      if (q) {
+        list = allCommonItems().filter(function (x) { var n = normName(x); return n !== q && n.indexOf(q) >= 0; }).slice(0, 8);
+        suggestHint.textContent = list.length ? "Tap one, or keep your own words." : "";
+      } else {
+        var rn = pickedRoomName();
+        list = COMMON_ITEMS[roomKind(rn)].slice(0, 10);
+        suggestHint.textContent = rn ? "Common in " + rn + ". Tap one, or type your own." : "Common things. Pick a room for better ideas.";
+      }
+      suggest.textContent = "";
+      list.forEach(function (x) {
+        suggest.appendChild(h("button", { type: "button", class: "chip", text: x, "data-testid": "item-suggest-chip", onclick: function () { name.value = x; drawSuggest(); name.focus(); } }));
+      });
+      suggest.style.display = list.length ? "" : "none";
+    }
+    name.addEventListener("input", drawSuggest);
+    newRoom.addEventListener("input", drawSuggest);
+    function syncRoom() { newRoom.style.display = roomSel.value === "__new" ? "" : "none"; drawSuggest(); }
     roomSel.addEventListener("change", syncRoom); syncRoom();
+    var brand = h("input", { type: "text", maxlength: "80", value: f.brand, placeholder: "e.g. Whirlpool", "data-testid": "add-item-brand" });
+    var model = h("input", { type: "text", maxlength: "80", value: f.model, placeholder: "Model number", "data-testid": "add-item-model" });
+    var year = h("input", { type: "number", min: "1900", max: "2100", inputmode: "numeric", value: f.year, placeholder: "e.g. 2019", "data-testid": "add-item-year" });
+    var lastCare = h("select", { "data-testid": "add-item-last-care" }, LAST_CARE.map(function (o) { return h("option", { value: o[0], text: o[1] }); }));
+    lastCare.value = f.lastCare || "";
     var problem = h("textarea", { maxlength: "1000", placeholder: "e.g. The oven light is out", "data-testid": "add-item-problem" });
     problem.value = f.problem;
 
@@ -3910,6 +3988,8 @@
     function collect() {
       f.name = name.value.trim(); f.problem = problem.value.trim();
       f.roomId = roomSel.value; f.newRoom = newRoom.value.trim();
+      if (f.roomId.indexOf("__new:") === 0) { f.newRoom = f.roomId.slice(6); f.roomId = "__new"; }
+      f.brand = brand.value.trim(); f.model = model.value.trim(); f.year = year.value.trim(); f.lastCare = lastCare.value;
     }
     function fail(msg) { status.className = "result bad"; status.textContent = msg; }
     function roomOk() {
@@ -3953,12 +4033,16 @@
     state.backTo = showHome;
     view(h("section", { class: "card", "data-testid": "add-item-flow" }, [
       h("h2", { text: f.another ? "Add another " + (f.name || "item").toLowerCase() : "Plan my fix" }),
-      h("p", { class: "hint", text: state.guest ? "Tell me what it is and where it lives. Photos and fix-it plans unlock with a free account." : "Tell me what it is and add a photo or two. I’ll suggest a plan, and you choose what to keep." }),
-      state.guest ? null : h("div", { class: "field" }, [h("span", { text: "1. Add or take a photo (up to 6)" }), h("div", { class: "actions" }, [camLabel, addLabel, camInput, fileInput]), thumbs, count, photoMsg,
+      h("p", { class: "hint", text: state.guest ? "Pick the room, then find the thing. Photos and fix-it plans unlock with a free account." : "Pick the room, then find the thing. Add the make and model if you know them and I\u2019ll match the upkeep to it." }),
+      h("label", { class: "field" }, [h("span", { text: "1. Which room?" }), roomSel, newRoom]),
+      h("div", { class: "field" }, [h("label", { for: "addItemName" }, [h("span", { text: "2. What is it?" })]), (name.id = "addItemName", name), suggest, suggestHint]),
+      h("div", { class: "field", "data-testid": "add-item-details" }, [h("span", { text: "3. Make and model (optional, leave blank if you\u2019re not sure)" }),
+        h("div", { class: "two" }, [h("label", { class: "field" }, [h("span", { text: "Make / brand" }), brand]), h("label", { class: "field" }, [h("span", { text: "Model" }), model])]),
+        h("div", { class: "two" }, [h("label", { class: "field" }, [h("span", { text: "Year you got it" }), year]), h("label", { class: "field" }, [h("span", { text: "Last upkeep" }), lastCare])]),
+        state.guest ? null : h("small", { text: "Tip: the model is usually on a sticker inside the door, on the back or underneath. A photo of it works too." })]),
+      h("label", { class: "field" }, [h("span", { text: "4. What\u2019s wrong? (optional)" }), problem]),
+      state.guest ? null : h("div", { class: "field" }, [h("span", { text: "5. Add or take a photo (optional, up to 6)" }), h("div", { class: "actions" }, [camLabel, addLabel, camInput, fileInput]), thumbs, count, photoMsg,
         h("small", { text: "Include the model plate or label if you can see one." })]),
-      h("label", { class: "field" }, [h("span", { text: state.guest ? "What is it?" : "2. What is it?" }), name]),
-      h("label", { class: "field" }, [h("span", { text: state.guest ? "Which room?" : "3. Which room?" }), roomSel, newRoom]),
-      h("label", { class: "field" }, [h("span", { text: "What’s wrong? (optional)" }), problem]),
       h("div", { class: "actions" }, [planBtn, skipBtn]),
       status
     ]));
