@@ -1,0 +1,72 @@
+Marked done¦Marcado como hecho¦Namarkahang tapos¦已标记为完成¦完了にしました¦완료로 표시했어요¦Als erledigt markiert¦Marqué comme fait¦Tamamlandı olarak işaretlendi¦ทำเครื่องหมายว่าเสร็จแล้ว¦ໝາຍວ່າສຳເລັດແລ້ວ
+✓ Done today¦✓ Hecho hoy¦✓ Tapos ngayong araw¦✓ 今天已完成¦✓ 今日完了¦✓ 오늘 완료¦✓ Heute erledigt¦✓ Fait aujourd’hui¦✓ Bugün tamamlandı¦✓ เสร็จวันนี้¦✓ ສຳເລັດມື້ນີ້
+Snoozed until ¦Pospuesto hasta ¦Na-snooze hanggang ¦已推迟到 ¦スヌーズ：¦다음까지 미룸: ¦Verschoben bis ¦Reporté jusqu’au ¦Şu tarihe ertelendi: ¦เลื่อนเตือนถึง ¦ເລື່ອນຈົນເຖິງ 
+Almost there! We sent a link to ¦¡Casi listo! Enviamos un enlace a ¦Halos tapos na! Nagpadala kami ng link sa ¦快好了！我们已向以下邮箱发送链接：¦もう少しです！リンクを送りました：¦거의 다 됐어요! 링크를 보냈어요: ¦Fast geschafft! Wir haben einen Link gesendet an ¦Presque terminé ! Nous avons envoyé un lien à ¦Neredeyse tamam! Şu adrese bir bağlantı gönderdik: ¦เกือบเสร็จแล้ว! เราส่งลิงก์ไปที่ ¦ເກືອບແລ້ວ! ພວກເຮົາສົ່ງລິ້ງໄປທີ່ 
+Find it on ¦Encontrarlo en ¦Hanapin ito sa ¦在以下查找：¦探す：¦찾아보기: ¦Finden bei ¦Trouver chez ¦Şurada bul: ¦ค้นหาที่ ¦ຄົ້ນຫາທີ່ 
+Reorder on ¦Volver a pedir en ¦Mag-reorder sa ¦重新订购：¦再注文：¦재주문: ¦Nachbestellen bei ¦Recommander chez ¦Yeniden sipariş: ¦สั่งซ้ำที่ ¦ສັ່ງຊ້ຳທີ່ 
+Reorder¦Volver a pedir¦Mag-reorder¦重新订购¦再注文¦재주문¦Nachbestellen¦Recommander¦Yeniden sipariş¦สั่งซ้ำ¦ສັ່ງຊ້ຳ
+This one is worth a ¦Esto merece un ¦Sulit itong kunin ang ¦这个值得找 ¦これは次の業者に頼む価値があります：¦이 일은 다음 전문가를 부를 만해요: ¦Hier lohnt sich ein ¦Ça vaut la peine de faire appel à un ¦Bunun için şu usta çağırmaya değer: ¦งานนี้ควรเรียก ¦ວຽກນີ້ຄວນເອີ້ນ 
+Look for a ¦Busca un ¦Maghanap ng ¦找一位 ¦探す：¦찾아보세요: ¦Suchen Sie einen ¦Cherchez un ¦Şunu arayın: ¦มองหา ¦ຊອກຫາ 
+ if you’d rather not DIY¦ si prefieres no hacerlo tú¦ kung ayaw mong DIY¦ 如果您不想自己动手¦ 自分でやりたくない場合¦ 직접 하기 싫다면¦ , wenn Sie es nicht selbst machen möchten¦ si vous préférez ne pas le faire vous-même¦ kendiniz yapmak istemezseniz¦ หากไม่อยากทำเอง¦ ຖ້າທ່ານບໍ່ຢາກເຮັດເອງ
+Not used through One Place yet¦Aún no usado a través de One Place¦Hindi pa nagagamit sa One Place¦尚未通过 One Place 使用¦One Place ではまだ利用していません¦아직 One Place로 이용하지 않았어요¦Noch nicht über One Place genutzt¦Pas encore utilisé via One Place¦Henüz One Place üzerinden kullanılmadı¦ยังไม่เคยใช้ผ่าน One Place¦ຍັງບໍ່ເຄີຍໃຊ້ຜ່ານ One Place
+Coming soon · you have ¦Próximamente · tienes ¦Malapit na · mayroon kang ¦即将推出 · 您有 ¦近日公開 · 所持コイン：¦곧 출시 · 보유 코인: ¦Demnächst · Sie haben ¦Bientôt · vous avez ¦Çok yakında · şu kadar jetonunuz var: ¦เร็วๆ นี้ · คุณมี ¦ໄວໆນີ້ · ທ່ານມີ 
+Remove ¦Quitar ¦Alisin ang ¦移除 ¦削除： ¦제거: ¦Entfernen: ¦Retirer : ¦Kaldır: ¦ลบออก ¦ເອົາອອກ 
+Delete ¦Eliminar ¦Burahin ang ¦删除 ¦削除： ¦삭제: ¦Löschen: ¦Supprimer : ¦Sil: ¦ลบ ¦ລຶບ 
+Delete room ¦Eliminar habitación ¦Burahin ang kuwarto ¦删除房间 ¦部屋を削除： ¦방 삭제: ¦Raum löschen: ¦Supprimer la pièce : ¦Odayı sil: ¦ลบห้อง ¦ລຶບຫ້ອງ 
+Delete room?¦¿Eliminar habitación?¦Burahin ang kuwarto?¦删除房间？¦部屋を削除しますか？¦방을 삭제할까요?¦Raum löschen?¦Supprimer la pièce ?¦Oda silinsin mi?¦ลบห้องหรือไม่?¦ລຶບຫ້ອງບໍ?
+Delete item?¦¿Eliminar objeto?¦Burahin ang gamit?¦删除物品？¦アイテムを削除しますか？¦물건을 삭제할까요?¦Gegenstand löschen?¦Supprimer l’objet ?¦Eşya silinsin mi?¦ลบสิ่งของหรือไม่?¦ລຶບສິ່ງຂອງບໍ?
+Remove it?¦¿Quitarlo?¦Aalisin ito?¦移除它？¦削除しますか？¦제거할까요?¦Entfernen?¦Le retirer ?¦Kaldırılsın mı?¦ลบออกหรือไม่?¦ເອົາອອກບໍ?
+Item¦Objeto¦Gamit¦物品¦アイテム¦물건¦Gegenstand¦Objet¦Eşya¦สิ่งของ¦ສິ່ງຂອງ
+Room¦Habitación¦Kuwarto¦房间¦部屋¦방¦Raum¦Pièce¦Oda¦ห้อง¦ຫ້ອງ
+Task¦Tarea¦Gawain¦任务¦タスク¦작업¦Aufgabe¦Tâche¦Görev¦งาน¦ວຽກ
+Tasks¦Tareas¦Mga gawain¦任务¦タスク¦작업¦Aufgaben¦Tâches¦Görevler¦งาน¦ວຽກ
+Reminders¦Recordatorios¦Mga paalala¦提醒¦リマインダー¦알림¦Erinnerungen¦Rappels¦Hatırlatmalar¦การเตือน¦ການເຕືອນ
+Reminder¦Recordatorio¦Paalala¦提醒¦リマインダー¦알림¦Erinnerung¦Rappel¦Hatırlatma¦การเตือน¦ການເຕືອນ
+Cancel¦Cancelar¦Kanselahin¦取消¦キャンセル¦취소¦Abbrechen¦Annuler¦İptal¦ยกเลิก¦ຍົກເລີກ
+Close¦Cerrar¦Isara¦关闭¦閉じる¦닫기¦Schließen¦Fermer¦Kapat¦ปิด¦ປິດ
+Delete¦Eliminar¦Burahin¦删除¦削除¦삭제¦Löschen¦Supprimer¦Sil¦ลบ¦ລຶບ
+Edit¦Editar¦I-edit¦编辑¦編集¦수정¦Bearbeiten¦Modifier¦Düzenle¦แก้ไข¦ແກ້ໄຂ
+Done¦Hecho¦Tapos¦完成¦完了¦완료¦Erledigt¦Terminé¦Tamam¦เสร็จ¦ສຳເລັດ
+Yes¦Sí¦Oo¦是¦はい¦예¦Ja¦Oui¦Evet¦ใช่¦ແມ່ນ
+No¦No¦Hindi¦否¦いいえ¦아니요¦Nein¦Non¦Hayır¦ไม่¦ບໍ່
+Search¦Buscar¦Hanapin¦搜索¦検索¦검색¦Suchen¦Rechercher¦Ara¦ค้นหา¦ຄົ້ນຫາ
+Settings¦Ajustes¦Mga setting¦设置¦設定¦설정¦Einstellungen¦Réglages¦Ayarlar¦การตั้งค่า¦ການຕັ້ງຄ່າ
+Month¦Mes¦Buwan¦月¦月¦월¦Monat¦Mois¦Ay¦เดือน¦ເດືອນ
+Week¦Semana¦Linggo¦周¦週¦주¦Woche¦Semaine¦Hafta¦สัปดาห์¦ອາທິດ
+Year¦Año¦Taon¦年¦年¦연¦Jahr¦Année¦Yıl¦ปี¦ປີ
+Today¦Hoy¦Ngayon¦今天¦今日¦오늘¦Heute¦Aujourd’hui¦Bugün¦วันนี้¦ມື້ນີ້
+Overdue¦Vencido¦Overdue¦已逾期¦期限切れ¦기한 지남¦Überfällig¦En retard¦Gecikmiş¦เกินกำหนด¦ເກີນກຳນົດ
+Parts¦Piezas¦Parts¦配件¦部品¦부품¦Teile¦Pièces¦Parçalar¦อะไหล่¦ອະໄຫຼ່
+DIY¦Hazlo tú¦DIY¦自己动手¦DIY¦직접 하기¦Selbermachen¦Bricolage¦Kendin Yap¦ทำเอง¦ເຮັດເອງ
+Big job?¦¿Trabajo grande?¦Malaking trabaho?¦大工程？¦大きな作業？¦큰 작업?¦Großer Auftrag?¦Gros travaux ?¦Büyük iş?¦งานใหญ่?¦ວຽກໃຫຍ່?
+Everyday¦Cotidiano¦Pang-araw-araw¦日常¦日常¦일상¦Alltag¦Quotidien¦Günlük¦ประจำวัน¦ປະຈຳວັນ
+All¦Todo¦Lahat¦全部¦すべて¦전체¦Alle¦Tout¦Tümü¦ทั้งหมด¦ທັງໝົດ
+Other¦Otro¦Iba pa¦其他¦その他¦기타¦Andere¦Autre¦Diğer¦อื่นๆ¦ອື່ນໆ
+Light¦Claro¦Maliwanag¦浅色¦ライト¦라이트¦Hell¦Clair¦Açık¦สว่าง¦ແສງ
+Dark¦Oscuro¦Madilim¦深色¦ダーク¦다크¦Dunkel¦Sombre¦Koyu¦มืด¦ມືດ
+Text size¦Tamaño del texto¦Laki ng teksto¦字号¦文字サイズ¦글자 크기¦Textgröße¦Taille du texte¦Yazı boyutu¦ขนาดตัวอักษร¦ຂະໜາດຕົວອັກສອນ
+Small¦Pequeño¦Maliit¦小¦小¦작게¦Klein¦Petit¦Küçük¦เล็ก¦ນ້ອຍ
+Medium¦Mediano¦Katamtaman¦中¦中¦보통¦Mittel¦Moyen¦Orta¦กลาง¦ກາງ
+Large¦Grande¦Malaki¦大¦大¦크게¦Groß¦Grand¦Büyük¦ใหญ่¦ໃຫຍ່
+Lighting¦Iluminación¦Liwanag¦光线¦明るさ¦밝기¦Beleuchtung¦Luminosité¦Aydınlatma¦แสง¦ແສງ
+Themes¦Temas¦Mga tema¦主题¦テーマ¦테마¦Designs¦Thèmes¦Temalar¦ธีม¦ທີມ
+Notifications¦Notificaciones¦Mga notification¦通知¦通知¦알림¦Benachrichtigungen¦Notifications¦Bildirimler¦การแจ้งเตือน¦ການແຈ້ງເຕືອນ
+Morning reminders on this phone¦Recordatorios por la mañana en este teléfono¦Mga paalala sa umaga sa phone na ito¦在此手机上接收早晨提醒¦このスマホで朝のリマインダー¦이 휴대폰에서 아침 알림 받기¦Morgenerinnerungen auf diesem Handy¦Rappels du matin sur ce téléphone¦Bu telefonda sabah hatırlatmaları¦การเตือนตอนเช้าบนโทรศัพท์เครื่องนี้¦ການເຕືອນຕອນເຊົ້າໃນໂທລະສັບເຄື່ອງນີ້
+Open One Place like an app¦Abre One Place como una app¦Buksan ang One Place na parang app¦像应用一样打开 One Place¦One Place をアプリのように開く¦One Place를 앱처럼 열기¦One Place wie eine App öffnen¦Ouvrez One Place comme une appli¦One Place’i uygulama gibi açın¦เปิด One Place เหมือนแอป¦ເປີດ One Place ຄືແອັບ
+Trusted handymen, mechanics and more¦Manitas, mecánicos y más de confianza¦Mga pinagkakatiwalaang handyman, mekaniko at iba pa¦值得信赖的维修工、机修师等¦信頼できる修理屋さん、整備士など¦믿을 만한 수리공, 정비사 등¦Vertrauenswürdige Handwerker, Mechaniker und mehr¦Bricoleurs, mécaniciens et autres pros de confiance¦Güvenilir tamirciler, motor ustaları ve daha fazlası¦ช่างซ่อม ช่างยนต์ และอื่นๆ ที่ไว้ใจได้¦ຊ່າງແປງ, ຊ່າງເຄື່ອງຈັກ ແລະ ອື່ນໆທີ່ໄວ້ໃຈໄດ້
+Everything you’ve finished, by month¦Todo lo que has terminado, por mes¦Lahat ng natapos mo, ayon sa buwan¦您完成的所有事项，按月显示¦完了したことを月ごとに表示¦끝낸 모든 일을 월별로¦Alles, was Sie erledigt haben, nach Monat¦Tout ce que vous avez terminé, par mois¦Bitirdiğiniz her şey, aya göre¦ทุกสิ่งที่คุณทำเสร็จ แยกตามเดือน¦ທຸກຢ່າງທີ່ທ່ານເຮັດສຳເລັດ ແຍກຕາມເດືອນ
+Theme, lighting, text size, language¦Tema, iluminación, tamaño de texto, idioma¦Tema, liwanag, laki ng teksto, wika¦主题、光线、字号、语言¦テーマ、明るさ、文字サイズ、言語¦테마, 밝기, 글자 크기, 언어¦Design, Beleuchtung, Textgröße, Sprache¦Thème, luminosité, taille du texte, langue¦Tema, aydınlatma, yazı boyutu, dil¦ธีม แสง ขนาดตัวอักษร ภาษา¦ທີມ, ແສງ, ຂະໜາດຕົວອັກສອນ, ພາສາ
+Holidays¦Festivos¦Mga holiday¦节假日¦祝日¦공휴일¦Feiertage¦Jours fériés¦Tatiller¦วันหยุด¦ວັນພັກ
+Rest days: no reminders on holidays¦Días de descanso: sin recordatorios en festivos¦Mga araw ng pahinga: walang paalala tuwing holiday¦休息日：节假日不提醒¦お休みの日：祝日はリマインドしません¦쉬는 날: 공휴일에는 알림 없음¦Ruhetage: keine Erinnerungen an Feiertagen¦Jours de repos : pas de rappels les jours fériés¦Dinlenme günleri: tatillerde hatırlatma yok¦วันพัก: ไม่มีการเตือนในวันหยุด¦ວັນພັກ: ບໍ່ມີການເຕືອນໃນວັນພັກ
+Country and area¦País y zona¦Bansa at lugar¦国家和地区¦国とエリア¦국가 및 지역¦Land und Region¦Pays et zone¦Ülke ve bölge¦ประเทศและพื้นที่¦ປະເທດ ແລະ ເຂດ
+Used for local stores and prices¦Se usa para tiendas y precios locales¦Ginagamit para sa mga lokal na tindahan at presyo¦用于本地商店和价格¦地域の店舗や価格に使います¦지역 매장과 가격에 사용돼요¦Wird für lokale Shops und Preise verwendet¦Utilisé pour les magasins et prix locaux¦Yerel mağazalar ve fiyatlar için kullanılır¦ใช้สำหรับร้านค้าและราคาในพื้นที่¦ໃຊ້ສຳລັບຮ້ານຄ້າ ແລະ ລາຄາໃນທ້ອງຖິ່ນ
+Help¦Ayuda¦Tulong¦帮助¦ヘルプ¦도움말¦Hilfe¦Aide¦Yardım¦ความช่วยเหลือ¦ຄວາມຊ່ວຍເຫຼືອ
+How One Place thinks, and a quick check-up¦Cómo piensa One Place y una revisión rápida¦Paano mag-isip ang One Place at mabilis na check-up¦One Place 的设计理念与快速检查¦One Place の考え方と簡単なチェック¦One Place의 철학과 간단한 점검¦Wie One Place denkt, und ein kurzer Check¦Comment pense One Place et un bilan rapide¦One Place nasıl düşünür ve hızlı bir kontrol¦แนวคิดของ One Place และการตรวจสอบสั้นๆ¦ແນວຄິດຂອງ One Place ແລະ ການກວດສອບສັ້ນໆ
+Feedback and invites¦Comentarios e invitaciones¦Feedback at mga imbitasyon¦反馈与邀请¦フィードバックと招待¦피드백과 초대¦Feedback und Einladungen¦Commentaires et invitations¦Geri bildirim ve davetler¦ความคิดเห็นและคำเชิญ¦ຄຳຕິຊົມ ແລະ ຄຳເຊີນ
+Tell us what you think, bring a friend¦Cuéntanos qué piensas, trae a un amigo¦Sabihin sa amin ang iniisip mo, magsama ng kaibigan¦告诉我们您的想法，邀请朋友¦ご意見をお聞かせください。お友だちもぜひ¦생각을 알려 주시고 친구도 초대하세요¦Sagen Sie uns Ihre Meinung, bringen Sie einen Freund mit¦Dites-nous ce que vous en pensez, invitez un ami¦Ne düşündüğünüzü söyleyin, bir arkadaşınızı getirin¦บอกเราว่าคุณคิดอย่างไร ชวนเพื่อนมาด้วย¦ບອກພວກເຮົາວ່າທ່ານຄິດແນວໃດ ຊວນໝູ່ມານຳ
+Your data¦Tus datos¦Ang data mo¦您的数据¦あなたのデータ¦내 데이터¦Ihre Daten¦Vos données¦Verileriniz¦ข้อมูลของคุณ¦ຂໍ້ມູນຂອງທ່ານ
+Download a copy or delete your account¦Descarga una copia o elimina tu cuenta¦Mag-download ng kopya o burahin ang account mo¦下载副本或删除账户¦コピーをダウンロード、またはアカウントを削除¦사본 다운로드 또는 계정 삭제¦Kopie herunterladen oder Konto löschen¦Télécharger une copie ou supprimer votre compte¦Bir kopya indirin veya hesabınızı silin¦ดาวน์โหลดสำเนาหรือลบบัญชีของคุณ¦ດາວໂຫຼດສຳເນົາ ຫຼື ລຶບບັນຊີຂອງທ່ານ
+Leave guest mode¦Salir del modo invitado¦Umalis sa guest mode¦退出访客模式¦ゲストモードを終了¦게스트 모드 종료¦Gastmodus verlassen¦Quitter le mode invité¦Misafir modundan çık¦ออกจากโหมดผู้เยี่ยมชม¦ອອກຈາກໂໝດຜູ້ເຂົ້າຊົມ
+Coming soon · you have¦Próximamente · tienes¦Malapit na · mayroon kang¦即将推出 · 您有¦近日公開 · 所持コイン：¦곧 출시 · 보유 코인:¦Demnächst · Sie haben¦Bientôt · vous avez¦Çok yakında · şu kadar jetonunuz var:¦เร็วๆ นี้ · คุณมี¦ໄວໆນີ້ · ທ່ານມີ
+What’s New!¦¡Novedades!¦Mga Bago!¦新功能！¦新着情報！¦새 소식!¦Neuigkeiten!¦Nouveautés !¦Yenilikler!¦มีอะไรใหม่!¦ມີຫຍັງໃໝ່!
+November 2026¦noviembre de 2026¦Nobyembre 2026¦2026年11月¦2026年11月¦2026년 11월¦November 2026¦novembre 2026¦Kasım 2026¦พฤศจิกายน 2026¦ພະຈິກ 2026

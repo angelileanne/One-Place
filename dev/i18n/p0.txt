@@ -1,0 +1,16 @@
+Email¦Correo electrónico¦Email¦电子邮件¦メール¦이메일¦E-Mail¦E-mail¦E-posta¦อีเมล¦ອີເມວ
+Calendar¦Calendario¦Kalendaryo¦日历¦カレンダー¦캘린더¦Kalender¦Calendrier¦Takvim¦ปฏิทิน¦ປະຕິທິນ
+Needs attention this month¦Requiere atención este mes¦Kailangang asikasuhin ngayong buwan¦本月需要处理¦今月の要対応¦이번 달 확인할 일¦Diesen Monat zu erledigen¦À traiter ce mois-ci¦Bu ay ilgilenilmesi gerekenler¦ต้องดูแลในเดือนนี้¦ຕ້ອງເບິ່ງແຍງໃນເດືອນນີ້
+Make it yours¦Hazlo tuyo¦Gawing sa iyo¦个性化¦自分好みに¦나에게 맞게¦Nach deinem Geschmack¦Personnaliser¦Sana göre ayarla¦ปรับให้เป็นของคุณ¦ປັບແຕ່ງຕາມໃຈ
+Smaller¦Más pequeño¦Mas maliit¦更小¦小さく¦더 작게¦Kleiner¦Plus petit¦Daha küçük¦เล็กลง¦ນ້ອຍລົງ
+Normal¦Normal¦Normal¦正常¦標準¦보통¦Normal¦Normal¦Normal¦ปกติ¦ປະກະຕິ
+Bigger¦Más grande¦Mas malaki¦更大¦大きく¦더 크게¦Größer¦Plus grand¦Daha büyük¦ใหญ่ขึ้น¦ໃຫຍ່ຂຶ້ນ
+Biggest¦Lo más grande¦Pinakamalaki¦最大¦最大¦가장 크게¦Am größten¦Le plus grand¦En büyük¦ใหญ่ที่สุด¦ໃຫຍ່ທີ່ສຸດ
+What’s new¦Novedades¦Ano’ng bago¦新功能¦新着情報¦새로운 소식¦Neuigkeiten¦Nouveautés¦Yenilikler¦มีอะไรใหม่¦ມີຫຍັງໃໝ່
+Connections¦Conexiones¦Mga koneksyon¦连接¦接続¦연결¦Verbindungen¦Connexions¦Bağlantılar¦การเชื่อมต่อ¦ການເຊື່ອມຕໍ່
+Idea¦Idea¦Ideya¦想法¦アイデア¦아이디어¦Idee¦Idée¦Fikir¦ไอเดีย¦ແນວຄິດ
+Something broke¦Algo falló¦May nasira¦出问题了¦不具合¦문제가 생겼어요¦Etwas ist kaputt¦Quelque chose a cassé¦Bir şey bozuldu¦มีบางอย่างเสีย¦ມີບາງຍ່າງເພ
+Love it¦Me encanta¦Gusto ko ito¦太喜欢了¦大好き¦너무 좋아요¦Gefällt mir¦J’adore¦Bayıldım¦ชอบมาก¦ມັກຫຼາຍ
+Question¦Pregunta¦Tanong¦问题¦質問¦질문¦Frage¦Question¦Soru¦คำถาม¦ຄຳຖາມ
+Home¦Casa¦Bahay¦家¦自宅¦집¦Zuhause¦Maison¦Ev¦บ้าน¦ບ້ານ
+Business¦Negocio¦Negosyo¦企业¦事業所¦사업장¦Geschäft¦Entreprise¦İşletme¦ธุรกิจ¦ທຸລະກິດ

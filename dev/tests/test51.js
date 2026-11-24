@@ -1,0 +1,12 @@
+const { chromium, devices } = require('playwright'); const fs=require('fs');
+(async()=>{const b=await chromium.launch();const c=await b.newContext({...devices['iPhone 13']});const p=await c.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.route('http://app.test/',r=>r.fulfill({status:200,contentType:'text/html',body:fs.readFileSync(__dirname+'/../../index.html','utf8')}));await p.route(/fonts\./,r=>r.abort());
+await p.addInitScript(()=>{const pid='guest-1';const items=[];['Fridge','Oven','Dishwasher','Sink','Microwave'].forEach((n,i)=>items.push({id:'k'+i,profile_id:pid,room_id:'r1',name:n}));['Tub','Fan','Heater'].forEach((n,i)=>items.push({id:'b'+i,profile_id:pid,room_id:'r2',name:n}));
+localStorage.setItem('oneplace.guest',JSON.stringify({profile:{id:pid,kind:'home',tenure:'owner',name:'My place',country:'US'},actions:0,nextAsk:99,tables:{rooms:[{id:'r1',profile_id:pid,name:'Kitchen',sort_order:0},{id:'r2',profile_id:pid,name:'Bathroom',sort_order:1}],items,maintenance_tasks:[],maintenance_logs:[],parts:[],entries:[]}}));localStorage.setItem('oneplace.welcomed','1');});
+await p.goto('http://app.test/');await p.waitForSelector('[data-testid=punchy]');await p.waitForTimeout(600);
+await p.locator('[data-testid=room-group]').first().scrollIntoViewIfNeeded();await p.evaluate(()=>window.scrollBy(0,150));
+await p.locator('details.item').filter({hasText:'Sink'}).locator('summary').first().click({position:{x:120,y:12}});
+const y0=await p.evaluate(()=>scrollY);
+const d=p.locator('details.item').filter({hasText:'Oven'}).locator('[data-testid=delete-btn]');await d.click({force:true});await d.click({force:true});await p.waitForTimeout(400);
+console.log('scroll before/after',y0,await p.evaluate(()=>scrollY),'sink open',await p.locator('details.item',{hasText:'Sink'}).evaluate(e=>e.open));
+await p.screenshot({path:'t51.png'});console.log('errors',errs);await b.close();})();

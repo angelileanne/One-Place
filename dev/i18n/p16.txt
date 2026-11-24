@@ -1,0 +1,5 @@
+Co-owner¦Copropietario¦Co-owner¦共同所有者¦共同オーナー¦공동 소유자¦Mitinhaber¦Copropriétaire¦Ortak sahip¦เจ้าของร่วม¦ເຈົ້າຂອງຮ່ວມ
+Invited as co-owner¦Invitado como copropietario¦Inimbitahan bilang co-owner¦已邀请为共同所有者¦共同オーナーとして招待済み¦공동 소유자로 초대됨¦Als Mitinhaber eingeladen¦Invité comme copropriétaire¦Ortak sahip olarak davet edildi¦เชิญเป็นเจ้าของร่วมแล้ว¦ເຊີນເປັນເຈົ້າຂອງຮ່ວມແລ້ວ
+Make co-owner¦Hacer copropietario¦Gawing co-owner¦设为共同所有者¦共同オーナーにする¦공동 소유자로 지정¦Zum Mitinhaber machen¦Passer copropriétaire¦Ortak sahip yap¦ตั้งเป็นเจ้าของร่วม¦ຕັ້ງເປັນເຈົ້າຂອງຮ່ວມ
+Make regular member¦Hacer miembro normal¦Gawing regular na miyembro¦设为普通成员¦通常メンバーにする¦일반 구성원으로 변경¦Zum normalen Mitglied machen¦Passer membre normal¦Normal üye yap¦ตั้งเป็นสมาชิกทั่วไป¦ຕັ້ງເປັນສະມາຊິກທົ່ວໄປ
+Couldn’t change. ¦No se pudo cambiar. ¦Hindi mabago. ¦无法更改。¦変更できませんでした。¦변경하지 못했어요. ¦Konnte nicht geändert werden. ¦Impossible de modifier. ¦Değiştirilemedi. ¦เปลี่ยนไม่สำเร็จ ¦ປ່ຽນບໍ່ສຳເລັດ 

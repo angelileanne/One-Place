@@ -1,0 +1,21 @@
+Upkeep¦Mantenimiento¦Pagpapanatili¦保养¦メンテナンス¦정기 관리¦Wartung¦Entretien¦Bakım¦การบำรุงรักษา¦ການບຳລຸງຮັກສາ
+Repair¦Reparación¦Pagkukumpuni¦维修¦修理¦수리¦Reparatur¦Réparation¦Onarım¦ซ่อมแซม¦ສ້ອມແປງ
+Suggestion¦Sugerencia¦Mungkahi¦建议¦提案¦제안¦Vorschlag¦Suggestion¦Öneri¦ข้อเสนอแนะ¦ຄຳແນະນຳ
+one time¦una vez¦minsan lang¦一次性¦1回のみ¦한 번¦einmalig¦une fois¦tek seferlik¦ครั้งเดียว¦ເທື່ອດຽວ
+weekly¦semanal¦lingguhan¦每周¦毎週¦매주¦wöchentlich¦hebdomadaire¦haftalık¦ทุกสัปดาห์¦ທຸກອາທິດ
+monthly¦mensual¦buwanan¦每月¦毎月¦매월¦monatlich¦mensuel¦aylık¦ทุกเดือน¦ທຸກເດືອນ
+yearly¦anual¦taunan¦每年¦毎年¦매년¦jährlich¦annuel¦yıllık¦ทุกปี¦ທຸກປີ
+due ¦vence: ¦due: ¦到期：¦期日：¦기한: ¦fällig: ¦échéance : ¦vade: ¦ครบกำหนด: ¦ຄົບກຳນົດ: 
+snoozed until ¦pospuesto hasta ¦na-snooze hanggang ¦已推迟到 ¦スヌーズ：¦다음까지 미룸: ¦verschoben bis ¦reporté jusqu’au ¦şu tarihe ertelendi: ¦เลื่อนเตือนถึง ¦ເລື່ອນຈົນເຖິງ 
+next due ¦próximo vencimiento: ¦susunod na due: ¦下次到期：¦次の期日：¦다음 기한: ¦nächste Fälligkeit: ¦prochaine échéance : ¦sonraki vade: ¦ครบกำหนดครั้งถัดไป: ¦ຄົບກຳນົດຄັ້ງຕໍ່ໄປ: 
+Last replaced ¦Último reemplazo: ¦Huling pinalitan: ¦上次更换：¦前回の交換：¦마지막 교체: ¦Zuletzt ersetzt: ¦Dernier remplacement : ¦Son değiştirme: ¦เปลี่ยนล่าสุด: ¦ປ່ຽນຄັ້ງລ່າສຸດ: 
+added ¦añadido ¦idinagdag ¦添加于 ¦追加： ¦추가: ¦hinzugefügt ¦ajouté ¦eklendi: ¦เพิ่มเมื่อ ¦ເພີ່ມເມື່ອ 
+Type a room name first.¦Escribe primero el nombre de una habitación.¦Maglagay muna ng pangalan ng kuwarto.¦请先输入房间名称。¦先に部屋の名前を入力してください。¦먼저 방 이름을 입력하세요.¦Geben Sie zuerst einen Raumnamen ein.¦Saisissez d’abord un nom de pièce.¦Önce bir oda adı yazın.¦พิมพ์ชื่อห้องก่อน¦ພິມຊື່ຫ້ອງກ່ອນ
+Main¦Principal¦Pangunahin¦主导航¦メイン¦메인¦Hauptnavigation¦Principal¦Ana menü¦เมนูหลัก¦ເມນູຫຼັກ
+Calendar view¦Vista del calendario¦Tanaw ng kalendaryo¦日历视图¦カレンダー表示¦캘린더 보기¦Kalenderansicht¦Vue du calendrier¦Takvim görünümü¦มุมมองปฏิทิน¦ມຸມມອງປະຕິທິນ
+Tell me what it is and where it lives. Photos and fix-it plans unlock with a free account.¦Dime qué es y dónde está. Las fotos y los planes de arreglo se desbloquean con una cuenta gratuita.¦Sabihin mo kung ano ito at nasaan. Mabubuksan ang mga litrato at plano sa pag-aayos sa libreng account.¦告诉我它是什么、放在哪里。注册免费账户后可使用照片和维修方案。¦何なのか、どこにあるのかを教えてください。写真や修理プランは無料アカウントで使えます。¦무엇이고 어디에 있는지 알려 주세요. 사진과 수리 계획은 무료 계정에서 사용할 수 있어요.¦Sagen Sie mir, was es ist und wo es steht. Fotos und Reparaturpläne gibt es mit einem kostenlosen Konto.¦Dites-moi ce que c’est et où ça se trouve. Les photos et les plans de réparation se débloquent avec un compte gratuit.¦Ne olduğunu ve nerede durduğunu söyleyin. Fotoğraflar ve onarım planları ücretsiz hesapla açılır.¦บอกฉันว่าเป็นอะไรและอยู่ที่ไหน รูปภาพและแผนซ่อมจะใช้ได้เมื่อมีบัญชีฟรี¦ບອກຂ້ອຍວ່າແມ່ນຫຍັງ ແລະ ຢູ່ໃສ. ຮູບພາບ ແລະ ແຜນສ້ອມແປງໃຊ້ໄດ້ດ້ວຍບັນຊີຟຣີ
+All done! Finished ones are in More, then Completed Tasks.¦¡Todo listo! Las terminadas están en Más, luego Tareas completadas.¦Tapos na lahat! Ang mga natapos ay nasa Higit pa, tapos Mga Natapos na Gawain.¦全部完成！已完成的在“更多”→“已完成任务”中。¦すべて完了！完了したものは「もっと見る」の「完了したタスク」にあります。¦모두 끝났어요! 끝낸 작업은 더보기 → 완료된 작업에 있어요.¦Alles erledigt! Erledigte finden Sie unter Mehr, dann Erledigte Aufgaben.¦Tout est fait ! Les tâches terminées sont dans Plus, puis Tâches terminées.¦Hepsi bitti! Tamamlananlar Daha Fazla bölümünde, Tamamlanan Görevler altında.¦เสร็จหมดแล้ว! งานที่เสร็จอยู่ใน เพิ่มเติม แล้วเลือก งานที่เสร็จแล้ว¦ສຳເລັດໝົດແລ້ວ! ວຽກທີ່ສຳເລັດຢູ່ໃນ ເພີ່ມເຕີມ ແລ້ວ ວຽກທີ່ສຳເລັດ
+Vehicles¦Vehículos¦Mga sasakyan¦车辆¦乗り物¦차량¦Fahrzeuge¦Araçlar¦Araçlar¦ยานพาหนะ¦ພາຫະນະ
+Phones¦Teléfonos¦Mga telepono¦手机¦スマホ¦휴대폰¦Handys¦Téléphones¦Telefonlar¦โทรศัพท์¦ໂທລະສັບ
+Pets¦Mascotas¦Mga alagang hayop¦宠物¦ペット¦반려동물¦Haustiere¦Animaux¦Evcil hayvanlar¦สัตว์เลี้ยง¦ສັດລ້ຽງ
+Printing¦Impresión¦Pag-print¦打印¦印刷¦인쇄¦Drucken¦Impression¦Yazdırma¦การพิมพ์¦ການພິມ
