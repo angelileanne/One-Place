@@ -52,7 +52,7 @@ One Place is her own app to keep her husband, family and friends organized: a ho
 ## Testing
 - Tests live in `dev/tests/` (Playwright with Chromium). They load the local `index.html` with fake data, so they do not touch real accounts. Run one with `node dev/tests/test51.js` from the repo root (Playwright must be installed; `npm i playwright` if missing).
   - `test51` and `test77`: home/desk layout and general regression.
-  - `test79`: general flows. `test81`: Punchy fit on iPhone sizes. `test82`: duplicate items and tasks.
+  - `test79`: general flows. `test81`: Punchy fit on iPhone sizes. `test82`: duplicate items and tasks. `test83`: show/hide password eye.
 - Always also click through the changed screen on a phone-sized viewport.
 
 ## Open to-dos
