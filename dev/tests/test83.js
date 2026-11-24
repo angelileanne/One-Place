@@ -40,8 +40,12 @@ const shots = process.env.SHOTS || '';
     ok(T.rooms.some(r => r.name === 'Kitchen'), dev + ' Kitchen room created');
     ok(T.maintenance_tasks.filter(t => t.status === 'active').length === 2, dev + ' 2 reminders saved');
 
+    // "+ Add an item" inside a room in Rooms and items goes straight to that room's list
+    ok((await p.$$('.hg-rooms [data-testid=room-setup-start]')).length === 1, dev + ' Set up by room button inside Rooms and items');
+    await p.click('[data-testid=room-group]:has-text("Kitchen") [data-testid=room-add-item]');
+    await p.waitForSelector('[data-testid=room-items]');
+    ok((await p.textContent('[data-testid=room-items] h2')) === 'Kitchen', dev + ' room "+ Add an item" opens that room');
     // An item that is not on the list
-    await p.click('[data-testid=room-setup-start]'); await p.click('[data-testid=rs-room]:has-text("Kitchen")');
     await p.fill('[data-testid=rs-search]', 'Espresso machine');
     ok(await p.isVisible('[data-testid=rs-own]'), dev + ' can use a typed item');
     await p.click('[data-testid=rs-own]'); await p.click('[data-testid=rs-save]'); await p.waitForTimeout(1000);
