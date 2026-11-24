@@ -1,0 +1,2 @@
+Show password¦Mostrar contraseña¦Ipakita ang password¦显示密码¦パスワードを表示¦비밀번호 표시¦Passwort anzeigen¦Afficher le mot de passe¦Şifreyi göster¦แสดงรหัสผ่าน¦ສະແດງລະຫັດຜ່ານ
+Hide password¦Ocultar contraseña¦Itago ang password¦隐藏密码¦パスワードを隠す¦비밀번호 숨기기¦Passwort verbergen¦Masquer le mot de passe¦Şifreyi gizle¦ซ่อนรหัสผ่าน¦ເຊື່ອງລະຫັດຜ່ານ
