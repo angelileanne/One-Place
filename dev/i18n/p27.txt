@@ -1,0 +1,62 @@
+Door¦Puerta¦Pinto¦门¦ドア¦문¦Tür¦Porte¦Kapı¦ประตู¦ປະຕູ
+Tighten hinges and oil the lock¦Aprieta las bisagras y lubrica la cerradura¦Higpitan ang bisagra at langisan ang kandado¦拧紧铰链并给门锁上油¦蝶番を締めて鍵に注油¦경첩 조이고 자물쇠에 기름칠¦Scharniere festziehen und Schloss ölen¦Resserrer les charnières et huiler la serrure¦Menteşeleri sık ve kilidi yağla¦ขันบานพับและหยอดน้ำมันกุญแจ¦ຂັນບານພັບ ແລະ ຢອດນ້ຳມັນກະແຈ
+Window¦Ventana¦Bintana¦窗户¦窓¦창문¦Fenster¦Fenêtre¦Pencere¦หน้าต่าง¦ປ່ອງຢ້ຽມ
+Clean the tracks and check the seals¦Limpia los rieles y revisa los sellos¦Linisin ang riles at tingnan ang mga seal¦清洁滑轨并检查密封条¦レールを掃除してパッキンを確認¦레일 청소하고 실링 확인¦Schienen reinigen und Dichtungen prüfen¦Nettoyer les rails et vérifier les joints¦Rayları temizle ve contaları kontrol et¦ทำความสะอาดรางและตรวจขอบยาง¦ທຳຄວາມສະອາດຮາງ ແລະ ກວດຂອບຢາງ
+Blinds¦Persianas¦Blinds¦百叶窗¦ブラインド¦블라인드¦Jalousien¦Stores¦Jaluzi¦มู่ลี่¦ມູ່ລີ່
+Dust the slats¦Quita el polvo de las lamas¦Punasan ang mga slat¦擦拭叶片灰尘¦羽根のほこりを取る¦날개 먼지 닦기¦Lamellen abstauben¦Dépoussiérer les lames¦Lamellerin tozunu al¦ปัดฝุ่นใบมู่ลี่¦ປັດຝຸ່ນໃບມູ່ລີ່
+Check the cords and tilt wand¦Revisa los cordones y la varilla¦Tingnan ang mga tali at tilt wand¦检查拉绳和调节杆¦コードと調整棒を確認¦줄과 조절봉 확인¦Schnüre und Wendestab prüfen¦Vérifier les cordons et la tige¦İpleri ve çubuğu kontrol et¦ตรวจเชือกและก้านปรับ¦ກວດເຊືອກ ແລະ ກ້ານປັບ
+Curtains¦Cortinas¦Kurtina¦窗帘¦カーテン¦커튼¦Vorhänge¦Rideaux¦Perdeler¦ผ้าม่าน¦ຜ້າມ່ານ
+Wash or vacuum the curtains¦Lava o aspira las cortinas¦Labhan o i-vacuum ang kurtina¦清洗或吸尘窗帘¦カーテンを洗うか掃除機をかける¦커튼 세탁 또는 청소기¦Vorhänge waschen oder absaugen¦Laver ou aspirer les rideaux¦Perdeleri yıka veya süpür¦ซักหรือดูดฝุ่นผ้าม่าน¦ຊັກ ຫຼື ດູດຝຸ່ນຜ້າມ່ານ
+Light fixture¦Lámpara¦Ilaw¦灯具¦照明器具¦조명¦Leuchte¦Luminaire¦Aydınlatma¦โคมไฟ¦ໂຄມໄຟ
+Dust and check the bulbs¦Quita el polvo y revisa los focos¦Punasan at tingnan ang mga bumbilya¦除尘并检查灯泡¦ほこりを取って電球を確認¦먼지 닦고 전구 확인¦Abstauben und Glühbirnen prüfen¦Dépoussiérer et vérifier les ampoules¦Tozunu al ve ampulleri kontrol et¦ปัดฝุ่นและตรวจหลอดไฟ¦ປັດຝຸ່ນ ແລະ ກວດຫຼອດໄຟ
+Outlets and switches¦Enchufes e interruptores¦Saksakan at switch¦插座和开关¦コンセントとスイッチ¦콘센트와 스위치¦Steckdosen und Schalter¦Prises et interrupteurs¦Prizler ve anahtarlar¦ปลั๊กและสวิตช์¦ປລັກ ແລະ ສະວິດ
+Test the GFCI outlets¦Prueba los enchufes GFCI¦Subukan ang mga GFCI outlet¦测试漏电保护插座¦漏電遮断コンセントをテスト¦누전 차단 콘센트 테스트¦FI-Steckdosen testen¦Tester les prises différentielles¦Kaçak akım prizlerini test et¦ทดสอบปลั๊กกันไฟดูด¦ທົດສອບປລັກກັນໄຟຊັອດ
+Replace the batteries¦Cambia las pilas¦Palitan ang baterya¦更换电池¦電池を交換¦배터리 교체¦Batterien wechseln¦Changer les piles¦Pilleri değiştir¦เปลี่ยนแบตเตอรี่¦ປ່ຽນແບັດເຕີຣີ
+Carpet¦Alfombra¦Karpet¦地毯¦カーペット¦카펫¦Teppich¦Moquette¦Halı¦พรม¦ພົມ
+Deep clean the carpet¦Limpia a fondo la alfombra¦Linisin nang husto ang karpet¦深度清洁地毯¦カーペットをしっかり掃除¦카펫 대청소¦Teppich gründlich reinigen¦Nettoyer la moquette à fond¦Halıyı iyice temizle¦ทำความสะอาดพรมอย่างละเอียด¦ທຳຄວາມສະອາດພົມໃຫ້ລະອຽດ
+Air purifier¦Purificador de aire¦Air purifier¦空气净化器¦空気清浄機¦공기청정기¦Luftreiniger¦Purificateur d’air¦Hava temizleyici¦เครื่องฟอกอากาศ¦ເຄື່ອງຟອກອາກາດ
+Kitchen sink¦Fregadero¦Lababo sa kusina¦厨房水槽¦キッチンシンク¦주방 싱크대¦Spüle¦Évier¦Mutfak lavabosu¦ซิงก์ล้างจาน¦ອ່າງລ້າງຈານ
+Check under the sink for leaks¦Revisa si hay fugas bajo el fregadero¦Tingnan kung may tagas sa ilalim ng lababo¦检查水槽下方是否漏水¦シンク下の水漏れを確認¦싱크대 아래 누수 확인¦Unter der Spüle auf Lecks prüfen¦Vérifier les fuites sous l’évier¦Lavabonun altında sızıntı kontrolü yap¦ตรวจรอยรั่วใต้ซิงก์¦ກວດບ່ອນຮົ່ວກ້ອງອ່າງ
+Coffee maker¦Cafetera¦Coffee maker¦咖啡机¦コーヒーメーカー¦커피메이커¦Kaffeemaschine¦Cafetière¦Kahve makinesi¦เครื่องชงกาแฟ¦ເຄື່ອງຊົງກາເຟ
+Descale the coffee maker¦Descalcifica la cafetera¦Alisin ang kaliskis sa coffee maker¦给咖啡机除垢¦コーヒーメーカーの水垢を取る¦커피메이커 석회 제거¦Kaffeemaschine entkalken¦Détartrer la cafetière¦Kahve makinesinin kirecini al¦ล้างคราบหินปูนเครื่องชงกาแฟ¦ລ້າງຄາບຫີນປູນເຄື່ອງຊົງກາເຟ
+Bed frame¦Base de la cama¦Kama¦床架¦ベッドフレーム¦침대 프레임¦Bettgestell¦Cadre de lit¦Karyola¦โครงเตียง¦ໂຄງຕຽງ
+Tighten the bolts¦Aprieta los tornillos¦Higpitan ang mga turnilyo¦拧紧螺栓¦ボルトを締める¦볼트 조이기¦Schrauben nachziehen¦Resserrer les boulons¦Cıvataları sık¦ขันน็อตให้แน่น¦ຂັນນັອດໃຫ້ແໜ້ນ
+Thermostat¦Termostato¦Thermostat¦温控器¦サーモスタット¦온도 조절기¦Thermostat¦Thermostat¦Termostat¦เทอร์โมสตัท¦ເທີໂມສະແຕັດ
+Couch¦Sofá¦Sopa¦沙发¦ソファ¦소파¦Sofa¦Canapé¦Kanepe¦โซฟา¦ໂຊຟາ
+Vacuum and flip the cushions¦Aspira y voltea los cojines¦I-vacuum at baligtarin ang mga unan¦吸尘并翻转坐垫¦掃除機をかけてクッションを裏返す¦청소기 돌리고 쿠션 뒤집기¦Absaugen und Kissen wenden¦Aspirer et retourner les coussins¦Süpür ve minderleri çevir¦ดูดฝุ่นและกลับเบาะ¦ດູດຝຸ່ນ ແລະ ປີ້ນເບາະ
+Bathtub¦Bañera¦Bathtub¦浴缸¦浴槽¦욕조¦Badewanne¦Baignoire¦Küvet¦อ่างอาบน้ำ¦ອ່າງອາບນ້ຳ
+Bathroom sink¦Lavabo¦Lababo sa banyo¦浴室水槽¦洗面台¦세면대¦Waschbecken¦Lavabo¦Banyo lavabosu¦อ่างล้างหน้า¦ອ່າງລ້າງໜ້າ
+Clean the faucet aerator¦Limpia el aireador del grifo¦Linisin ang aerator ng gripo¦清洁水龙头起泡器¦蛇口の泡沫器を掃除¦수도꼭지 에어레이터 청소¦Perlator reinigen¦Nettoyer l’aérateur du robinet¦Musluk perlatörünü temizle¦ทำความสะอาดหัวก๊อก¦ທຳຄວາມສະອາດຫົວກ໊ອກ
+Clean out the vent duct¦Limpia el ducto de ventilación¦Linisin ang vent duct¦清洁排气管¦排気ダクトを掃除¦배기 덕트 청소¦Abluftschlauch reinigen¦Nettoyer la gaine d’évacuation¦Hava kanalını temizle¦ทำความสะอาดท่อระบาย¦ທຳຄວາມສະອາດທໍ່ລະບາຍ
+Water softener¦Descalcificador¦Water softener¦软水器¦軟水器¦연수기¦Wasserenthärter¦Adoucisseur d’eau¦Su yumuşatıcı¦เครื่องกรองน้ำอ่อน¦ເຄື່ອງເຮັດນ້ຳອ່ອນ
+Add salt¦Añade sal¦Magdagdag ng asin¦添加盐¦塩を補充¦소금 보충¦Salz nachfüllen¦Ajouter du sel¦Tuz ekle¦เติมเกลือ¦ເຕີມເກືອ
+Bike¦Bicicleta¦Bisikleta¦自行车¦自転車¦자전거¦Fahrrad¦Vélo¦Bisiklet¦จักรยาน¦ລົດຖີບ
+Pump the tires and oil the chain¦Infla las llantas y lubrica la cadena¦Bombahin ang gulong at langisan ang kadena¦给轮胎打气并给链条上油¦タイヤに空気を入れてチェーンに注油¦타이어 공기 넣고 체인에 기름칠¦Reifen aufpumpen und Kette ölen¦Gonfler les pneus et huiler la chaîne¦Lastikleri şişir ve zinciri yağla¦สูบลมยางและหยอดน้ำมันโซ่¦ສູບລົມຢາງ ແລະ ຢອດນ້ຳມັນໂສ້
+Roof¦Techo¦Bubong¦屋顶¦屋根¦지붕¦Dach¦Toit¦Çatı¦หลังคา¦ຫຼັງຄາ
+Check for missing shingles¦Revisa si faltan tejas¦Tingnan kung may nawawalang shingle¦检查是否缺瓦¦屋根材の欠けを確認¦빠진 지붕널 확인¦Auf fehlende Schindeln prüfen¦Vérifier les bardeaux manquants¦Eksik kiremit kontrolü yap¦ตรวจกระเบื้องหลังคาที่หลุด¦ກວດກະເບື້ອງຫຼັງຄາທີ່ຫຼຸດ
+Lawn¦Césped¦Damuhan¦草坪¦芝生¦잔디¦Rasen¦Pelouse¦Çim¦สนามหญ้า¦ສະໜາມຫຍ້າ
+Fertilize the lawn¦Abona el césped¦Lagyan ng pataba ang damuhan¦给草坪施肥¦芝生に肥料をまく¦잔디에 비료 주기¦Rasen düngen¦Fertiliser la pelouse¦Çimi gübrele¦ใส่ปุ๋ยสนามหญ้า¦ໃສ່ຝຸ່ນສະໜາມຫຍ້າ
+Trees and shrubs¦Árboles y arbustos¦Puno at halaman¦树木和灌木¦木と低木¦나무와 관목¦Bäume und Sträucher¦Arbres et arbustes¦Ağaçlar ve çalılar¦ต้นไม้และพุ่มไม้¦ຕົ້ນໄມ້ ແລະ ພຸ່ມໄມ້
+Trim the trees and shrubs¦Poda árboles y arbustos¦Putulan ang mga puno at halaman¦修剪树木和灌木¦木と低木を剪定¦나무와 관목 다듬기¦Bäume und Sträucher schneiden¦Tailler les arbres et arbustes¦Ağaçları ve çalıları buda¦ตัดแต่งต้นไม้และพุ่มไม้¦ຕັດແຕ່ງຕົ້ນໄມ້ ແລະ ພຸ່ມໄມ້
+Fence¦Cerca¦Bakod¦围栏¦フェンス¦울타리¦Zaun¦Clôture¦Çit¦รั้ว¦ຮົ້ວ
+Check for loose boards¦Revisa si hay tablas sueltas¦Tingnan kung may maluwag na tabla¦检查是否有松动的木板¦緩んだ板を確認¦헐거운 판자 확인¦Auf lose Bretter prüfen¦Vérifier les planches mal fixées¦Gevşek tahta kontrolü yap¦ตรวจไม้ที่หลวม¦ກວດໄມ້ທີ່ຫຼວມ
+Driveway¦Entrada de autos¦Daanan ng kotse¦车道¦私道¦진입로¦Einfahrt¦Allée¦Garaj yolu¦ทางรถเข้า¦ທາງລົດເຂົ້າ
+Seal the cracks¦Sella las grietas¦Takpan ang mga bitak¦密封裂缝¦ひび割れを埋める¦균열 메우기¦Risse versiegeln¦Colmater les fissures¦Çatlakları kapat¦อุดรอยร้าว¦ອຸດຮອຍແຕກ
+Outdoor lights¦Luces exteriores¦Ilaw sa labas¦户外灯¦屋外照明¦실외 조명¦Außenbeleuchtung¦Éclairage extérieur¦Dış ışıklar¦ไฟนอกบ้าน¦ໄຟນອກເຮືອນ
+Check the bulbs and timers¦Revisa los focos y temporizadores¦Tingnan ang mga bumbilya at timer¦检查灯泡和定时器¦電球とタイマーを確認¦전구와 타이머 확인¦Birnen und Zeitschaltuhren prüfen¦Vérifier les ampoules et minuteries¦Ampulleri ve zamanlayıcıları kontrol et¦ตรวจหลอดไฟและตัวตั้งเวลา¦ກວດຫຼອດໄຟ ແລະ ໂຕຕັ້ງເວລາ
+Doorbell camera¦Timbre con cámara¦Doorbell camera¦门铃摄像头¦カメラ付きドアホン¦초인종 카메라¦Video-Türklingel¦Sonnette vidéo¦Kameralı kapı zili¦กริ่งประตูกล้อง¦ກະດິ່ງປະຕູກ້ອງ
+Charge or change the battery¦Carga o cambia la batería¦I-charge o palitan ang baterya¦充电或更换电池¦充電または電池交換¦충전 또는 배터리 교체¦Akku laden oder wechseln¦Recharger ou changer la batterie¦Pili şarj et veya değiştir¦ชาร์จหรือเปลี่ยนแบตเตอรี่¦ສາກ ຫຼື ປ່ຽນແບັດເຕີຣີ
+Patio furniture¦Muebles de patio¦Muwebles sa labas¦庭院家具¦ガーデン家具¦야외 가구¦Gartenmöbel¦Mobilier de jardin¦Bahçe mobilyası¦เฟอร์นิเจอร์นอกบ้าน¦ເຟີນິເຈີນອກເຮືອນ
+Clean and cover for winter¦Limpia y cubre para el invierno¦Linisin at takpan para sa taglamig¦清洁并盖好过冬¦掃除して冬用カバーをかける¦청소하고 겨울용 덮개 씌우기¦Reinigen und für den Winter abdecken¦Nettoyer et couvrir pour l’hiver¦Temizle ve kış için ört¦ทำความสะอาดและคลุมไว้ช่วงหนาว¦ທຳຄວາມສະອາດ ແລະ ປົກໄວ້ລະດູໜາວ
+Pool¦Piscina¦Pool¦泳池¦プール¦수영장¦Pool¦Piscine¦Havuz¦สระว่ายน้ำ¦ສະລອຍນ້ຳ
+Check the water chemistry¦Revisa la química del agua¦Tingnan ang kemikal ng tubig¦检查水质¦水質を確認¦수질 확인¦Wasserwerte prüfen¦Vérifier l’équilibre de l’eau¦Su değerlerini kontrol et¦ตรวจค่าน้ำ¦ກວດຄ່ານ້ຳ
+From other rooms¦De otras habitaciones¦Mula sa ibang kuwarto¦来自其他房间¦ほかの部屋から¦다른 방에서¦Aus anderen Räumen¦Dans d’autres pièces¦Diğer odalardan¦จากห้องอื่น¦ຈາກຫ້ອງອື່ນ
+Which one is it?¦¿Cuál es?¦Alin dito?¦是哪一个？¦どれですか？¦어느 것인가요?¦Welches ist es?¦Lequel est-ce ?¦Hangisi?¦อันไหน¦ອັນໃດ?
+None of these¦Ninguno de estos¦Wala sa mga ito¦都不是¦どれでもない¦해당 없음¦Nichts davon¦Aucun de ceux-ci¦Hiçbiri¦ไม่ใช่สักอัน¦ບໍ່ແມ່ນຈັກອັນ
+No problem. Type what it is in the search above.¦No pasa nada. Escribe qué es en la búsqueda de arriba.¦Okay lang. I-type kung ano ito sa search sa itaas.¦没关系。在上面的搜索框输入它是什么。¦大丈夫です。上の検索に名前を入力してください。¦괜찮아요. 위 검색창에 입력하세요.¦Kein Problem. Gib oben in der Suche ein, was es ist.¦Pas de souci. Tapez ce que c’est dans la recherche ci-dessus.¦Sorun değil. Ne olduğunu yukarıdaki aramaya yaz.¦ไม่เป็นไร พิมพ์ชื่อในช่องค้นหาด้านบน¦ບໍ່ເປັນຫຍັງ ພິມຊື່ໃນຊ່ອງຊອກຫາດ້ານເທິງ
+Not sure what it’s called?¦¿No sabes cómo se llama?¦Hindi sigurado sa pangalan?¦不知道叫什么？¦名前がわからない？¦이름을 모르세요?¦Weißt du nicht, wie es heißt?¦Vous ne savez pas comment ça s’appelle ?¦Adını bilmiyor musun?¦ไม่แน่ใจว่าเรียกว่าอะไร¦ບໍ່ແນ່ໃຈວ່າເອີ້ນວ່າຫຍັງ?
+Choose a photo¦Elegir una foto¦Pumili ng litrato¦选择照片¦写真を選ぶ¦사진 선택¦Foto auswählen¦Choisir une photo¦Fotoğraf seç¦เลือกรูป¦ເລືອກຮູບ
+Snap it and I’ll show you what it might be, so you can pick.¦Tómale una foto y te muestro qué podría ser para que elijas.¦Kunan ito ng litrato at ipapakita ko kung ano ito, para makapili ka.¦拍一张，我会列出它可能是什么，供你选择。¦撮ると、何か候補を出すので選べます。¦사진을 찍으면 무엇인지 후보를 보여 드릴게요. 골라 주세요.¦Mach ein Foto, und ich zeige dir, was es sein könnte, damit du wählen kannst.¦Prenez-le en photo et je vous montre ce que ça pourrait être, pour que vous choisissiez.¦Fotoğrafını çek, ne olabileceğini göstereyim, sen seç.¦ถ่ายรูปไว้ แล้วจะแสดงว่าน่าจะเป็นอะไรให้เลือก¦ຖ່າຍຮູບໄວ້ ແລ້ວຈະສະແດງວ່າອາດເປັນຫຍັງໃຫ້ເລືອກ
+If you know it¦Si lo sabes¦Kung alam mo¦如果知道的话¦わかれば¦알고 있다면¦Falls bekannt¦Si vous le savez¦Biliyorsan¦ถ้ารู้¦ຖ້າຮູ້
+Finding its regular care…¦Buscando su cuidado regular…¦Hinahanap ang regular na pag-aalaga…¦正在查找日常保养…¦定期の手入れを探しています…¦정기 관리를 찾는 중…¦Suche die regelmäßige Pflege…¦Recherche de l’entretien régulier…¦Düzenli bakımı aranıyor…¦กำลังหาการดูแลประจำ…¦ກຳລັງຊອກຫາການດູແລປະຈຳ…
+I couldn’t tell what that is. Try a closer photo, or type it in the search.¦No pude saber qué es. Prueba una foto más cercana o escríbelo en la búsqueda.¦Hindi ko matukoy kung ano iyon. Subukan ang mas malapit na litrato, o i-type sa search.¦我看不出那是什么。试试拍近一点，或在搜索中输入。¦何か判断できませんでした。もっと近くで撮るか、検索に入力してください。¦무엇인지 알 수 없었어요. 더 가까이 찍거나 검색에 입력해 보세요.¦Ich konnte nicht erkennen, was das ist. Versuch ein näheres Foto oder gib es in der Suche ein.¦Je n’ai pas pu dire ce que c’est. Essayez une photo plus proche ou tapez-le dans la recherche.¦Ne olduğunu anlayamadım. Daha yakın bir fotoğraf dene veya aramaya yaz.¦บอกไม่ได้ว่าคืออะไร ลองถ่ายใกล้ขึ้น หรือพิมพ์ในช่องค้นหา¦ບອກບໍ່ໄດ້ວ່າແມ່ນຫຍັງ ລອງຖ່າຍໃກ້ຂຶ້ນ ຫຼື ພິມໃນຊ່ອງຊອກຫາ
